@@ -249,7 +249,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         </div>
 
         {/* Top row: rating | photo arch | side cursive */}
-        <div className="mt-1 grid grid-cols-[68px_1fr_68px] items-start gap-1">
+        <div className="mt-1 grid grid-cols-[58px_1fr_58px] items-start gap-1.5">
           {/* LEFT: rating + stars + heart + cursive */}
           <div className="flex flex-col items-center">
             <div
@@ -287,9 +287,9 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
           {/* CENTER: arched photo with gold border */}
           <div
-            className="relative mx-auto h-[208px] w-full overflow-hidden"
+            className="relative mx-auto h-[222px] w-full overflow-hidden"
             style={{
-              borderRadius: "108px 108px 14px 14px",
+              borderRadius: "114px 114px 16px 16px",
               border: `2.5px solid ${theme.photoBorder}`,
               background: theme.photoBg,
               boxShadow: `inset 0 0 0 1.5px ${theme.frameInkSoft}, 0 8px 22px -8px rgba(0,0,0,0.22)`,
@@ -506,7 +506,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         </div>
 
         {/* Footer signature */}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto pt-1">
           <div
             className="text-center text-[10px] font-extrabold uppercase tracking-[0.34em]"
             style={{ color: theme.accentDeep }}
