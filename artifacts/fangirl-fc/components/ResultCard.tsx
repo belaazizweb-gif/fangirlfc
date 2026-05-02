@@ -152,6 +152,12 @@ export function ResultCard({ identity, compareToId }: Props) {
                 </li>
               ))}
             </ul>
+            <div
+              className="mt-4 text-xs font-extrabold uppercase tracking-[0.2em]"
+              style={{ color: identity.colors.accent, opacity: 0.95 }}
+            >
+              → {identity.shareTrigger}
+            </div>
           </div>
         </div>
       </div>

@@ -15,11 +15,11 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Matchday Energy", value: "UNSTABLE" },
     ],
     vibes: [
-      "screams at the TV like they can hear me",
-      "celebrates goals that get cancelled",
-      "ruins everyone's mood when we lose",
+      "screams at the TV like the players can hear me",
+      "celebrates a goal then realises it's offside",
+      "group chat goes silent when we lose",
     ],
-    shareTrigger: "tag your loudest friend",
+    shareTrigger: "tag your loudest friend 📣",
     colors: {
       bg: "from-purple-700 via-fuchsia-600 to-pink-500",
       accent: "#facc15",
@@ -40,11 +40,11 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Missed Matches", value: "0" },
     ],
     vibes: [
-      "defends my team even when we're wrong",
-      "argues with rival fans I've never met",
-      "never misses a match, ever",
+      "defends my team when even my friends call them trash",
+      "argues with rival fans I've never met online",
+      "never misses a match — birthdays included",
     ],
-    shareTrigger: "tag your ride or die",
+    shareTrigger: "tag your ride or die 👑",
     colors: {
       bg: "from-amber-300 via-yellow-400 to-rose-200",
       accent: "#1f2937",
@@ -55,7 +55,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "soft",
     title: "Soft Fan",
     emoji: "🌸",
-    slogan: "I said I wouldn't care. I lied to myself.",
+    slogan: "I said I wouldn't care. I lied.",
     description:
       "You swore you weren't into football. Then they lost on penalties and you cried on the bathroom floor. We see you.",
     rarity: "Sweet tier · 1 in 9 fans",
@@ -65,11 +65,11 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Stress Level", value: "CUTE" },
     ],
     vibes: [
-      "said I didn't care, then cried alone after the loss",
+      "said \"I don't care\" then cried in my friend's car",
+      "texts \"are you okay?\" to the group chat after a loss",
       "pretends she's chill, refreshes the score every 30 seconds",
-      "tells the group chat she's fine — she's not fine",
     ],
-    shareTrigger: "this is literally me 😭",
+    shareTrigger: "send this to your bestie 🌸",
     colors: {
       bg: "from-pink-200 via-rose-200 to-violet-200",
       accent: "#be185d",
@@ -90,11 +90,11 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Vibes", value: "IMMACULATE" },
     ],
     vibes: [
-      "cares more about her outfit than the score",
+      "spends more time on the outfit than the lineup",
       "posts more stories than goals scored",
-      "here for vibes, drama, and memories",
+      "friends ask the score, I send a selfie",
     ],
-    shareTrigger: "which one are you?",
+    shareTrigger: "tag a princess 💅",
     colors: {
       bg: "from-fuchsia-400 via-pink-300 to-amber-200",
       accent: "#7c1d6f",
@@ -115,11 +115,11 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Tears", value: "GUARANTEED" },
     ],
     vibes: [
-      "starts screaming at minute 88 like it's the end of the world",
-      "the neighbours know every player on my team by name",
-      "lost my voice three times this season and would do it again",
+      "starts screaming at minute 88 like the world's ending",
+      "the neighbours and the group chat have me muted",
+      "lost my voice three times this season — no regrets",
     ],
-    shareTrigger: "tag your screamer bestie",
+    shareTrigger: "this is you 😂",
     colors: {
       bg: "from-red-500 via-orange-400 to-yellow-300",
       accent: "#ffffff",
@@ -144,7 +144,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       "called the formation change before the manager did",
       "mutes the group chat when they say 'but he was open'",
     ],
-    shareTrigger: "tag a tactical girl",
+    shareTrigger: "tag a tactical girl 🧠",
     colors: {
       bg: "from-slate-900 via-indigo-900 to-fuchsia-800",
       accent: "#fbbf24",

@@ -319,6 +319,14 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         >
           “{identity.slogan}”
         </p>
+
+        {/* CTA: short shareable line that begs to be sent */}
+        <div
+          className="mt-2 text-[10.5px] font-extrabold uppercase tracking-[0.18em]"
+          style={{ color: theme.accent, opacity: 0.95 }}
+        >
+          → {identity.shareTrigger}
+        </div>
       </div>
     </div>
   );
