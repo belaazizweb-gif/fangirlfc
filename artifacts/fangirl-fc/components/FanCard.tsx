@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
+import { Crown, Heart, Sparkles } from "lucide-react";
 import type {
   FanIdentity,
   SelfieAdjust,
@@ -23,16 +24,97 @@ const CARD_W = 360;
 const CARD_H = 640;
 const DEFAULT_ADJUST: SelfieAdjust = { fit: "portrait", zoom: 1 };
 
+const FONT_SERIF =
+  "var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif";
+const FONT_SCRIPT =
+  "var(--font-dancing), 'Dancing Script', 'Brush Script MT', cursive";
+
 type Theme = {
   bg: string;
-  photoBg: string;
+  frameInk: string;
+  frameInkSoft: string;
+  accent: string;
+  accentDeep: string;
   text: string;
   textMuted: string;
-  accent: string;
-  accentInk: string;
-  ambient: string;
-  crowdShadow: string;
-  light: boolean;
+  photoBg: string;
+  photoBorder: string;
+  sparkle: string;
+};
+
+const THEMES: Record<string, Theme> = {
+  princess: {
+    bg: "linear-gradient(165deg, #ffe4ec 0%, #ffd1dc 45%, #ffe9d6 100%)",
+    frameInk: "#c79454",
+    frameInkSoft: "#ecd0a0",
+    accent: "#d6336c",
+    accentDeep: "#7a1330",
+    text: "#7a1330",
+    textMuted: "rgba(122,19,48,0.72)",
+    photoBg: "#fff5f5",
+    photoBorder: "#c79454",
+    sparkle: "#d4a574",
+  },
+  soft: {
+    bg: "linear-gradient(165deg, #fff0f6 0%, #f9d6e5 45%, #ead6f5 100%)",
+    frameInk: "#b88a55",
+    frameInkSoft: "#e6c994",
+    accent: "#be185d",
+    accentDeep: "#5e0d2f",
+    text: "#5e0d2f",
+    textMuted: "rgba(94,13,47,0.72)",
+    photoBg: "#fff5fa",
+    photoBorder: "#b88a55",
+    sparkle: "#d4a574",
+  },
+  chaotic: {
+    bg: "linear-gradient(165deg, #fce4ff 0%, #e9c2ff 45%, #ffd9ec 100%)",
+    frameInk: "#a06b3a",
+    frameInkSoft: "#dab07a",
+    accent: "#9333ea",
+    accentDeep: "#3a0a55",
+    text: "#3a0a55",
+    textMuted: "rgba(58,10,85,0.72)",
+    photoBg: "#fce8ff",
+    photoBorder: "#a06b3a",
+    sparkle: "#c89a5e",
+  },
+  loyal: {
+    bg: "linear-gradient(165deg, #fff4d6 0%, #ffe4a8 45%, #ffd9c0 100%)",
+    frameInk: "#8a5a1a",
+    frameInkSoft: "#d4a574",
+    accent: "#b45309",
+    accentDeep: "#3b1e05",
+    text: "#3b1e05",
+    textMuted: "rgba(59,30,5,0.72)",
+    photoBg: "#fff8e6",
+    photoBorder: "#8a5a1a",
+    sparkle: "#b88a3a",
+  },
+  screamer: {
+    bg: "linear-gradient(165deg, #ffe4d6 0%, #ffc6c0 45%, #ffd1dc 100%)",
+    frameInk: "#a85a2a",
+    frameInkSoft: "#d4a574",
+    accent: "#c2410c",
+    accentDeep: "#5e1a0a",
+    text: "#5e1a0a",
+    textMuted: "rgba(94,26,10,0.72)",
+    photoBg: "#fff0e8",
+    photoBorder: "#a85a2a",
+    sparkle: "#c89a5e",
+  },
+  tactical: {
+    bg: "linear-gradient(165deg, #e0e8ff 0%, #c8d4f0 45%, #e8d4f0 100%)",
+    frameInk: "#5a4a7a",
+    frameInkSoft: "#9b8ab8",
+    accent: "#4338ca",
+    accentDeep: "#1e1747",
+    text: "#1e1747",
+    textMuted: "rgba(30,23,71,0.72)",
+    photoBg: "#eef2ff",
+    photoBorder: "#5a4a7a",
+    sparkle: "#9b8ab8",
+  },
 };
 
 const TEMPLATE_TO_THEME: Record<string, string> = {
@@ -44,117 +126,54 @@ const TEMPLATE_TO_THEME: Record<string, string> = {
   "tactical-girl": "tactical",
 };
 
-const THEMES: Record<string, Theme> = {
-  chaotic: {
-    bg: "linear-gradient(170deg, #160628 0%, #2c0a52 55%, #1a0735 100%)",
-    photoBg: "#0d0420",
-    text: "#ffffff",
-    textMuted: "rgba(255,255,255,0.78)",
-    accent: "#ff5cc4",
-    accentInk: "#1a0735",
-    ambient: "rgba(255, 92, 196, 0.34)",
-    crowdShadow: "rgba(0,0,0,0.55)",
-    light: false,
-  },
-  loyal: {
-    bg: "linear-gradient(170deg, #050505 0%, #1a1306 55%, #0a0905 100%)",
-    photoBg: "#000000",
-    text: "#fde68a",
-    textMuted: "rgba(253,230,138,0.78)",
-    accent: "#facc15",
-    accentInk: "#0a0905",
-    ambient: "rgba(250, 204, 21, 0.30)",
-    crowdShadow: "rgba(0,0,0,0.6)",
-    light: false,
-  },
-  soft: {
-    bg: "linear-gradient(170deg, #fff5f9 0%, #fce7f3 50%, #f5d0fe 100%)",
-    photoBg: "#fdf2f8",
-    text: "#831843",
-    textMuted: "rgba(131,24,67,0.78)",
-    accent: "#db2777",
-    accentInk: "#ffffff",
-    ambient: "rgba(219, 39, 119, 0.18)",
-    crowdShadow: "rgba(131,24,67,0.32)",
-    light: true,
-  },
-  princess: {
-    bg: "linear-gradient(170deg, #fff1f2 0%, #ffd1dc 50%, #fecaca 100%)",
-    photoBg: "#fff5f5",
-    text: "#881337",
-    textMuted: "rgba(136,19,55,0.78)",
-    accent: "#e11d48",
-    accentInk: "#ffffff",
-    ambient: "rgba(225, 29, 72, 0.20)",
-    crowdShadow: "rgba(136,19,55,0.32)",
-    light: true,
-  },
-  screamer: {
-    bg: "linear-gradient(170deg, #1a0908 0%, #5a1810 55%, #2c0d07 100%)",
-    photoBg: "#0d0302",
-    text: "#fed7aa",
-    textMuted: "rgba(254,215,170,0.80)",
-    accent: "#fb923c",
-    accentInk: "#1a0908",
-    ambient: "rgba(251, 146, 60, 0.34)",
-    crowdShadow: "rgba(0,0,0,0.6)",
-    light: false,
-  },
-  tactical: {
-    bg: "linear-gradient(170deg, #050b18 0%, #0c1a30 55%, #050b18 100%)",
-    photoBg: "#020610",
-    text: "#e0f7ff",
-    textMuted: "rgba(224,247,255,0.78)",
-    accent: "#22d3ee",
-    accentInk: "#020610",
-    ambient: "rgba(34, 211, 238, 0.28)",
-    crowdShadow: "rgba(0,0,0,0.6)",
-    light: false,
-  },
-};
-
 function getTheme(templateId: string, identityId: string): Theme {
   const fromTemplate = TEMPLATE_TO_THEME[templateId];
-  return THEMES[fromTemplate ?? identityId] ?? THEMES.chaotic!;
+  return THEMES[fromTemplate ?? identityId] ?? THEMES.princess!;
 }
 
-function fitToCss(fit: SelfieFit): {
-  objectFit: "cover" | "contain";
-  objectPosition: string;
-} {
+function fitToCss(fit: SelfieFit) {
   switch (fit) {
     case "fit":
-      return { objectFit: "contain", objectPosition: "center" };
+      return { objectFit: "contain" as const, objectPosition: "center" };
     case "portrait":
-      return { objectFit: "cover", objectPosition: "50% 22%" };
+      return { objectFit: "cover" as const, objectPosition: "50% 22%" };
     case "fill":
-      return { objectFit: "cover", objectPosition: "center" };
+      return { objectFit: "cover" as const, objectPosition: "center" };
   }
 }
 
 function pickTitleSize(title: string): number {
   const len = title.length;
-  if (len <= 9) return 60;
-  if (len <= 12) return 54;
-  if (len <= 15) return 46;
-  return 40;
+  if (len <= 9) return 28;
+  if (len <= 12) return 24;
+  if (len <= 16) return 20;
+  return 18;
+}
+
+function ratingFromStars(stars: number): number {
+  const clamped = Math.max(0, Math.min(5, stars));
+  return Math.round(75 + (clamped / 5) * 24);
 }
 
 export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
   {
     identity,
     team,
-    template,
     displayName,
     selfieUrl,
+    stars,
+    template,
     selfieAdjust = DEFAULT_ADJUST,
   },
   ref,
 ) {
   const theme = getTheme(template.id, identity.id);
   const css = fitToCss(selfieAdjust.fit);
-  const big = identity.title.toUpperCase();
-  const titleSize = pickTitleSize(big);
+  const rating = ratingFromStars(stars);
+  const titleSize = pickTitleSize(identity.title);
+  const handle = displayName
+    ? `@${displayName.toLowerCase().replace(/\s+/g, "")}`
+    : "@FANGIRL.FC";
 
   return (
     <div
@@ -163,171 +182,376 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         width: CARD_W,
         height: CARD_H,
         background: theme.bg,
-        color: theme.text,
         boxShadow:
-          "0 30px 80px -30px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.06)",
+          "0 30px 80px -30px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255,255,255,0.5)",
       }}
-      className="relative overflow-hidden rounded-[36px]"
+      className="relative overflow-hidden rounded-[28px]"
     >
-      {/* Floodlight halos from top corners */}
+      {/* Background sparkle pattern */}
+      <SparklePattern color={theme.sparkle} />
+
+      {/* Outer ornate gold frame (double line) */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-[10px] rounded-[22px]"
         style={{
-          background: `radial-gradient(ellipse 70% 45% at 12% -8%, ${theme.ambient}, transparent 65%), radial-gradient(ellipse 70% 45% at 88% -8%, ${theme.ambient}, transparent 65%)`,
+          border: `2px solid ${theme.frameInk}`,
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-[15px] rounded-[18px]"
+        style={{
+          border: `1px solid ${theme.frameInkSoft}`,
         }}
       />
 
-      {/* Subtle vertical jersey-stripe texture */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage: theme.light
-            ? "repeating-linear-gradient(90deg, rgba(0,0,0,0.022) 0 22px, transparent 22px 44px)"
-            : "repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 22px, transparent 22px 44px)",
-        }}
-      />
+      {/* Corner ornaments */}
+      <CornerOrnament position="tl" color={theme.frameInk} />
+      <CornerOrnament position="tr" color={theme.frameInk} />
+      <CornerOrnament position="bl" color={theme.frameInk} />
+      <CornerOrnament position="br" color={theme.frameInk} />
 
-      <div className="relative flex h-full flex-col px-6 pb-6 pt-5">
-        {/* TOP: thin meta + BIG title */}
-        <div
-          className="flex items-center justify-between text-[9.5px] font-bold uppercase tracking-[0.32em]"
-          style={{ color: theme.accent, opacity: 0.9 }}
-        >
-          <span>Fangirl FC · 26</span>
-          <span className="max-w-[55%] truncate">
-            {team.flag} {team.name}
-          </span>
-        </div>
+      {/* Decorative butterflies */}
+      <Butterfly className="absolute right-3.5 top-16 h-7 w-7 opacity-60" color={theme.frameInk} />
+      <Butterfly className="absolute bottom-24 left-3 h-6 w-6 -scale-x-100 opacity-50" color={theme.frameInk} />
 
-        <h2
-          className="mt-2 font-black uppercase"
-          style={{
-            fontSize: titleSize,
-            lineHeight: 0.88,
-            letterSpacing: "-0.025em",
-            color: theme.text,
-          }}
-        >
-          {big}
-        </h2>
-
-        {/* CENTER: dominant photo */}
-        <div
-          className="relative mt-3 flex-1 overflow-hidden rounded-[20px]"
-          style={{
-            background: theme.photoBg,
-            boxShadow: `inset 0 0 0 1px ${theme.accent}33, 0 18px 40px -16px rgba(0,0,0,0.55)`,
-          }}
-        >
-          {selfieUrl ? (
-            <img
-              src={selfieUrl}
-              alt=""
-              crossOrigin="anonymous"
-              className="absolute inset-0 h-full w-full"
-              style={{
-                objectFit: css.objectFit,
-                objectPosition: css.objectPosition,
-                transform:
-                  selfieAdjust.zoom !== 1
-                    ? `scale(${selfieAdjust.zoom})`
-                    : undefined,
-                transformOrigin: "center",
-              }}
-            />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{
-                fontSize: 170,
-                opacity: theme.light ? 0.55 : 0.8,
-                color: theme.accent,
-              }}
-            >
-              {identity.emoji}
-            </div>
-          )}
-
-          {/* Floodlight beam from top-left */}
+      {/* Content */}
+      <div className="relative flex h-full flex-col px-5 pb-4 pt-5">
+        {/* Tiny WC header */}
+        <div className="text-center">
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 80% 60% at 22% -10%, ${theme.ambient}, transparent 60%)`,
-              mixBlendMode: theme.light ? "multiply" : "screen",
-            }}
-          />
-
-          {/* Crowd silhouette darken at the bottom of the photo */}
+            className="text-[7.5px] font-extrabold uppercase tracking-[0.4em]"
+            style={{ color: theme.accent }}
+          >
+            ⚽ FIFA World Cup
+          </div>
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%]"
+            className="text-[15px] font-black leading-tight"
             style={{
-              background: `linear-gradient(to top, ${theme.crowdShadow} 0%, transparent 100%)`,
-            }}
-          />
-
-          {/* Tiny matchday tag */}
-          <div
-            className="absolute right-2.5 top-2.5 rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-[0.18em]"
-            style={{
-              background: theme.accent,
-              color: theme.accentInk,
+              color: theme.accentDeep,
+              fontFamily: FONT_SERIF,
+              letterSpacing: "0.08em",
             }}
           >
-            ⚽ MD · 26
+            2026
           </div>
-
-          {/* Display name strip — minimal, on the photo */}
-          {displayName && (
-            <div
-              className="absolute inset-x-3 bottom-2.5 truncate text-center text-[11px] font-extrabold uppercase tracking-[0.22em]"
-              style={{
-                color: "#fff",
-                textShadow: "0 1px 6px rgba(0,0,0,0.7)",
-              }}
-            >
-              {displayName}
-            </div>
-          )}
         </div>
 
-        {/* BOTTOM: 3 short behavior lines + strong quote */}
-        <div className="mt-3.5 flex flex-col gap-[3px]">
+        {/* Top row: rating | photo arch | side cursive */}
+        <div className="mt-1 grid grid-cols-[54px_1fr_54px] items-start gap-1">
+          {/* LEFT: 99 rating + heart + tiny cursive */}
+          <div className="flex flex-col items-center">
+            <div
+              className="text-[36px] font-black leading-none"
+              style={{
+                color: theme.accent,
+                fontFamily: FONT_SERIF,
+              }}
+            >
+              {rating}
+            </div>
+            <div
+              className="-mt-0.5 text-[8px] font-extrabold uppercase tracking-[0.2em]"
+              style={{ color: theme.accentDeep }}
+            >
+              Fangirl
+            </div>
+            <Heart
+              className="mt-2 h-3 w-3"
+              style={{ color: theme.accent, fill: theme.accent }}
+            />
+            <div
+              className="mt-1 text-center text-[10px] italic leading-[1.05]"
+              style={{ color: theme.textMuted, fontFamily: FONT_SCRIPT }}
+            >
+              Football is
+              <br />
+              my love
+              <br />
+              language
+            </div>
+          </div>
+
+          {/* CENTER: arched photo with gold border */}
+          <div
+            className="relative mx-auto h-[218px] w-full overflow-hidden"
+            style={{
+              borderRadius: "110px 110px 14px 14px",
+              border: `2.5px solid ${theme.photoBorder}`,
+              background: theme.photoBg,
+              boxShadow: `inset 0 0 0 1.5px ${theme.frameInkSoft}, 0 8px 22px -8px rgba(0,0,0,0.22)`,
+            }}
+          >
+            {selfieUrl ? (
+              <img
+                src={selfieUrl}
+                alt=""
+                crossOrigin="anonymous"
+                className="absolute inset-0 h-full w-full"
+                style={{
+                  objectFit: css.objectFit,
+                  objectPosition: css.objectPosition,
+                  transform:
+                    selfieAdjust.zoom !== 1
+                      ? `scale(${selfieAdjust.zoom})`
+                      : undefined,
+                  transformOrigin: "center",
+                }}
+              />
+            ) : (
+              <div
+                className="flex h-full w-full items-center justify-center"
+                style={{
+                  fontSize: 110,
+                  opacity: 0.55,
+                  color: theme.accent,
+                }}
+              >
+                {identity.emoji}
+              </div>
+            )}
+            {/* Soft floodlight inside photo */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse 70% 40% at 50% 0%, ${theme.frameInkSoft}66, transparent 60%)`,
+                mixBlendMode: "screen",
+              }}
+            />
+          </div>
+
+          {/* RIGHT: Girl Power cursive + sparkles */}
+          <div className="flex flex-col items-center pt-2">
+            <div
+              className="text-center text-[15px] italic leading-[1.0]"
+              style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
+            >
+              Girl
+              <br />
+              Power
+            </div>
+            <Heart
+              className="mt-1 h-2.5 w-2.5"
+              style={{ color: theme.accent, fill: theme.accent }}
+            />
+            <Sparkles
+              className="mt-3 h-3.5 w-3.5"
+              style={{ color: theme.frameInk }}
+            />
+            <div className="mt-2 flex flex-col items-center gap-0.5">
+              <span
+                className="text-[16px] leading-none"
+                style={{ color: theme.frameInk }}
+              >
+                ✦
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Crown + identity title */}
+        <div className="mt-2 text-center">
+          <Crown
+            className="mx-auto h-4 w-4"
+            style={{ color: theme.frameInk, fill: theme.frameInk }}
+          />
+          <h2
+            className="mt-0.5 font-black uppercase leading-[0.95]"
+            style={{
+              color: theme.accentDeep,
+              fontSize: titleSize,
+              letterSpacing: "0.01em",
+              fontFamily: FONT_SERIF,
+            }}
+          >
+            {identity.title}
+          </h2>
+          <div
+            className="mt-0.5 flex items-center justify-center gap-2 text-[13px] italic"
+            style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
+          >
+            <span style={{ color: theme.frameInk }}>♡</span>
+            <span>World Cup 2026</span>
+            <span style={{ color: theme.frameInk }}>♡</span>
+          </div>
+        </div>
+
+        {/* Team line */}
+        <div className="mt-1 flex items-center justify-center gap-1.5">
+          <span
+            className="text-[8.5px] font-extrabold uppercase tracking-[0.22em]"
+            style={{ color: theme.accentDeep }}
+          >
+            Team:
+          </span>
+          <span
+            className="text-[13px] italic leading-none"
+            style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
+          >
+            {team.name}
+          </span>
+          <span className="text-[14px] leading-none">{team.flag}</span>
+        </div>
+
+        {/* 3 viral vibe lines */}
+        <div className="mt-1.5 flex flex-col gap-[3px] px-1">
           {identity.vibes.map((v) => (
             <div
               key={v}
-              className="flex gap-2 text-[12.5px] leading-[1.25]"
-              style={{ color: theme.text, opacity: 0.92 }}
+              className="flex items-start gap-1.5 text-[10.5px] leading-[1.22]"
+              style={{ color: theme.text }}
             >
-              <span
-                className="font-black"
-                style={{ color: theme.accent }}
-              >
-                —
-              </span>
+              <Heart
+                className="mt-[2px] h-2 w-2 shrink-0"
+                style={{ color: theme.accent, fill: theme.accent }}
+              />
               <span className="flex-1">{v}</span>
             </div>
           ))}
         </div>
 
+        {/* Slogan in script */}
         <p
-          className="mt-2.5 text-[13px] font-semibold italic leading-snug"
-          style={{ color: theme.text, opacity: 0.96 }}
+          className="mt-1.5 text-center italic leading-snug"
+          style={{
+            color: theme.accentDeep,
+            fontFamily: FONT_SCRIPT,
+            fontSize: 14,
+          }}
         >
           “{identity.slogan}”
         </p>
 
-        {/* CTA: short shareable line that begs to be sent */}
+        {/* CTA */}
         <div
-          className="mt-2 text-[10.5px] font-extrabold uppercase tracking-[0.18em]"
-          style={{ color: theme.accent, opacity: 0.95 }}
+          className="mt-1 text-center text-[8.5px] font-extrabold uppercase tracking-[0.22em]"
+          style={{ color: theme.accent }}
         >
           → {identity.shareTrigger}
+        </div>
+
+        {/* Footer signature */}
+        <div className="mt-auto pt-1.5">
+          <div
+            className="text-center text-[8px] font-extrabold uppercase tracking-[0.34em]"
+            style={{ color: theme.accentDeep }}
+          >
+            Football · Friends · Forever
+          </div>
+          <div
+            className="mt-1 flex items-center justify-center gap-1 text-[8.5px] italic"
+            style={{ color: theme.frameInk, fontFamily: FONT_SCRIPT }}
+          >
+            <Heart
+              className="h-2 w-2"
+              style={{ color: theme.accent, fill: theme.accent }}
+            />
+            Fangirl forever
+            <Heart
+              className="h-2 w-2"
+              style={{ color: theme.accent, fill: theme.accent }}
+            />
+          </div>
+          <div
+            className="mt-1.5 flex items-center justify-between text-[7.5px] font-extrabold uppercase tracking-[0.22em]"
+            style={{ color: theme.textMuted }}
+          >
+            <span>#WC2026</span>
+            <span className="truncate">{handle}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 });
+
+/* ---------- Small decorative components ---------- */
+
+function SparklePattern({ color }: { color: string }) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-0"
+      style={{
+        backgroundImage: `radial-gradient(circle at 18% 12%, ${color}33 1.4px, transparent 2px), radial-gradient(circle at 82% 22%, ${color}28 1.4px, transparent 2px), radial-gradient(circle at 28% 72%, ${color}28 1.2px, transparent 2px), radial-gradient(circle at 78% 86%, ${color}33 1.4px, transparent 2px), radial-gradient(circle at 50% 48%, ${color}1c 1px, transparent 2px), radial-gradient(circle at 8% 50%, ${color}22 1.2px, transparent 2px), radial-gradient(circle at 92% 60%, ${color}22 1.2px, transparent 2px)`,
+        backgroundSize: "180px 180px",
+      }}
+    />
+  );
+}
+
+function CornerOrnament({
+  position,
+  color,
+}: {
+  position: "tl" | "tr" | "bl" | "br";
+  color: string;
+}) {
+  const map: Record<string, string> = {
+    tl: "left-3 top-3",
+    tr: "right-3 top-3 rotate-90",
+    bl: "left-3 bottom-3 -rotate-90",
+    br: "right-3 bottom-3 rotate-180",
+  };
+  return (
+    <svg
+      aria-hidden
+      className={`pointer-events-none absolute h-7 w-7 ${map[position]}`}
+      viewBox="0 0 28 28"
+      fill="none"
+    >
+      <path
+        d="M2 26 Q2 10 14 6"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M26 2 Q10 2 6 14"
+        stroke={color}
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+      <circle cx="3" cy="3" r="1.5" fill={color} />
+      <circle cx="3" cy="3" r="0.5" fill="#fff" opacity="0.6" />
+    </svg>
+  );
+}
+
+function Butterfly({
+  className = "",
+  color,
+}: {
+  className?: string;
+  color: string;
+}) {
+  return (
+    <svg
+      aria-hidden
+      viewBox="0 0 32 32"
+      className={`pointer-events-none ${className}`}
+      fill={color}
+    >
+      <path
+        d="M16 16 C 9 9, 2 11, 4 19 C 6 25, 13 22, 16 16 Z"
+        opacity="0.75"
+      />
+      <path
+        d="M16 16 C 23 9, 30 11, 28 19 C 26 25, 19 22, 16 16 Z"
+        opacity="0.75"
+      />
+      <path
+        d="M16 16 C 11 21, 7 26, 11 28 C 15 28, 16 22, 16 16 Z"
+        opacity="0.6"
+      />
+      <path
+        d="M16 16 C 21 21, 25 26, 21 28 C 17 28, 16 22, 16 16 Z"
+        opacity="0.6"
+      />
+      <ellipse cx="16" cy="16" rx="0.9" ry="6" fill={color} />
+      <circle cx="16" cy="9.5" r="1" fill={color} />
+    </svg>
+  );
+}

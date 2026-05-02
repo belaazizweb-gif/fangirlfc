@@ -1,6 +1,22 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Playfair_Display, Dancing_Script } from "next/font/google";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  weight: ["400", "700", "900"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const dancing = Dancing_Script({
+  subsets: ["latin"],
+  variable: "--font-dancing",
+  weight: ["400", "700"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Fangirl FC — Which World Cup fan are you?",
@@ -34,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${playfair.variable} ${dancing.variable}`}>
       <body>
         <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pt-6 pb-10">
           <header className="flex items-center justify-between">
