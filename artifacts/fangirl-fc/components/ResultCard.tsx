@@ -9,9 +9,10 @@ import {
   getIdentityActions,
   getNextHint,
 } from "@/lib/stars";
-import { unlockIdentity } from "@/lib/unlocks";
+import { unlockIdentity, getUnlocked, totalIdentities } from "@/lib/unlocks";
 import { trackEvent } from "@/lib/analytics";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { showToast } from "@/lib/toast";
+import { Sparkles, ArrowRight, RotateCcw } from "lucide-react";
 
 interface Props {
   identity: FanIdentity;
@@ -66,29 +67,63 @@ const IDENTITY_GLOW: Record<string, { backdrop: string; cardShadow: string; halo
 export function ResultCard({ identity, compareToId }: Props) {
   const [stars, setStars] = useState(0.5);
   const [hint, setHint] = useState("");
+  const [wasNewUnlock, setWasNewUnlock] = useState(false);
+  const [unlockedCount, setUnlockedCount] = useState(0);
 
   useEffect(() => {
     const updated = awardIdentityStar(identity.id, "quiz_completed");
     setStars(updated);
     setHint(getNextHint(updated, getIdentityActions(identity.id)));
-    unlockIdentity(identity.id);
+    const result = unlockIdentity(identity.id);
+    setUnlockedCount(result.list.length);
+    if (result.wasNew) {
+      setWasNewUnlock(true);
+      showToast({
+        kind: "unlock",
+        title: "New identity unlocked",
+        detail: identity.title,
+        emoji: identity.emoji,
+      });
+    }
     trackEvent("quiz_completed", { identityId: identity.id });
-  }, [identity.id]);
+  }, [identity.id, identity.title, identity.emoji]);
 
   const glow = IDENTITY_GLOW[identity.id] ?? IDENTITY_GLOW.chaotic!;
+  const totalIds = totalIdentities();
+  const remaining = Math.max(0, totalIds - unlockedCount);
 
   return (
     <div className="relative flex flex-col gap-6">
-      {/* Full-page identity glow backdrop */}
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10"
         style={{ background: glow.backdrop }}
       />
 
+      {/* New unlock celebration panel */}
+      {wasNewUnlock && (
+        <div className="relative overflow-hidden rounded-3xl border border-pink-300/50 bg-gradient-to-br from-pink-500/30 via-fuchsia-500/20 to-amber-300/25 p-4">
+          <div className="absolute -right-4 -top-4 text-[80px] leading-none opacity-20">
+            {identity.emoji}
+          </div>
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/95 text-xl shadow">
+              {identity.emoji}
+            </div>
+            <div className="flex-1">
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-pink-100">
+                ✨ New identity unlocked
+              </div>
+              <div className="text-base font-black text-white">
+                {identity.title}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Identity card with aura */}
       <div className="relative">
-        {/* Blurred halo behind card */}
         <div
           aria-hidden
           className="pointer-events-none absolute -inset-4 -z-10 rounded-[40px]"
@@ -98,7 +133,6 @@ export function ResultCard({ identity, compareToId }: Props) {
             opacity: 0.7,
           }}
         />
-        {/* Soft shimmer highlight ring */}
         <div
           aria-hidden
           className="pointer-events-none absolute -inset-[3px] -z-10 rounded-[30px]"
@@ -172,6 +206,36 @@ export function ResultCard({ identity, compareToId }: Props) {
         />
       </div>
 
+      {/* Unlock progress + replay */}
+      <div className="rounded-2xl border border-pink-300/30 bg-gradient-to-br from-pink-400/15 via-fuchsia-400/10 to-amber-200/10 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-pink-100">
+              Identities unlocked
+            </div>
+            <div className="mt-0.5 text-lg font-black text-white">
+              {unlockedCount}/{totalIds}
+            </div>
+            <div className="text-[11px] text-white/65">
+              {remaining > 0
+                ? `${remaining} left to discover · try different answers`
+                : "You've unlocked them all. Iconic."}
+            </div>
+          </div>
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/10">
+            <span className="text-lg font-black text-white">
+              {Math.round((unlockedCount / totalIds) * 100)}%
+            </span>
+          </div>
+        </div>
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-pink-400 via-fuchsia-400 to-amber-300 transition-all duration-500"
+            style={{ width: `${(unlockedCount / totalIds) * 100}%` }}
+          />
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3">
         <Link
           href={`/card?id=${identity.id}${compareToId ? `&compareTo=${compareToId}` : ""}`}
@@ -180,11 +244,20 @@ export function ResultCard({ identity, compareToId }: Props) {
           Make my Fangirl Card
           <ArrowRight className="h-4 w-4" />
         </Link>
+        {remaining > 0 && (
+          <Link
+            href="/quiz"
+            className="flex items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-pink-400/10 px-6 py-3 text-center text-sm font-bold text-pink-50 hover:bg-pink-400/20"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Try again to unlock another identity
+          </Link>
+        )}
         <Link
-          href="/quiz"
+          href="/level"
           className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-center text-sm text-white/70 hover:bg-white/10"
         >
-          Retake the quiz
+          See my fan level
         </Link>
       </div>
     </div>

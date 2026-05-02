@@ -13,6 +13,7 @@ import { TemplateSelector } from "@/components/TemplateSelector";
 import { ShareActions } from "@/components/ShareActions";
 import { ShareCaptions } from "@/components/ShareCaptions";
 import { ShareTargetSelector } from "@/components/ShareTargetSelector";
+import { SharePack } from "@/components/SharePack";
 import { StarProgress } from "@/components/StarProgress";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -23,20 +24,25 @@ import {
 } from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
-import { getShareMode } from "@/lib/shareModes";
+import { getShareMode, fillCaption } from "@/lib/shareModes";
+import { saveCard } from "@/lib/cardHistory";
 import type { FanIdentityId, SelfieFit, ShareMode } from "@/types";
 
 function Inner() {
   const params = useSearchParams();
   const id = (params.get("id") as FanIdentityId | null) ?? "chaotic";
   const initialMode = (params.get("mode") as ShareMode | null) ?? "public";
+  const initialName = params.get("name") ?? "";
+  const initialTeam = params.get("team") ?? TEAMS[0]!.code;
+  const initialTemplate =
+    params.get("template") ??
+    IDENTITY_DEFAULT_TEMPLATE[id] ??
+    TEMPLATES[0]!.id;
   const identity = FAN_TYPES[id] ?? FAN_TYPES.chaotic;
 
-  const [displayName, setDisplayName] = useState("");
-  const [teamCode, setTeamCode] = useState<string>(TEAMS[0]!.code);
-  const [templateId, setTemplateId] = useState<string>(
-    IDENTITY_DEFAULT_TEMPLATE[id] ?? TEMPLATES[0]!.id,
-  );
+  const [displayName, setDisplayName] = useState(initialName.slice(0, 24));
+  const [teamCode, setTeamCode] = useState<string>(initialTeam);
+  const [templateId, setTemplateId] = useState<string>(initialTemplate);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [selfieFit, setSelfieFit] = useState<SelfieFit>("portrait");
   const [zoom, setZoom] = useState<number>(1);
@@ -59,6 +65,15 @@ function Inner() {
   const team = getTeam(teamCode) ?? TEAMS[0]!;
   const template = getTemplate(templateId);
 
+  const persistCard = () => {
+    saveCard({
+      identityId: identity.id,
+      teamCode,
+      displayName: displayName || "Anonymous Fan",
+      templateId,
+    });
+  };
+
   const handleFitChange = (f: SelfieFit) => {
     setSelfieFit(f);
     trackEvent("photo_adjust_changed", { kind: "fit", value: f });
@@ -75,7 +90,6 @@ function Inner() {
     setShareMode(m);
     trackEvent("share_target_selected", { mode: m });
     if (shareUrl) {
-      // refresh URL with new mode
       const id = shareUrl.split("/").pop()?.split("?")[0];
       if (id) setShareUrl(buildShareUrl(id, m));
     }
@@ -89,6 +103,7 @@ function Inner() {
       const next = awardIdentityStar(identity.id, "card_generated");
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));
+      persistCard();
       trackEvent("card_exported", { identityId: identity.id, templateId });
       trackEvent("card_generated", { identityId: identity.id, templateId });
     } finally {
@@ -114,6 +129,7 @@ function Inner() {
       const next = awardIdentityStar(identity.id, "card_shared");
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));
+      persistCard();
       trackEvent("compare_created", { shareId, identityId: identity.id });
       trackEvent("compare_mode_created", {
         shareId,
@@ -124,6 +140,11 @@ function Inner() {
       setBusy(false);
     }
   };
+
+  const primaryCaption = fillCaption(
+    getShareMode(shareMode).captions[0] ?? "which fan are you?",
+    identity.title,
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,6 +232,8 @@ function Inner() {
       />
 
       <ShareCaptions identity={identity} mode={shareMode} />
+
+      <SharePack shareUrl={shareUrl} primaryCaption={primaryCaption} />
 
       <Link
         href={`/result?id=${identity.id}`}

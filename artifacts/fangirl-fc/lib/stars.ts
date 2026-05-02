@@ -1,6 +1,7 @@
 "use client";
 
 import type { FanIdentityId } from "@/types";
+import { showToast, STAR_LABELS } from "./toast";
 
 const KEY = "fangirlfc.stars";
 const ACTIONS_KEY = "fangirlfc.actions";
@@ -24,6 +25,18 @@ const ACTION_VALUES: Record<StarAction, number> = {
 
 export const MAX_STARS = 5;
 export const STARTING_STARS = 0.5;
+
+export interface AwardOpts {
+  /** Suppress the toast (used when a higher-level call will toast instead). */
+  silent?: boolean;
+}
+
+function emitStarToast(action: StarAction, delta: number) {
+  showToast({
+    kind: "star",
+    title: `+${delta} ⭐ ${STAR_LABELS[action] ?? action}`,
+  });
+}
 
 // ---------- Global stars (across all identities) ----------
 
@@ -59,19 +72,23 @@ function setStars(value: number) {
   return clamped;
 }
 
-export function awardStar(action: StarAction): number {
+export function awardStar(action: StarAction, opts?: AwardOpts): number {
   if (typeof window === "undefined") return STARTING_STARS;
+  const before = getStars();
   // challenge_completed is repeatable (per-challenge dedup happens upstream)
   if (action !== "challenge_completed") {
     const actions = getActions();
     if (actions.includes(action)) {
-      return getStars();
+      return before;
     }
     actions.push(action);
     setActions(actions);
   }
-  const next = getStars() + ACTION_VALUES[action];
-  return setStars(next);
+  const next = setStars(before + ACTION_VALUES[action]);
+  if (!opts?.silent && next > before) {
+    emitStarToast(action, ACTION_VALUES[action]);
+  }
+  return next;
 }
 
 export function resetStars() {
@@ -156,34 +173,63 @@ export function getIdentityActions(id: FanIdentityId): StarAction[] {
  * Award a star to a specific identity profile. Also bumps the global
  * counter via awardStar() so the global StarProgress widget stays in
  * sync. Per-identity dedupe is independent from global dedupe.
+ *
+ * Toast policy: emit one toast if EITHER the per-identity counter or
+ * the global counter actually increased. The global call is silenced
+ * to avoid double-toasting.
  */
 export function awardIdentityStar(
   id: FanIdentityId,
   action: StarAction,
 ): number {
   if (typeof window === "undefined") return STARTING_STARS;
-  // Per-identity dedupe (challenge_completed remains repeatable)
+
+  const globalBefore = getStars();
+  let perIdentityIncreased = false;
+  let perIdentityNext: number;
+
   if (action !== "challenge_completed") {
     const actionsMap = readIdentityActionsMap();
     const list = actionsMap[id] ?? [];
     if (list.includes(action)) {
-      // Already awarded for this identity — still sync global.
-      awardStar(action);
-      return getIdentityStars(id);
+      perIdentityNext = getIdentityStars(id);
+    } else {
+      list.push(action);
+      actionsMap[id] = list;
+      writeIdentityActionsMap(actionsMap);
+      perIdentityIncreased = true;
+      const map = readIdentityStarsMap();
+      const current =
+        typeof map[id] === "number" ? (map[id] as number) : STARTING_STARS;
+      perIdentityNext = Math.min(
+        MAX_STARS,
+        Math.max(0, current + ACTION_VALUES[action]),
+      );
+      map[id] = perIdentityNext;
+      writeIdentityStarsMap(map);
     }
-    list.push(action);
-    actionsMap[id] = list;
-    writeIdentityActionsMap(actionsMap);
+  } else {
+    const map = readIdentityStarsMap();
+    const current =
+      typeof map[id] === "number" ? (map[id] as number) : STARTING_STARS;
+    perIdentityNext = Math.min(
+      MAX_STARS,
+      Math.max(0, current + ACTION_VALUES[action]),
+    );
+    map[id] = perIdentityNext;
+    writeIdentityStarsMap(map);
+    perIdentityIncreased = true;
   }
-  const map = readIdentityStarsMap();
-  const current =
-    typeof map[id] === "number" ? (map[id] as number) : STARTING_STARS;
-  const next = Math.min(MAX_STARS, Math.max(0, current + ACTION_VALUES[action]));
-  map[id] = next;
-  writeIdentityStarsMap(map);
-  // Keep global in sync (it has its own dedupe)
-  awardStar(action);
-  return next;
+
+  // Sync global silently — we toast here ourselves.
+  awardStar(action, { silent: true });
+  const globalAfter = getStars();
+
+  if (perIdentityIncreased || globalAfter > globalBefore) {
+    emitStarToast(action, ACTION_VALUES[action]);
+  }
+
+  return perIdentityNext;
 }
 
 export function snapshotIdentity(

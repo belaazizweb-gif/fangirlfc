@@ -43,7 +43,9 @@ export function Quiz({ compareTo }: Props) {
     } else {
       const finalAnswers = answers.map((a) => a ?? 0);
       const result = scoreQuiz(finalAnswers);
-      awardStar("quiz_completed");
+      // Silent: ResultCard's per-identity award will surface the toast.
+      // Keeps global stars in sync without double-toasting.
+      awardStar("quiz_completed", { silent: true });
       const params = new URLSearchParams({ id: result.identityId });
       if (compareTo) params.set("compareTo", compareTo);
       router.push(`/result?${params.toString()}`);

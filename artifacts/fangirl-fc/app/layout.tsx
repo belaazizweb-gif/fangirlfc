@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Playfair_Display, Dancing_Script } from "next/font/google";
 import "./globals.css";
+import { ToastHost } from "@/components/ToastHost";
+import { TopNav } from "@/components/TopNav";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -52,6 +54,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${dancing.variable}`}>
       <body>
+        <ToastHost />
         <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pt-6 pb-10">
           <header className="flex items-center justify-between">
             <Link
@@ -63,22 +66,15 @@ export default function RootLayout({
                 Fangirl FC
               </span>
             </Link>
-            <nav className="flex items-center gap-1.5">
-              <Link
-                href="/challenges"
-                className="rounded-full border border-pink-300/30 bg-pink-300/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-pink-100 hover:bg-pink-300/20"
-              >
-                Challenges
-              </Link>
-              <Link
-                href="/stickers"
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-wider text-white/60 hover:bg-white/10"
-              >
-                Stickers
-              </Link>
-            </nav>
+            <Link
+              href="/quiz"
+              className="rounded-full bg-pink-400/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-pink-100 hover:bg-pink-400/30"
+            >
+              Take quiz
+            </Link>
           </header>
-          <main className="mt-6 flex-1">{children}</main>
+          <TopNav />
+          <main className="mt-5 flex-1">{children}</main>
           <footer className="mt-10 text-center text-[11px] leading-relaxed text-white/40">
             Fangirl FC is an independent fan-made experience and is not
             affiliated with FIFA, teams, leagues, or sponsors.

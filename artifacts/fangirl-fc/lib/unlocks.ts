@@ -25,13 +25,19 @@ export function getUnlocked(): FanIdentityId[] {
   return [];
 }
 
-export function unlockIdentity(id: FanIdentityId): FanIdentityId[] {
-  if (typeof window === "undefined") return [];
+export interface UnlockResult {
+  list: FanIdentityId[];
+  wasNew: boolean;
+}
+
+export function unlockIdentity(id: FanIdentityId): UnlockResult {
+  if (typeof window === "undefined") return { list: [], wasNew: false };
   const current = getUnlocked();
-  if (!current.includes(id)) current.push(id);
+  const wasNew = !current.includes(id);
+  if (wasNew) current.push(id);
   window.localStorage.setItem(KEY, JSON.stringify(current));
   window.localStorage.setItem(LAST_KEY, id);
-  return current;
+  return { list: current, wasNew };
 }
 
 export function isUnlocked(id: FanIdentityId): boolean {
@@ -40,4 +46,8 @@ export function isUnlocked(id: FanIdentityId): boolean {
 
 export function unlockedProgress(): { count: number; total: number } {
   return { count: getUnlocked().length, total: ALL_IDS.length };
+}
+
+export function totalIdentities(): number {
+  return ALL_IDS.length;
 }
