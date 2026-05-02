@@ -269,31 +269,8 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
             >
               Fangirl
             </div>
-            <div
-              className="mt-1 flex gap-[1.5px] text-[10px] leading-none"
-              aria-label={`${starsValue}/${MAX_STARS} stars`}
-            >
-              {Array.from({ length: MAX_STARS }).map((_, i) => {
-                const isFilled = i < filledStars;
-                const isHalf = !isFilled && i === filledStars && halfStar;
-                return (
-                  <span
-                    key={i}
-                    style={{
-                      color: isFilled || isHalf ? RATING_GOLD : RATING_GOLD_DIM,
-                      textShadow:
-                        isFilled || isHalf
-                          ? `0 0 4px ${RATING_GOLD}aa`
-                          : undefined,
-                    }}
-                  >
-                    {isHalf ? "⯨" : "★"}
-                  </span>
-                );
-              })}
-            </div>
             <Heart
-              className="mt-1.5 h-4 w-4"
+              className="mt-2 h-4 w-4"
               style={{ color: theme.accent, fill: theme.accent }}
             />
             <div
@@ -382,6 +359,69 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               ✦
             </div>
           </div>
+        </div>
+
+        {/* BIG STARS ROW — the core gamification signal */}
+        <div className="mt-2.5 flex items-center justify-center gap-2">
+          <span
+            className="text-[10px] font-extrabold uppercase tracking-[0.28em]"
+            style={{ color: RATING_GOLD_DEEP }}
+          >
+            ★
+          </span>
+          <div
+            className="flex items-end gap-[3px]"
+            aria-label={`${starsValue}/${MAX_STARS} stars earned`}
+          >
+            {Array.from({ length: MAX_STARS }).map((_, i) => {
+              const isFilled = i < filledStars;
+              const isHalf = !isFilled && i === filledStars && halfStar;
+              const active = isFilled || isHalf;
+              return (
+                <div
+                  key={i}
+                  className="relative leading-none"
+                  style={{ width: 26, height: 26 }}
+                >
+                  {/* Empty star outline */}
+                  <span
+                    className="absolute inset-0 text-[26px] leading-none"
+                    style={{
+                      color: RATING_GOLD_DIM,
+                      WebkitTextStroke: `1px ${RATING_GOLD_DEEP}66`,
+                    }}
+                  >
+                    ★
+                  </span>
+                  {active && (
+                    <span
+                      className="absolute inset-0 overflow-hidden text-[26px] leading-none"
+                      style={{
+                        width: isHalf ? "50%" : "100%",
+                        color: RATING_GOLD,
+                        WebkitTextStroke: `1px ${RATING_GOLD_DEEP}`,
+                        textShadow: `0 0 8px ${RATING_GOLD}cc, 0 1px 0 ${RATING_GOLD_DEEP}`,
+                      }}
+                    >
+                      ★
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <span
+            className="text-[10px] font-extrabold uppercase tracking-[0.28em]"
+            style={{ color: RATING_GOLD_DEEP }}
+          >
+            ★
+          </span>
+        </div>
+        <div
+          className="mt-0.5 text-center text-[8.5px] font-extrabold uppercase tracking-[0.32em]"
+          style={{ color: RATING_GOLD_DEEP }}
+        >
+          {starsValue.toFixed(starsValue % 1 === 0 ? 0 : 1)} / {MAX_STARS} fangirl level
         </div>
 
         {/* Crown + identity title */}
