@@ -15,7 +15,12 @@ import { ShareCaptions } from "@/components/ShareCaptions";
 import { ShareTargetSelector } from "@/components/ShareTargetSelector";
 import { StarProgress } from "@/components/StarProgress";
 import { trackEvent } from "@/lib/analytics";
-import { awardStar, getStars, snapshot, getNextHint } from "@/lib/stars";
+import {
+  awardIdentityStar,
+  getIdentityActions,
+  getIdentityStars,
+  getNextHint,
+} from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
 import { getShareMode } from "@/lib/shareModes";
@@ -46,10 +51,10 @@ function Inner() {
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setStars(getStars());
-    const snap = snapshot();
-    setHint(getNextHint(getStars(), snap.actions));
-  }, []);
+    const s = getIdentityStars(id);
+    setStars(s);
+    setHint(getNextHint(s, getIdentityActions(id)));
+  }, [id]);
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
   const template = getTemplate(templateId);
@@ -81,9 +86,9 @@ function Inner() {
     setBusy(true);
     try {
       await exportNodeAsPng(cardRef.current, "fangirl-fc-card.png");
-      const next = awardStar("card_generated");
+      const next = awardIdentityStar(identity.id, "card_generated");
       setStars(next);
-      setHint(getNextHint(next, snapshot().actions));
+      setHint(getNextHint(next, getIdentityActions(identity.id)));
       trackEvent("card_exported", { identityId: identity.id, templateId });
       trackEvent("card_generated", { identityId: identity.id, templateId });
     } finally {
@@ -106,9 +111,9 @@ function Inner() {
       });
       const url = buildShareUrl(shareId, shareMode);
       setShareUrl(url);
-      const next = awardStar("card_shared");
+      const next = awardIdentityStar(identity.id, "card_shared");
       setStars(next);
-      setHint(getNextHint(next, snapshot().actions));
+      setHint(getNextHint(next, getIdentityActions(identity.id)));
       trackEvent("compare_created", { shareId, identityId: identity.id });
       trackEvent("compare_mode_created", {
         shareId,

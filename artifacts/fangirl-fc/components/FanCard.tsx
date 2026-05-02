@@ -10,6 +10,8 @@ import type {
   Template,
 } from "@/types";
 
+const MAX_STARS = 5;
+
 interface Props {
   identity: FanIdentity;
   team: Team;
@@ -28,6 +30,11 @@ const FONT_SERIF =
   "var(--font-playfair), 'Playfair Display', Georgia, 'Times New Roman', serif";
 const FONT_SCRIPT =
   "var(--font-dancing), 'Dancing Script', 'Brush Script MT', cursive";
+
+// Rating gold — matches the StarProgress widget (amber-300 / #fcd34d)
+const RATING_GOLD = "#fcd34d";
+const RATING_GOLD_DEEP = "#b8860b";
+const RATING_GOLD_DIM = "rgba(252, 211, 77, 0.28)";
 
 type Theme = {
   bg: string;
@@ -169,7 +176,10 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 ) {
   const theme = getTheme(template.id, identity.id);
   const css = fitToCss(selfieAdjust.fit);
-  const rating = ratingFromStars(stars);
+  const starsValue = Math.max(0, Math.min(MAX_STARS, stars));
+  const rating = ratingFromStars(starsValue);
+  const filledStars = Math.floor(starsValue);
+  const halfStar = starsValue - filledStars >= 0.5;
   const titleSize = pickTitleSize(identity.title);
   const handle = displayName
     ? `@${displayName.toLowerCase().replace(/\s+/g, "")}`
@@ -245,26 +255,42 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
             <div
               className="text-[56px] font-black leading-[0.85]"
               style={{
-                color: theme.accent,
+                color: RATING_GOLD,
                 fontFamily: FONT_SERIF,
-                textShadow: `1px 1px 0 ${theme.frameInkSoft}66`,
+                textShadow: `0 1px 0 ${RATING_GOLD_DEEP}, 0 0 12px ${RATING_GOLD}66`,
+                WebkitTextStroke: `0.5px ${RATING_GOLD_DEEP}`,
               }}
             >
               {rating}
             </div>
             <div
               className="mt-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em]"
-              style={{ color: theme.accentDeep }}
+              style={{ color: RATING_GOLD_DEEP }}
             >
               Fangirl
             </div>
             <div
-              className="mt-1 flex gap-0.5 text-[12px] leading-none"
-              style={{ color: theme.frameInk }}
+              className="mt-1 flex gap-[1.5px] text-[10px] leading-none"
+              aria-label={`${starsValue}/${MAX_STARS} stars`}
             >
-              <span>★</span>
-              <span>★</span>
-              <span>★</span>
+              {Array.from({ length: MAX_STARS }).map((_, i) => {
+                const isFilled = i < filledStars;
+                const isHalf = !isFilled && i === filledStars && halfStar;
+                return (
+                  <span
+                    key={i}
+                    style={{
+                      color: isFilled || isHalf ? RATING_GOLD : RATING_GOLD_DIM,
+                      textShadow:
+                        isFilled || isHalf
+                          ? `0 0 4px ${RATING_GOLD}aa`
+                          : undefined,
+                    }}
+                  >
+                    {isHalf ? "⯨" : "★"}
+                  </span>
+                );
+              })}
             </div>
             <Heart
               className="mt-1.5 h-4 w-4"

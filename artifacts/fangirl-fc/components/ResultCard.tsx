@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { FanIdentity } from "@/types";
 import { StarProgress } from "./StarProgress";
-import { awardStar, getNextHint, snapshot } from "@/lib/stars";
+import {
+  awardIdentityStar,
+  getIdentityActions,
+  getNextHint,
+} from "@/lib/stars";
 import { unlockIdentity } from "@/lib/unlocks";
 import { trackEvent } from "@/lib/analytics";
 import { Sparkles, ArrowRight } from "lucide-react";
@@ -64,10 +68,9 @@ export function ResultCard({ identity, compareToId }: Props) {
   const [hint, setHint] = useState("");
 
   useEffect(() => {
-    const updated = awardStar("quiz_completed");
+    const updated = awardIdentityStar(identity.id, "quiz_completed");
     setStars(updated);
-    const snap = snapshot();
-    setHint(getNextHint(updated, snap.actions));
+    setHint(getNextHint(updated, getIdentityActions(identity.id)));
     unlockIdentity(identity.id);
     trackEvent("quiz_completed", { identityId: identity.id });
   }, [identity.id]);
