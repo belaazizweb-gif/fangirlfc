@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+  --bg: #0b0613;
+  --bg-soft: #14091f;
+  --fg: #f8f1ff;
+  --muted: #b8a8d4;
+  --pink: #ff4dbf;
+  --gold: #f6c453;
+  --lavender: #b794ff;
+  --neon: #d946ef;
+}
+
+html,
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(255, 77, 191, 0.18), transparent 60%),
+    radial-gradient(900px 600px at 90% 10%, rgba(183, 148, 255, 0.18), transparent 60%),
+    radial-gradient(700px 500px at 50% 110%, rgba(246, 196, 83, 0.12), transparent 60%),
+    var(--bg);
+  color: var(--fg);
+  min-height: 100%;
+  font-family:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font-family: inherit;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glow-pink {
+  box-shadow:
+    0 0 0 1px rgba(255, 77, 191, 0.4),
+    0 18px 50px -12px rgba(255, 77, 191, 0.55);
+}
+
+.gradient-text {
+  background: linear-gradient(120deg, #ff4dbf, #f6c453 60%, #b794ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shine-button {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(120deg, #ff4dbf 0%, #d946ef 50%, #b794ff 100%);
+  color: #0b0613;
+  font-weight: 700;
+}
+
+.shine-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: shine 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shine {
+  0%,
+  20% {
+    transform: translateX(-120%);
+  }
+  60%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}

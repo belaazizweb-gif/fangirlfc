@@ -1,0 +1,496 @@
+You are a senior full-stack developer. Build this project carefully and do not improvise outside the scope.
+
+PROJECT CONTEXT
+We are building a World Cup 2026 viral fan hub.
+
+The first product to build is:
+Fangirl FC / Fan Card Maker WC 2026
+
+This is NOT a native app.
+This is NOT Expo.
+This is NOT React Native.
+This is a mobile-first Next.js PWA built on Replit.
+
+The app must be designed so it can later expand into:
+1. Sticker Tracker WC 2026
+2. Native mobile app migration
+
+But for now, DO NOT build Sticker Tracker.
+Only prepare clean architecture and placeholder navigation.
+
+MAIN GOAL
+Build a fast, beautiful, viral, mobile-first PWA where users can:
+1. Take a fun fan identity quiz
+2. Get a fan personality result
+3. Gain stars/progression
+4. Generate a shareable 1080x1920 Fan Card
+5. Share it with friends
+6. Create a compare link so a friend can take the quiz and compare results
+
+TECH STACK
+Use:
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Firebase Firestore
+- html-to-image
+- lucide-react
+- PWA manifest
+
+Do NOT use:
+- Expo
+- React Native
+- Supabase
+- authentication in V1
+- server-side image upload
+- Storage for selfies
+- Stripe in V1
+- ads in V1
+- chat
+- social feed
+- sticker tracking now
+
+FIREBASE RULE
+Firebase credentials will be provided later.
+
+For now:
+- create Firebase config files with environment variable placeholders
+- allow the app to run in mock/local mode if Firebase env vars are missing
+- do not block local development because Firebase is not configured yet
+
+Required env placeholders:
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+PRIVACY RULE
+Selfies must stay local in the browser only.
+Do not upload selfies to Firebase.
+Do not save selfies in Firestore.
+Use browser memory / local object URL / data URL only for rendering the card.
+
+Firestore stores only metadata:
+- shareId
+- fan identity
+- stars
+- selected team
+- display name optional
+- createdAt
+- template id
+- no private image data
+
+CORE MODULES TO BUILD NOW
+
+MODULE 1 — Landing Page
+Route: /
+
+Mobile-first landing page.
+
+Content:
+Headline:
+“Which World Cup fan are you?”
+
+Subheadline:
+“Take the quiz, unlock your fan identity, and create your Fangirl FC card.”
+
+CTA:
+“Start Quiz”
+
+Also show:
+- sample fan cards
+- explanation in 3 steps:
+  1. Take the quiz
+  2. Generate your card
+  3. Share and compare with friends
+- teaser section:
+  “Sticker Tracker coming soon”
+
+Do not add heavy content.
+
+MODULE 2 — Quiz Engine
+Route: /quiz
+
+Build a 5-question quiz.
+
+Question style:
+- fun
+- football-related
+- easy
+- women-friendly
+- social
+- not technical
+
+Example questions:
+1. When your team is losing, you:
+   A. stay calm
+   B. start praying
+   C. scream at everyone
+   D. pretend you don’t care
+
+2. Your matchday vibe is:
+   A. cute and calm
+   B. loud and emotional
+   C. strategic and focused
+   D. here for the drama
+
+3. Your friend says football is boring. You:
+   A. explain the rules
+   B. block her jokingly
+   C. make her watch highlights
+   D. say “wait until penalties”
+
+4. Your team scores last minute. You:
+   A. cry
+   B. scream
+   C. record everything
+   D. act like you predicted it
+
+5. Your World Cup personality is closest to:
+   A. loyal
+   B. chaotic
+   C. soft
+   D. tactical
+
+The answers must map to one of 6 fan identities.
+
+MODULE 3 — Fan Identity Result
+Route: /result
+
+Fan identities:
+1. Chaotic Fan ⚡
+2. Loyal Queen 👑
+3. Soft Fan 🌸
+4. Matchday Princess 💅
+5. Last Minute Screamer 😭
+6. Tactical Girl 🧠
+
+Each identity must include:
+- title
+- emoji
+- short description
+- rarity text
+- default stats
+- suggested card colors
+- slogan
+
+Examples:
+Chaotic Fan:
+Slogan: “I support my team… and the drama.”
+Stats:
+- Mood Swings: 100%
+- Screams: MAX
+- Matchday Energy: UNSTABLE
+
+Loyal Queen:
+Slogan: “Win or lose, I’m staying.”
+Stats:
+- Loyalty: 100%
+- Haters Blocked: YES
+- Missed Matches: 0
+
+Soft Fan:
+Slogan: “I said I wouldn’t care… I lied.”
+Stats:
+- Cries After Loss: YES
+- Loyalty: ∞
+- Stress Level: CUTE
+
+Matchday Princess:
+Slogan: “I came for the vibes and stayed for the chaos.”
+Stats:
+- Outfit Planning: 10/10
+- Selfies: 100%
+- Vibes: IMMACULATE
+
+Last Minute Screamer:
+Slogan: “Football is not a sport, it’s trauma.”
+Stats:
+- Anxiety: 99%
+- Screams: 100%
+- Tears: GUARANTEED
+
+Tactical Girl:
+Slogan: “Cute, but I actually know ball.”
+Stats:
+- Ball Knowledge: 95%
+- Predictions: SHARP
+- Confidence: HIGH
+
+MODULE 4 — Stars Progression
+Each user starts at 0.5 stars.
+
+Actions:
+- Complete quiz: +1 star
+- Generate card: +0.5 star
+- Share card: +0.5 star
+- Friend completes compare quiz from share link: +1 star
+
+Max stars: 5.
+
+Use localStorage for the current user progress.
+Show star progress clearly:
+“⭐ 1.5 / 5”
+“Next level: share your card”
+
+Do not make this complex.
+No account system.
+
+MODULE 5 — Fan Card Generator
+Route: /card
+
+User can:
+1. Upload selfie locally
+2. Enter display name
+3. Choose team/country
+4. Choose template
+5. Edit or accept 3 fan stats
+6. Generate card
+7. Export PNG 1080x1920
+
+Use html-to-image.
+
+Export requirements:
+- vertical 1080x1920
+- Instagram Story ready
+- readable text
+- high contrast
+- mobile tested
+- watermark visible on free version:
+  “Fangirl FC”
+
+Card must include:
+- display name
+- fan identity
+- stars
+- selected team/country
+- selfie
+- 3 stats
+- slogan
+- Fangirl FC watermark
+
+Templates to include now:
+1. Soft Girl
+   pastel pink/lavender/gold, sparkles, feminine, clean
+2. Dark Academia
+   black velvet/gold/ivory, elegant
+3. Stadium Sunset
+   orange/pink/purple gradient, Instagram aesthetic
+4. Classic FUT
+   black/gold, sporty
+5. Chaotic Neon
+   purple/neon, Gen Z TikTok vibe
+6. Loyal Queen
+   royal gold/white, crown accent
+
+Do not overdesign.
+Cards must be readable at mobile size.
+
+MODULE 6 — Team/Country Selector
+Include the 48 World Cup nations as static data.
+
+For now, include country name and emoji flag.
+Do not depend on external flag assets in V1.
+Later SVG flags can be added.
+
+Allow search/filter.
+
+MODULE 7 — Share and Compare
+Route:
+- /compare/[shareId]
+
+When user clicks “Compare With Friend”:
+- generate random shareId
+- save original result metadata to Firestore:
+  fan identity
+  stars
+  selected team
+  display name
+  template id
+  createdAt
+
+No selfie upload.
+
+Friend opens /compare/[shareId]:
+- sees original user identity summary
+- CTA: “Find your fan type”
+- friend takes the same quiz
+- app shows comparison result:
+  “You: Loyal Queen”
+  “Her: Chaotic Fan”
+  “Football Besties: 92%”
+
+Generate a comparison card:
+“We are World Cup Besties”
+
+The compare flow is the main viral loop.
+Make the “Compare With Friend” button more prominent than “Download”.
+
+MODULE 8 — PWA Setup
+Add:
+- manifest.json
+- app icon placeholder
+- mobile theme color
+- installable behavior
+- responsive mobile-first layout
+
+Do not spend too much time on advanced service worker logic.
+
+MODULE 9 — Sticker Tracker Future Placeholder
+Do not build sticker tracking now.
+
+But add:
+- navigation item: “Sticker Tracker — Coming Soon”
+- route /stickers with simple coming soon page
+- copy:
+  “Track your World Cup 2026 sticker collection. Coming soon.”
+
+Architecture should allow future module:
+- shared layout
+- shared Firebase config
+- shared design system
+- future Firestore collections:
+  stickers
+  userStickerProgress
+
+Do not create those collections yet unless needed as placeholder types only.
+
+DESIGN SYSTEM
+Style:
+- glossy
+- feminine
+- football-inspired
+- TikTok/social media aesthetic
+- mobile-first
+- fast
+- clean
+- playful
+
+Colors:
+- pink
+- lavender
+- gold
+- black
+- stadium sunset gradients
+- neon purple for chaotic template
+
+Use Tailwind utility classes.
+Create reusable components.
+
+REQUIRED FILE STRUCTURE
+Use this structure or very close:
+
+/app
+  /page.tsx
+  /quiz/page.tsx
+  /result/page.tsx
+  /card/page.tsx
+  /compare/[shareId]/page.tsx
+  /stickers/page.tsx
+  /layout.tsx
+  /globals.css
+
+/components
+  LandingHero.tsx
+  Quiz.tsx
+  QuestionCard.tsx
+  ResultCard.tsx
+  StarProgress.tsx
+  FanCard.tsx
+  PhotoUpload.tsx
+  TeamSelector.tsx
+  TemplateSelector.tsx
+  ShareActions.tsx
+  ComparisonResult.tsx
+
+/lib
+  firebase.ts
+  mockStore.ts
+  quizQuestions.ts
+  fanTypes.ts
+  teams.ts
+  templates.ts
+  stars.ts
+  share.ts
+  exportImage.ts
+
+/types
+  index.ts
+
+/public
+  manifest.json
+  icons/
+
+ERRORS TO AVOID
+Avoid these mistakes:
+1. Do not use Expo.
+2. Do not create a native mobile app.
+3. Do not require login.
+4. Do not upload selfies.
+5. Do not save images in Firestore.
+6. Do not overbuild backend.
+7. Do not add Stripe now.
+8. Do not add ads now.
+9. Do not build Sticker Tracker now.
+10. Do not make the quiz too serious or technical.
+11. Do not make cards unreadable.
+12. Do not make templates too heavy.
+13. Do not break the app if Firebase env vars are missing.
+14. Do not use copyrighted FIFA/Panini assets.
+15. Do not use official World Cup logos.
+16. Do not imply affiliation with FIFA.
+17. Use generic football/fan language.
+18. Keep everything fast and mobile-first.
+
+LEGAL / BRANDING CAUTION
+Do not use official FIFA branding.
+Do not use official World Cup logos.
+Do not use official Panini sticker images.
+Use “World Cup 2026 fan experience” as generic descriptive wording.
+Add footer disclaimer:
+“Fangirl FC is an independent fan-made experience and is not affiliated with FIFA, teams, leagues, or sponsors.”
+
+ACCEPTANCE CRITERIA
+The build is complete only if:
+
+1. App runs locally in Replit.
+2. Landing page works on mobile.
+3. Quiz flow works end-to-end.
+4. Result identity is calculated correctly.
+5. Stars progress updates.
+6. User can upload selfie locally.
+7. User can select team.
+8. User can select template.
+9. User can generate fan card.
+10. User can export PNG.
+11. Watermark appears on free card.
+12. Compare link can be created.
+13. /compare/[shareId] works with mock mode or Firestore mode.
+14. Sticker Tracker placeholder exists.
+15. PWA manifest exists.
+16. No auth required.
+17. No selfie is sent to backend.
+18. Code is clean and modular for future native migration.
+
+BUILD PRIORITY
+Build in this exact order:
+
+1. Static data: fanTypes, quizQuestions, teams, templates
+2. Landing page
+3. Quiz flow
+4. Result page
+5. Stars system
+6. Card generator UI
+7. Export PNG
+8. Firebase/mock share link
+9. Compare flow
+10. PWA setup
+11. Sticker Tracker placeholder
+12. Polish
+
+Before coding, produce a short implementation plan.
+After coding, run type checks and fix errors.
+Do not leave broken imports.
+Do not leave placeholder pages that crash.

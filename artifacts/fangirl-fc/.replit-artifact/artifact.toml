@@ -1,0 +1,38 @@
+kind = "web"
+previewPath = "/"
+title = "Fangirl FC"
+version = "1.0.0"
+id = "artifacts/fangirl-fc"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24216
+
+[services.development]
+run = "pnpm --filter @workspace/fangirl-fc run dev"
+
+[services.production]
+
+[services.production.build]
+args = [ "pnpm", "--filter", "@workspace/fangirl-fc", "run", "build" ]
+
+[services.production.build.env]
+NODE_ENV = "production"
+
+[services.production.run]
+args = [ "pnpm", "--filter", "@workspace/fangirl-fc", "run", "start" ]
+
+[services.production.run.env]
+PORT = "24216"
+HOSTNAME = "0.0.0.0"
+NODE_ENV = "production"
+
+[services.env]
+PORT = "24216"
+HOSTNAME = "0.0.0.0"
