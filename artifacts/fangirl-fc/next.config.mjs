@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ["*"],
+  allowedDevOrigins: process.env.REPLIT_DEV_DOMAIN
+    ? [process.env.REPLIT_DEV_DOMAIN]
+    : [],
   async headers() {
     if (process.env.NODE_ENV === "production") return [];
     return [
