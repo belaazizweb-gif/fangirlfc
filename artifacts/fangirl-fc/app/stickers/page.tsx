@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Mail, Check, Sparkles } from "lucide-react";
+import { Mail, Check, Sparkles, Lock } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
 
 const KEY = "fangirlfc.waitlist";
+
+const TEASER_STICKERS = [
+  "🏆","⚽","🇧🇷","🇦🇷","👑","⚡","🌸","🧠",
+  "😭","💖","🏟️","🎽","🥅","📸","🌍","💅",
+];
 
 export default function StickersPage() {
   const [email, setEmail] = useState("");
@@ -42,6 +47,26 @@ export default function StickersPage() {
           Track every sticker, swap doubles, and brag about your full album.
           Drop your email for founder access.
         </p>
+      </div>
+
+      {/* Teaser sticker grid */}
+      <div className="glass rounded-2xl p-4">
+        <div className="mb-3 text-[11px] font-bold uppercase tracking-wider text-white/50">
+          Sticker preview · unlocks at launch
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {TEASER_STICKERS.map((s, i) => (
+            <div
+              key={i}
+              className="relative flex aspect-square items-center justify-center overflow-hidden rounded-xl bg-white/8 text-2xl"
+            >
+              <span className="blur-sm select-none">{s}</span>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                <Lock className="h-3.5 w-3.5 text-white/50" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <form
@@ -83,7 +108,7 @@ export default function StickersPage() {
 
       <Link
         href="/card?id=princess"
-        className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-center text-sm text-white/80 hover:bg-white/10"
+        className="shine-button flex items-center justify-center rounded-full px-6 py-3.5 text-sm"
       >
         Make your Fangirl Card while you wait
       </Link>

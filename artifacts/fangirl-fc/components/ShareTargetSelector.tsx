@@ -29,8 +29,8 @@ export function ShareTargetSelector({ value, onChange }: Props) {
               className={cn(
                 "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition",
                 active
-                  ? "border-pink-300 bg-pink-300/15 text-white shadow-[0_0_0_1px_rgba(255,77,191,0.4)]"
-                  : "border-white/10 bg-white/5 text-white/75 hover:bg-white/10",
+                  ? "border-pink-400 bg-pink-500/75 text-white shadow-[0_4px_22px_-4px_rgba(236,72,153,0.65)]"
+                  : "border-white/10 bg-white/5 text-white/55 hover:bg-white/12 hover:text-white/80",
               )}
             >
               <span className="text-lg">{m.emoji}</span>

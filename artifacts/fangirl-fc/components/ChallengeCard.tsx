@@ -12,20 +12,27 @@ interface Props {
 }
 
 const CATEGORY_TINT: Record<Challenge["category"], string> = {
-  bestie: "from-pink-400/20 to-rose-300/5",
-  boyfriend: "from-fuchsia-400/20 to-violet-300/5",
-  girls: "from-amber-300/20 to-pink-300/5",
-  matchday: "from-cyan-400/15 to-emerald-300/5",
+  bestie: "from-pink-500/28 to-rose-400/8",
+  boyfriend: "from-fuchsia-500/28 to-violet-400/8",
+  girls: "from-amber-400/28 to-pink-400/8",
+  matchday: "from-cyan-500/22 to-emerald-400/8",
+};
+
+const CATEGORY_BORDER_L: Record<Challenge["category"], string> = {
+  bestie: "border-l-pink-400/80",
+  boyfriend: "border-l-fuchsia-400/80",
+  girls: "border-l-amber-400/80",
+  matchday: "border-l-cyan-400/80",
 };
 
 export function ChallengeCard({ challenge, done, onComplete }: Props) {
   return (
     <div
       className={cn(
-        "rounded-2xl border bg-gradient-to-br p-4 backdrop-blur transition",
+        "rounded-2xl border border-l-[3px] bg-gradient-to-br p-4 backdrop-blur transition",
         done
-          ? "border-emerald-300/40 from-emerald-400/15 to-emerald-300/5"
-          : `border-white/10 ${CATEGORY_TINT[challenge.category]}`,
+          ? "border-emerald-300/40 border-l-emerald-400/80 from-emerald-400/15 to-emerald-300/5"
+          : `border-white/10 ${CATEGORY_BORDER_L[challenge.category]} ${CATEGORY_TINT[challenge.category]}`,
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -50,7 +57,7 @@ export function ChallengeCard({ challenge, done, onComplete }: Props) {
           <Link
             href={challenge.href}
             onClick={onComplete}
-            className="flex-1 rounded-full bg-white/10 px-4 py-2 text-center text-xs font-semibold text-white hover:bg-white/20"
+            className="flex-1 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-center text-xs font-bold text-white hover:bg-white/25"
           >
             {challenge.cta}
           </Link>

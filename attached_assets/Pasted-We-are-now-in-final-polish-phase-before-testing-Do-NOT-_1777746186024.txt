@@ -1,0 +1,82 @@
+We are now in final polish phase before testing.
+
+Do NOT add new features.
+Do NOT change logic.
+Do NOT refactor architecture.
+
+Only fix high-impact visual and UX issues from QA.
+
+PRIORITY 1 — Result Page (CRITICAL)
+
+The result page must feel like a reward moment.
+
+Improvements:
+- Apply a soft gradient background based on identity colors (20–30% opacity)
+- Add glow or aura effect behind the card
+- Add subtle celebration effect (light glow, soft highlight, not confetti)
+- Increase emotional impact visually
+
+Goal:
+Make the user feel proud/excited to share immediately.
+
+---
+
+PRIORITY 2 — Soft Fan Template (CRITICAL)
+
+This template is too weak and generic.
+
+Fix:
+- increase contrast significantly
+- replace weak borders with solid or glow elements
+- add stronger visual element (bigger blossom, sparkles, or texture)
+- make vibe pills clearly visible (not faint borders)
+- keep feminine aesthetic but make it visually strong
+
+Goal:
+Soft Fan must be as shareable as Chaotic Fan.
+
+---
+
+PRIORITY 3 — Share Target Selector
+
+Improve active state:
+- selected button should be clearly dominant
+- use filled background or strong color, not just a ring
+- increase contrast vs inactive buttons
+
+---
+
+PRIORITY 4 — Challenges Page
+
+Improve visual differentiation:
+- each category (Bestie / Boyfriend / Girls / Matchday) should have a subtle color identity
+- add left border or tinted background per category
+- make action buttons more visible (not faded)
+
+---
+
+PRIORITY 5 — Stickers Page
+
+Reduce empty feeling:
+- add a visual teaser grid of blurred/locked stickers
+- keep it lightweight, no real data
+- improve CTA button styling (match main pink CTA)
+
+---
+
+PRIORITY 6 — Landing Minor Fix
+
+- fix card clipping in hero
+- add small spacing adjustment
+- no redesign needed
+
+---
+
+IMPORTANT:
+- Do not change functionality
+- Do not slow down app
+- Keep mobile-first
+- Keep performance high
+
+Goal:
+Make the app visually ready for real users and sharing tests.

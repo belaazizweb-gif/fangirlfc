@@ -186,13 +186,38 @@ function SoftGirlCard({
       className="relative h-full w-full"
       style={{
         background:
-          "radial-gradient(120% 80% at 20% 0%, #ffe4f1 0%, transparent 55%), radial-gradient(120% 80% at 80% 100%, #fff0c4 0%, transparent 55%), linear-gradient(160deg, #ffe4ec 0%, #f3d7ff 55%, #fff1c4 100%)",
+          "radial-gradient(130% 75% at 15% 0%, #ffc8e2 0%, transparent 50%), radial-gradient(130% 75% at 85% 100%, #e8c2ff 0%, transparent 50%), linear-gradient(160deg, #fbe4f0 0%, #f5c8f0 45%, #ead8ff 100%)",
       }}
     >
-      <Sparkle x={28} y={56} size={20} color="#fff" />
-      <Sparkle x={310} y={84} size={16} color="#ffd6e7" />
-      <Sparkle x={36} y={520} size={14} color="#ffe7b3" />
-      <Sparkle x={314} y={560} size={22} color="#fff" />
+      {/* Large blossom watermark */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          right: -30,
+          top: 130,
+          fontSize: 260,
+          lineHeight: 1,
+          opacity: 0.28,
+          filter: "saturate(1.6)",
+        }}
+      >
+        🌸
+      </div>
+
+      {/* Inner decorative border frame */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-2.5 rounded-[30px]"
+        style={{ border: "2px solid rgba(190,24,93,0.22)" }}
+      />
+
+      <Sparkle x={22} y={50} size={22} color="rgba(190,24,93,0.70)" />
+      <Sparkle x={306} y={78} size={18} color="rgba(190,24,93,0.58)" />
+      <Sparkle x={30} y={518} size={16} color="rgba(190,24,93,0.52)" />
+      <Sparkle x={310} y={554} size={24} color="rgba(190,24,93,0.68)" />
+      <Sparkle x={184} y={22} size={13} color="rgba(190,24,93,0.42)" />
+      <Sparkle x={52} y={290} size={10} color="rgba(190,24,93,0.36)" />
 
       <div className="relative flex h-full flex-col items-center px-7 py-7">
         <div className="flex w-full items-center justify-between">
@@ -202,42 +227,61 @@ function SoftGirlCard({
           <StarRow stars={stars} color="#be185d" />
         </div>
 
-        <div
-          className="mt-3 rounded-[20px] bg-white p-3 shadow-[0_24px_40px_-16px_rgba(190,24,93,0.55)]"
-          style={{ transform: "rotate(-3deg)" }}
-        >
-          <Selfie
-            selfieUrl={selfieUrl}
-            emoji={identity.emoji}
-            size={220}
-            ring="#ffffff"
-            shape="square"
-            bg="linear-gradient(160deg,#ffe4ec,#f3d7ff)"
-            adjust={selfieAdjust}
+        {/* Selfie with pink glow aura */}
+        <div className="relative mt-3">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-5 rounded-[30px]"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(190,24,93,0.38), transparent 70%)",
+              filter: "blur(18px)",
+            }}
           />
+          <div
+            className="relative rounded-[22px] bg-white p-3 shadow-[0_24px_44px_-16px_rgba(190,24,93,0.55)]"
+            style={{ transform: "rotate(-3deg)" }}
+          >
+            <Selfie
+              selfieUrl={selfieUrl}
+              emoji={identity.emoji}
+              size={220}
+              ring="#f9a8d4"
+              shape="square"
+              bg="linear-gradient(160deg,#ffe4ec,#f3d7ff)"
+              adjust={selfieAdjust}
+            />
+          </div>
         </div>
 
         <div className="mt-5 text-center">
-          <div className="text-[52px] font-black leading-[0.9] tracking-tight text-rose-900">
+          <div
+            className="text-[52px] font-black leading-[0.9] tracking-tight text-rose-900"
+            style={{ textShadow: "0 2px 20px rgba(190,24,93,0.20)" }}
+          >
             {identity.title}
           </div>
-          <div className="mt-1 text-sm font-bold text-rose-700">
+          <div className="mt-1 text-[13px] font-bold text-rose-700">
             {displayName || "Anonymous"} · {team.flag} {team.name}
           </div>
         </div>
 
         <div className="mt-auto w-full pt-4">
-          <div className="flex flex-col items-center gap-1.5">
+          <div className="flex flex-col items-center gap-2">
             {identity.vibes.map((v) => (
               <div
                 key={v}
-                className="rounded-full bg-white/85 px-4 py-1.5 text-center text-[13px] font-bold text-rose-800 shadow-[0_4px_10px_-4px_rgba(190,24,93,0.3)]"
+                className="w-full rounded-full px-4 py-2 text-center text-[13px] font-bold text-white shadow-[0_6px_18px_-4px_rgba(190,24,93,0.48)]"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #be185d 0%, #db2777 100%)",
+                }}
               >
-                {v}
+                ✦ {v}
               </div>
             ))}
           </div>
-          <div className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-rose-600/80">
+          <div className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-rose-600/90">
             ✿ {identity.shareTrigger}
           </div>
         </div>

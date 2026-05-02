@@ -22,9 +22,9 @@ const HERO_PREVIEWS: Array<{
     templateId: "soft-girl",
     name: "Maya",
     team: { code: "BRA", name: "Brazil", flag: "🇧🇷" },
-    rotate: "-rotate-[10deg]",
+    rotate: "-rotate-[7deg]",
     z: "z-10",
-    translate: "translate-x-3 translate-y-6",
+    translate: "translate-x-6 translate-y-6",
   },
   {
     identityId: "chaotic",
@@ -40,9 +40,9 @@ const HERO_PREVIEWS: Array<{
     templateId: "loyal-queen",
     name: "Sana",
     team: { code: "ARG", name: "Argentina", flag: "🇦🇷" },
-    rotate: "rotate-[10deg]",
+    rotate: "rotate-[7deg]",
     z: "z-10",
-    translate: "-translate-x-3 translate-y-6",
+    translate: "-translate-x-6 translate-y-6",
   },
 ];
 
@@ -127,7 +127,7 @@ export function LandingHero() {
             {HERO_PREVIEWS.map((p, i) => (
               <div
                 key={p.identityId}
-                style={{ marginLeft: i === 0 ? 0 : -22 }}
+                style={{ marginLeft: i === 0 ? 0 : -14 }}
                 className="drop-shadow-[0_24px_36px_rgba(255,77,191,0.3)]"
               >
                 <HeroCard preview={p} />
