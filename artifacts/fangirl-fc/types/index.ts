@@ -19,6 +19,10 @@ export interface FanIdentity {
   description: string;
   rarity: string;
   defaultStats: FanStat[];
+  /** Short, meme-y, first-person lines used on the card. */
+  vibes: string[];
+  /** Tiny prompt at the bottom of the card to trigger sharing. */
+  shareTrigger: string;
   colors: {
     bg: string;
     accent: string;

@@ -14,6 +14,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Screams", value: "MAX" },
       { label: "Matchday Energy", value: "UNSTABLE" },
     ],
+    vibes: [
+      "I scream at my TV",
+      "My groupchat is unhinged",
+      "I cry. I yell. I stay.",
+    ],
+    shareTrigger: "tag your loudest friend",
     colors: {
       bg: "from-purple-700 via-fuchsia-600 to-pink-500",
       accent: "#facc15",
@@ -33,6 +39,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Haters Blocked", value: "YES" },
       { label: "Missed Matches", value: "0" },
     ],
+    vibes: [
+      "I will defend my team no matter what",
+      "I never switched sides",
+      "Win or lose, I'm here",
+    ],
+    shareTrigger: "tag your ride or die",
     colors: {
       bg: "from-amber-300 via-yellow-400 to-rose-200",
       accent: "#1f2937",
@@ -52,6 +64,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Loyalty", value: "∞" },
       { label: "Stress Level", value: "CUTE" },
     ],
+    vibes: [
+      "I said I don't care… I lied",
+      "I cry over football matches",
+      "Pretending I'm chill",
+    ],
+    shareTrigger: "this is literally me 😭",
     colors: {
       bg: "from-pink-200 via-rose-200 to-violet-200",
       accent: "#be185d",
@@ -71,6 +89,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Selfies", value: "100%" },
       { label: "Vibes", value: "IMMACULATE" },
     ],
+    vibes: [
+      "Outfit planned, score optional",
+      "Here for the vibes",
+      "My selfies are immaculate",
+    ],
+    shareTrigger: "which one are you?",
     colors: {
       bg: "from-fuchsia-400 via-pink-300 to-amber-200",
       accent: "#7c1d6f",
@@ -90,6 +114,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Screams", value: "100%" },
       { label: "Tears", value: "GUARANTEED" },
     ],
+    vibes: [
+      "Stoppage time turns me feral",
+      "The neighbours know",
+      "I lost my voice again",
+    ],
+    shareTrigger: "tag your screamer bestie",
     colors: {
       bg: "from-red-500 via-orange-400 to-yellow-300",
       accent: "#ffffff",
@@ -109,6 +139,12 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Predictions", value: "SHARP" },
       { label: "Confidence", value: "HIGH" },
     ],
+    vibes: [
+      "Cute, but I know ball",
+      "I called the formation change",
+      "I quote xG unprompted",
+    ],
+    shareTrigger: "tag a tactical girl",
     colors: {
       bg: "from-slate-900 via-indigo-900 to-fuchsia-800",
       accent: "#fbbf24",
