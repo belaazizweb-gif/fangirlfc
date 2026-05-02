@@ -2,10 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, Trophy, Target, Sticker } from "lucide-react";
+import {
+  HelpCircle,
+  CalendarDays,
+  Users,
+  Layers,
+  Trophy,
+  Target,
+  Sticker,
+} from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
+  { href: "/quiz", label: "Quiz", icon: HelpCircle },
+  { href: "/matchday", label: "Matchday", icon: CalendarDays },
+  { href: "/groups", label: "Groups", icon: Users },
   { href: "/my-cards", label: "Cards", icon: Layers },
   { href: "/level", label: "Level", icon: Trophy },
   { href: "/challenges", label: "Challenges", icon: Target },

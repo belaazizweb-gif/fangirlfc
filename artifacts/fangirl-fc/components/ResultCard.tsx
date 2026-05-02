@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FanIdentity } from "@/types";
 import { StarProgress } from "./StarProgress";
+import { RarityBadge } from "./RarityBadge";
 import {
   awardIdentityStar,
   getIdentityActions,
@@ -13,10 +14,19 @@ import { unlockIdentity, getUnlocked, totalIdentities } from "@/lib/unlocks";
 import { trackEvent } from "@/lib/analytics";
 import { showToast } from "@/lib/toast";
 import { Sparkles, ArrowRight, RotateCcw } from "lucide-react";
+import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
+import {
+  getPrediction,
+  predictionOutcome,
+  OUTCOME_LABEL,
+  OUTCOME_DRAMA,
+} from "@/lib/predictions";
+import { rarityHook } from "@/lib/rarity";
 
 interface Props {
   identity: FanIdentity;
   compareToId?: string;
+  matchId?: string;
 }
 
 const IDENTITY_GLOW: Record<string, { backdrop: string; cardShadow: string; halo: string }> = {
@@ -64,11 +74,19 @@ const IDENTITY_GLOW: Record<string, { backdrop: string; cardShadow: string; halo
   },
 };
 
-export function ResultCard({ identity, compareToId }: Props) {
+export function ResultCard({ identity, compareToId, matchId }: Props) {
   const [stars, setStars] = useState(0.5);
   const [hint, setHint] = useState("");
   const [wasNewUnlock, setWasNewUnlock] = useState(false);
   const [unlockedCount, setUnlockedCount] = useState(0);
+
+  const match = useMemo(() => (matchId ? getMatch(matchId) : null), [matchId]);
+  const [predictionLine, setPredictionLine] = useState<string | null>(null);
+  const [predictionOut, setPredictionOut] = useState<{
+    label: string;
+    drama: string;
+    kind: "correct" | "wrong" | "pending";
+  } | null>(null);
 
   useEffect(() => {
     const updated = awardIdentityStar(identity.id, "quiz_completed");
@@ -85,12 +103,33 @@ export function ResultCard({ identity, compareToId }: Props) {
         emoji: identity.emoji,
       });
     }
-    trackEvent("quiz_completed", { identityId: identity.id });
-  }, [identity.id, identity.title, identity.emoji]);
+    trackEvent("quiz_completed", { identityId: identity.id, matchId });
+  }, [identity.id, identity.title, identity.emoji, matchId]);
+
+  useEffect(() => {
+    if (!match) {
+      setPredictionLine(null);
+      setPredictionOut(null);
+      return;
+    }
+    const p = getPrediction(match.id);
+    if (p) setPredictionLine(predictionLabel(match, p.pick));
+    const out = predictionOutcome(match, p);
+    setPredictionOut({
+      label: OUTCOME_LABEL[out],
+      drama: OUTCOME_DRAMA[out],
+      kind: out,
+    });
+  }, [match]);
 
   const glow = IDENTITY_GLOW[identity.id] ?? IDENTITY_GLOW.chaotic!;
   const totalIds = totalIdentities();
   const remaining = Math.max(0, totalIds - unlockedCount);
+
+  const cardHref =
+    `/card?id=${identity.id}` +
+    (compareToId ? `&compareTo=${compareToId}` : "") +
+    (matchId ? `&matchId=${matchId}` : "");
 
   return (
     <div className="relative flex flex-col gap-6">
@@ -99,6 +138,41 @@ export function ResultCard({ identity, compareToId }: Props) {
         className="pointer-events-none fixed inset-0 -z-10"
         style={{ background: glow.backdrop }}
       />
+
+      {/* Matchday context banner */}
+      {match && (
+        <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-300/15 via-pink-400/10 to-fuchsia-400/10 p-3.5">
+          <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.22em] text-amber-100">
+            ⚽ Matchday
+          </div>
+          <div className="mt-0.5 text-sm font-black text-white">
+            {matchHeadline(match)} {match.flagA}
+            {match.flagB}
+          </div>
+          {predictionLine && (
+            <div className="mt-2 flex flex-col gap-0.5 rounded-xl bg-black/25 px-3 py-2">
+              <div className="text-[10px] uppercase tracking-wider text-white/55">
+                Your prediction
+              </div>
+              <div className="text-[13px] font-bold text-white">
+                🔮 {predictionLine}
+              </div>
+              {predictionOut && match.status === "completed" && (
+                <div
+                  className={
+                    "mt-0.5 text-[11px] font-extrabold uppercase tracking-wider " +
+                    (predictionOut.kind === "correct"
+                      ? "text-emerald-200"
+                      : "text-rose-200")
+                  }
+                >
+                  {predictionOut.label} · {predictionOut.drama}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* New unlock celebration panel */}
       {wasNewUnlock && (
@@ -150,10 +224,13 @@ export function ResultCard({ identity, compareToId }: Props) {
             {identity.emoji}
           </div>
           <div className="relative">
-            <span className="inline-flex items-center gap-1 rounded-full bg-black/25 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/90 backdrop-blur">
-              <Sparkles className="h-3 w-3" />
-              {identity.rarity}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <RarityBadge identity={identity} size="md" />
+              <span className="inline-flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-white/90 backdrop-blur">
+                <Sparkles className="h-3 w-3" />
+                {rarityHook(identity)}
+              </span>
+            </div>
             <h1
               className="mt-4 text-4xl font-black leading-tight"
               style={{ color: identity.colors.text }}
@@ -238,7 +315,7 @@ export function ResultCard({ identity, compareToId }: Props) {
 
       <div className="flex flex-col gap-3">
         <Link
-          href={`/card?id=${identity.id}${compareToId ? `&compareTo=${compareToId}` : ""}`}
+          href={cardHref}
           className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
         >
           Make my Fangirl Card
@@ -246,7 +323,7 @@ export function ResultCard({ identity, compareToId }: Props) {
         </Link>
         {remaining > 0 && (
           <Link
-            href="/quiz"
+            href={matchId ? `/quiz?matchId=${matchId}` : "/quiz"}
             className="flex items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-pink-400/10 px-6 py-3 text-center text-sm font-bold text-pink-50 hover:bg-pink-400/20"
           >
             <RotateCcw className="h-4 w-4" />

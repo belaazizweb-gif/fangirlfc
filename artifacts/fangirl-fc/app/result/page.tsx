@@ -11,6 +11,7 @@ function Inner() {
   const params = useSearchParams();
   const id = params.get("id") as FanIdentityId | null;
   const compareTo = params.get("compareTo") ?? undefined;
+  const matchId = params.get("matchId") ?? undefined;
   const identity = id && FAN_TYPES[id];
 
   if (!identity) {
@@ -27,7 +28,13 @@ function Inner() {
     );
   }
 
-  return <ResultCard identity={identity} compareToId={compareTo} />;
+  return (
+    <ResultCard
+      identity={identity}
+      compareToId={compareTo}
+      matchId={matchId}
+    />
+  );
 }
 
 export default function ResultPage() {

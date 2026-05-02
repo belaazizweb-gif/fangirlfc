@@ -11,14 +11,15 @@ import { cn } from "@/lib/cn";
 
 interface Props {
   compareTo?: string;
+  matchId?: string;
 }
 
-export function Quiz({ compareTo }: Props) {
+export function Quiz({ compareTo, matchId }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   useEffect(() => {
-    trackEvent("quiz_started", { compareTo });
-  }, [compareTo]);
+    trackEvent("quiz_started", { compareTo, matchId });
+  }, [compareTo, matchId]);
   const [answers, setAnswers] = useState<(number | null)[]>(
     Array(QUIZ_QUESTIONS.length).fill(null),
   );
@@ -48,6 +49,7 @@ export function Quiz({ compareTo }: Props) {
       awardStar("quiz_completed", { silent: true });
       const params = new URLSearchParams({ id: result.identityId });
       if (compareTo) params.set("compareTo", compareTo);
+      if (matchId) params.set("matchId", matchId);
       router.push(`/result?${params.toString()}`);
     }
   };

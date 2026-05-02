@@ -20,6 +20,10 @@ interface Props {
   selfieUrl: string | null;
   stars: number;
   selfieAdjust?: SelfieAdjust;
+  /** Optional matchday headline, e.g. "Tonight: Brazil vs France". */
+  matchContext?: string;
+  /** Optional prediction line, e.g. "Brazil wins". */
+  prediction?: string;
 }
 
 const CARD_W = 360;
@@ -171,6 +175,8 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
     stars,
     template,
     selfieAdjust = DEFAULT_ADJUST,
+    matchContext,
+    prediction,
   },
   ref,
 ) {
@@ -228,6 +234,21 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
       {/* Content */}
       <div className="relative flex h-full flex-col px-5 pb-4 pt-5">
+        {/* Optional matchday chip */}
+        {matchContext && (
+          <div className="text-center">
+            <span
+              className="inline-block rounded-full px-2 py-[2px] text-[8.5px] font-extrabold uppercase tracking-[0.28em]"
+              style={{
+                background: theme.accent,
+                color: "#fff",
+              }}
+            >
+              {matchContext}
+            </span>
+          </div>
+        )}
+
         {/* WC header */}
         <div className="text-center">
           <div
@@ -467,6 +488,16 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
           </span>
           <span className="text-[16px] leading-none">{team.flag}</span>
         </div>
+
+        {/* Optional prediction line */}
+        {prediction && (
+          <div
+            className="mt-1 text-center text-[10px] font-extrabold uppercase tracking-[0.22em]"
+            style={{ color: theme.accent }}
+          >
+            🔮 Prediction · {prediction}
+          </div>
+        )}
 
         {/* 3 viral vibe lines */}
         <div className="mt-2 flex flex-col gap-[4px] px-1">

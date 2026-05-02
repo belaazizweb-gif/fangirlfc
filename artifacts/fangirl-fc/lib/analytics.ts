@@ -13,7 +13,18 @@ export type AnalyticsEvent =
   | "share_target_selected"
   | "compare_mode_created"
   | "compare_mode_opened"
-  | "social_challenge_completed";
+  | "social_challenge_completed"
+  // Matchday + groups + viral modules
+  | "matchday_opened"
+  | "match_selected"
+  | "prediction_made"
+  | "group_created"
+  | "group_member_added"
+  | "group_ranking_exported"
+  | "worldwide_battle_viewed"
+  | "story_caption_copied"
+  | "callout_created"
+  | "callout_exported";
 
 export function trackEvent(
   name: AnalyticsEvent,

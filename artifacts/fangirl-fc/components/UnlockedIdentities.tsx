@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 import { FAN_TYPE_LIST } from "@/lib/fanTypes";
 import { getUnlocked } from "@/lib/unlocks";
+import { RARITY_META } from "@/lib/rarity";
 import type { FanIdentityId } from "@/types";
 import { cn } from "@/lib/cn";
 
@@ -38,11 +39,12 @@ export function UnlockedIdentities() {
       <div className="mt-3 grid grid-cols-3 gap-2">
         {FAN_TYPE_LIST.map((f) => {
           const isUnlocked = unlocked.includes(f.id);
+          const rarity = RARITY_META[f.rarityTier];
           return (
             <div
               key={f.id}
               className={cn(
-                "relative flex flex-col items-center gap-1 rounded-2xl border p-2 text-center",
+                "relative flex flex-col items-center gap-1 rounded-2xl border p-2 pt-2.5 text-center",
                 isUnlocked
                   ? "border-pink-300/40 bg-white/5"
                   : "border-white/10 bg-black/20 opacity-70",
@@ -52,7 +54,17 @@ export function UnlockedIdentities() {
               <div className="line-clamp-1 text-[10px] font-bold">
                 {isUnlocked ? f.title : "Locked"}
               </div>
-              {!isUnlocked && (
+              {isUnlocked ? (
+                <div
+                  className={cn(
+                    "rounded-full border px-1.5 py-[1px] text-[8px] font-extrabold uppercase tracking-wider",
+                    rarity.border,
+                    rarity.text,
+                  )}
+                >
+                  {rarity.short} · {f.rarityPercent}%
+                </div>
+              ) : (
                 <Lock className="absolute right-1.5 top-1.5 h-3 w-3 text-white/40" />
               )}
             </div>

@@ -1,0 +1,294 @@
+Senior developer task.
+
+We will add viral World Cup 2026 modules to Fangirl FC.
+
+Important constraints:
+- Do NOT add login.
+- Do NOT add payments.
+- Do NOT add ads.
+- Do NOT upload selfies.
+- Do NOT require Firebase yet.
+- Use localStorage/mock data only.
+- Keep current quiz/card/compare/challenges working.
+- Do not refactor the whole app.
+- Add features in a modular way so Firebase can be added later.
+
+Goal:
+Turn Fangirl FC from a card generator into a viral World Cup group game.
+
+Build these modules:
+
+1. MATCHDAY MODE
+Route: /matchday
+
+Purpose:
+Daily/event-based mode tied to World Cup matches.
+
+For now use static/mock matches.
+
+Create lib/matches.ts with mock matches:
+- Brazil vs France
+- Morocco vs Spain
+- Argentina vs England
+- USA vs Mexico
+- Japan vs Germany
+
+Each match should have:
+id, teamA, teamB, flagA, flagB, dateLabel, city, status: upcoming/live/completed.
+
+UI:
+- Page title: “Matchday Mode”
+- Subtitle: “Pick today’s match and get your matchday fan identity.”
+- Match cards
+- CTA per match: “Play this match”
+- On click, route to /quiz?matchId={id}
+
+Quiz/result/card should preserve matchId if present.
+Card should show match context when matchId exists:
+“Tonight: Brazil vs France”
+or
+“Matchday: Morocco vs Spain”
+
+Do not break normal quiz without matchId.
+
+2. PREDICTION MODE
+Add prediction step for matchday flow only.
+
+If user enters from /quiz?matchId=xxx:
+- before quiz, show a simple prediction prompt:
+  “Who wins?”
+  Options: Team A / Draw / Team B
+- Store prediction in localStorage with matchId.
+- After result, show:
+  “Your prediction: Brazil wins”
+- On card, include optional line:
+  “Prediction: Brazil wins”
+
+For completed mock matches, add a fake result in matches.ts.
+If match status is completed, show:
+- “You called it” if correct
+- “You were robbed” if wrong
+- “Drama level: high”
+
+Keep it simple. No real sports API.
+
+3. GROUP RANKING
+Route: /groups
+
+Purpose:
+Create local groups and rank friends by stars/fan types.
+
+Local-only MVP.
+
+Group model:
+{
+ id,
+ name,
+ createdAt,
+ members: [
+   { name, identityId, stars, teamCode }
+ ]
+}
+
+UI:
+- Create group name
+- Add member manually:
+  name
+  identity select
+  stars input or default stars
+  team select
+- Show leaderboard:
+  rank
+  member name
+  identity
+  stars
+  team
+- Show fun group labels:
+  “Most Chaotic”
+  “Most Loyal”
+  “Drama Queen”
+  “Tactical Brain”
+- CTA: “Share group ranking”
+- Generate shareable ranking card as PNG using html-to-image.
+
+No backend.
+Save groups in localStorage key: fangirlfc.groups.
+
+4. GROUP VS GROUP WORLDWIDE MOCK
+Inside /groups add a second tab or section:
+“Worldwide Battle”
+
+Since we have no backend, use mock global groups.
+
+Create lib/globalGroups.ts:
+Mock examples:
+- Morocco Girls Squad
+- Brazil Chaos Club
+- Mexico Matchday Queens
+- France Loyal Crew
+- Argentina Drama FC
+
+Each has:
+name, country, flag, averageStars, membersCount, dominantIdentity.
+
+UI:
+- User’s local group can compare against mock global groups.
+- Show:
+  “Your group vs Brazil Chaos Club”
+  compatibility / battle score
+  winner label:
+  “Your squad is more chaotic”
+  “They have higher fan energy”
+- This is mock only. Clearly code it so it can become real later.
+
+Do not claim these are real users.
+Add small text:
+“Demo global rankings — live rankings coming soon.”
+
+5. RARE PERSONALITIES
+Add rarity system to identities.
+
+In fanTypes.ts ensure each identity has rarity:
+- common
+- rare
+- iconic
+- legendary
+
+Example:
+Chaotic Fan: rare
+Loyal Queen: iconic
+Soft Fan: common
+Matchday Princess: iconic
+Last Minute Screamer: legendary
+Tactical Girl: rare
+
+Display rarity on:
+- result page
+- fan card
+- my level page
+- unlocked identities
+
+Copy examples:
+“Only 8% get this”
+“Legendary fan type”
+“Rare drop”
+
+No random fake percentages per user. Use fixed percentage per identity.
+
+6. STORY MODE READY
+Add a dedicated Story Share Kit on /card.
+
+Section title:
+“Story Mode”
+
+Include:
+- Copy story caption
+- Download story card
+- Copy short CTA
+- Suggested text overlays
+
+Captions:
+- “I got {identity} 😭 what are you?”
+- “World Cup fan personality unlocked”
+- “Send this to your bestie”
+- “Girls, take the quiz”
+
+Overlay suggestions:
+- “this is literally me”
+- “which one are you?”
+- “tag your bestie”
+- “group chat needs this”
+
+If Web Share API supports files, prepare helper function but keep fallback:
+- download PNG
+- copy caption
+
+Do not make this fragile.
+
+7. FRIEND CALL-OUT CARD
+Route or modal: /callout or integrated in /card.
+
+Purpose:
+User can assign a fan identity to a friend.
+
+UI:
+- “Call out a friend”
+- Friend name input
+- Choose identity:
+  Chaotic Fan, Loyal Queen, Soft Fan, Matchday Princess, Last Minute Screamer, Tactical Girl
+- Choose target:
+  Bestie / Boyfriend / Girls Group / Everyone
+- Generate a call-out card:
+  “{FriendName}, you are definitely {Identity}”
+  “Take the quiz and prove me wrong”
+- Download PNG
+- Copy message
+
+No backend required.
+No selfie required for callout card.
+
+8. NAVIGATION UPDATE
+Add clean mobile nav links:
+- Quiz
+- Matchday
+- Groups
+- Cards
+- Level
+- Challenges
+- Stickers
+
+Keep nav scrollable on small screens.
+Do not overcrowd.
+
+9. ANALYTICS PLACEHOLDER
+Use existing trackEvent helper.
+
+Add events:
+- matchday_opened
+- match_selected
+- prediction_made
+- group_created
+- group_member_added
+- group_ranking_exported
+- worldwide_battle_viewed
+- story_caption_copied
+- callout_created
+- callout_exported
+
+Still console.log only.
+
+10. ACCEPTANCE CRITERIA
+After build:
+- Typecheck passes.
+- App runs.
+- Existing flows still work:
+  quiz → result → card → share
+  challenges
+  my-cards
+  level
+- New /matchday works.
+- /quiz?matchId=xxx preserves match context.
+- Prediction appears in result/card if matchday flow.
+- /groups works with localStorage.
+- Group ranking PNG export works.
+- Worldwide battle mock section works.
+- Rarity visible on result/card/level.
+- Story Mode section visible on card page.
+- Friend Call-Out card generation works.
+- No login.
+- No Firebase required.
+- No selfie upload.
+- No payments.
+- No ads.
+
+Build priority:
+1. data files: matches, globalGroups, rarity updates
+2. matchday route + prediction flow
+3. groups route + ranking export
+4. story mode section
+5. callout module
+6. navigation update
+7. analytics events
+8. typecheck + smoke test
+
+Do not overdesign. Keep everything mobile-first and fast.

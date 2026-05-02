@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FAN_TYPES } from "@/lib/fanTypes";
@@ -15,6 +15,8 @@ import { ShareCaptions } from "@/components/ShareCaptions";
 import { ShareTargetSelector } from "@/components/ShareTargetSelector";
 import { SharePack } from "@/components/SharePack";
 import { StarProgress } from "@/components/StarProgress";
+import { RarityBadge } from "@/components/RarityBadge";
+import { StoryModeKit } from "@/components/StoryModeKit";
 import { trackEvent } from "@/lib/analytics";
 import {
   awardIdentityStar,
@@ -26,6 +28,8 @@ import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
 import { saveCard } from "@/lib/cardHistory";
+import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
+import { getPrediction } from "@/lib/predictions";
 import type { FanIdentityId, SelfieFit, ShareMode } from "@/types";
 
 function Inner() {
@@ -38,6 +42,8 @@ function Inner() {
     params.get("template") ??
     IDENTITY_DEFAULT_TEMPLATE[id] ??
     TEMPLATES[0]!.id;
+  const matchId = params.get("matchId") ?? undefined;
+  const compareTo = params.get("compareTo") ?? undefined;
   const identity = FAN_TYPES[id] ?? FAN_TYPES.chaotic;
 
   const [displayName, setDisplayName] = useState(initialName.slice(0, 24));
@@ -56,11 +62,26 @@ function Inner() {
 
   const cardRef = useRef<HTMLDivElement>(null);
 
+  const match = useMemo(() => (matchId ? getMatch(matchId) : null), [matchId]);
+  const [matchContext, setMatchContext] = useState<string | undefined>();
+  const [predictionText, setPredictionText] = useState<string | undefined>();
+
   useEffect(() => {
     const s = getIdentityStars(id);
     setStars(s);
     setHint(getNextHint(s, getIdentityActions(id)));
   }, [id]);
+
+  useEffect(() => {
+    if (!match) {
+      setMatchContext(undefined);
+      setPredictionText(undefined);
+      return;
+    }
+    setMatchContext(matchHeadline(match));
+    const p = getPrediction(match.id);
+    setPredictionText(p ? predictionLabel(match, p.pick) : undefined);
+  }, [match]);
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
   const template = getTemplate(templateId);
@@ -90,8 +111,8 @@ function Inner() {
     setShareMode(m);
     trackEvent("share_target_selected", { mode: m });
     if (shareUrl) {
-      const id = shareUrl.split("/").pop()?.split("?")[0];
-      if (id) setShareUrl(buildShareUrl(id, m));
+      const sid = shareUrl.split("/").pop()?.split("?")[0];
+      if (sid) setShareUrl(buildShareUrl(sid, m));
     }
   };
 
@@ -104,7 +125,7 @@ function Inner() {
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));
       persistCard();
-      trackEvent("card_exported", { identityId: identity.id, templateId });
+      trackEvent("card_exported", { identityId: identity.id, templateId, matchId });
       trackEvent("card_generated", { identityId: identity.id, templateId });
     } finally {
       setBusy(false);
@@ -151,8 +172,13 @@ function Inner() {
       <div>
         <h1 className="text-2xl font-black">Your Fangirl Card</h1>
         <p className="mt-1 text-sm text-white/60">
-          Tweak it. Selfies stay on your device — never uploaded.
+          {match
+            ? `Matchday card · ${matchHeadline(match)}`
+            : "Tweak it. Selfies stay on your device — never uploaded."}
         </p>
+        <div className="mt-2">
+          <RarityBadge identity={identity} size="sm" showHook />
+        </div>
       </div>
 
       <div className="flex justify-center">
@@ -169,6 +195,8 @@ function Inner() {
             selfieUrl={selfie}
             stars={stars}
             selfieAdjust={{ fit: selfieFit, zoom }}
+            matchContext={matchContext}
+            prediction={predictionText}
           />
         </div>
       </div>
@@ -231,12 +259,29 @@ function Inner() {
         busy={busy}
       />
 
+      <StoryModeKit
+        identity={identity}
+        onDownload={handleDownload}
+        busy={busy}
+      />
+
       <ShareCaptions identity={identity} mode={shareMode} />
 
       <SharePack shareUrl={shareUrl} primaryCaption={primaryCaption} />
 
       <Link
-        href={`/result?id=${identity.id}`}
+        href={`/callout?identity=${identity.id}`}
+        className="rounded-full border border-pink-300/40 bg-pink-400/10 px-6 py-3 text-center text-sm font-bold text-pink-50 hover:bg-pink-400/20"
+      >
+        💌 Call out a friend with this identity →
+      </Link>
+
+      <Link
+        href={
+          `/result?id=${identity.id}` +
+          (compareTo ? `&compareTo=${compareTo}` : "") +
+          (matchId ? `&matchId=${matchId}` : "")
+        }
         className="text-center text-xs text-white/50 hover:text-white/80"
       >
         ← Back to result

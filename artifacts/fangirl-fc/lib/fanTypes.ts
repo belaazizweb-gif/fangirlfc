@@ -9,6 +9,8 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     description:
       "You scream, you cry, you yell at the screen. Your group chat is unhinged on matchdays and you wouldn't have it any other way.",
     rarity: "Rare drop · 1 in 12 fans",
+    rarityTier: "rare",
+    rarityPercent: 12,
     defaultStats: [
       { label: "Mood Swings", value: "100%" },
       { label: "Screams", value: "MAX" },
@@ -33,7 +35,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     slogan: "win or lose, I'm staying",
     description:
       "Ride or die. You don't switch teams when they lose, you don't fake it, and you outlast every bandwagon fan in the room.",
-    rarity: "Royal tier · top 8% of fans",
+    rarity: "Iconic tier · top 8% of fans",
+    rarityTier: "iconic",
+    rarityPercent: 8,
     defaultStats: [
       { label: "Loyalty", value: "100%" },
       { label: "Haters Blocked", value: "YES" },
@@ -58,7 +62,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     slogan: "I said I wouldn't care. I lied.",
     description:
       "You swore you weren't into football. Then they lost on penalties and you cried on the bathroom floor. We see you.",
-    rarity: "Sweet tier · 1 in 9 fans",
+    rarity: "Common tier · 22% of fans",
+    rarityTier: "common",
+    rarityPercent: 22,
     defaultStats: [
       { label: "Cries After Loss", value: "YES" },
       { label: "Loyalty", value: "∞" },
@@ -83,7 +89,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     slogan: "I came for the vibes and stayed for the chaos",
     description:
       "Outfit planned, nails done, photos staged. You're here for the spectacle and the score is just a backdrop to your story.",
-    rarity: "Iconic tier · 1 in 14 fans",
+    rarity: "Iconic tier · only 10% get this",
+    rarityTier: "iconic",
+    rarityPercent: 10,
     defaultStats: [
       { label: "Outfit Planning", value: "10/10" },
       { label: "Selfies", value: "100%" },
@@ -108,7 +116,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     slogan: "stoppage time is going to kill me one day",
     description:
       "Stoppage time turns you into a creature. The neighbours know your team's name. You've lost your voice three times this season.",
-    rarity: "Iconic tier · 1 in 11 fans",
+    rarity: "Legendary · only 4% get this",
+    rarityTier: "legendary",
+    rarityPercent: 4,
     defaultStats: [
       { label: "Anxiety", value: "99%" },
       { label: "Screams", value: "100%" },
@@ -133,7 +143,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     slogan: "cute, but I actually know ball — try me",
     description:
       "You called the formation change before the manager did. You quote xG. You will not be talked over at the bar.",
-    rarity: "Galaxy tier · top 5% of fans",
+    rarity: "Rare drop · 15% of fans",
+    rarityTier: "rare",
+    rarityPercent: 15,
     defaultStats: [
       { label: "Ball Knowledge", value: "95%" },
       { label: "Predictions", value: "SHARP" },
