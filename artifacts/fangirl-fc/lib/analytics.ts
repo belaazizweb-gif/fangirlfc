@@ -8,7 +8,12 @@ export type AnalyticsEvent =
   | "compare_created"
   | "compare_completed"
   | "challenge_completed"
-  | "sticker_waitlist_clicked";
+  | "sticker_waitlist_clicked"
+  | "photo_adjust_changed"
+  | "share_target_selected"
+  | "compare_mode_created"
+  | "compare_mode_opened"
+  | "social_challenge_completed";
 
 export function trackEvent(
   name: AnalyticsEvent,

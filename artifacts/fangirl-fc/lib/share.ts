@@ -43,8 +43,9 @@ export async function loadShare(shareId: string): Promise<ShareRecord | null> {
   return mockGetShare(shareId);
 }
 
-export function buildShareUrl(shareId: string): string {
-  if (typeof window === "undefined") return `/compare/${shareId}`;
+export function buildShareUrl(shareId: string, mode?: string): string {
+  const suffix = mode && mode !== "public" ? `?mode=${mode}` : "";
+  if (typeof window === "undefined") return `/compare/${shareId}${suffix}`;
   const origin = window.location.origin;
-  return `${origin}/compare/${shareId}`;
+  return `${origin}/compare/${shareId}${suffix}`;
 }

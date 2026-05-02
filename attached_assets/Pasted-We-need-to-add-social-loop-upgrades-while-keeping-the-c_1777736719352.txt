@@ -1,0 +1,222 @@
+We need to add social-loop upgrades while keeping the current architecture stable.
+
+Do NOT add authentication.
+Do NOT add Stripe.
+Do NOT add ads.
+Do NOT add social feed.
+Do NOT upload selfies.
+Do NOT change the existing quiz/card/compare logic unless needed for these upgrades.
+
+Goal:
+Make the app more shareable by supporting different photo types and adding Bestie / Boyfriend / Girls Challenge sharing loops.
+
+MODULE 1 — Photo Adjust Controls
+
+On the card editor, improve photo handling.
+
+Support:
+- close selfie
+- upper-body selfie
+- mirror selfie
+- outfit/matchday photo
+- lifestyle photo
+
+Add simple controls:
+1. Fit
+2. Portrait
+3. Fill
+4. Zoom slider
+5. Position drag if feasible
+
+Rules:
+- never distort the image
+- keep image local only
+- no upload to Firebase
+- no server storage
+- card export must still work at 1080x1920
+
+UX copy:
+“Adjust your photo”
+“Fit”
+“Portrait”
+“Fill”
+“Zoom”
+
+Default should be Portrait, but user can switch to Fit for full outfit photos.
+
+MODULE 2 — Share Target Selector
+
+After card generation, add a social action block:
+
+Title:
+“Who are you sending this to?”
+
+Buttons:
+1. Bestie
+2. Boyfriend
+3. Girls Group
+4. Everyone
+
+Each button changes the share copy and compare CTA.
+
+Bestie copy examples:
+- “This is literally me 😭 what are you?”
+- “Take the quiz and compare with me.”
+- “I got {identity}. You’re definitely Chaotic Fan.”
+
+Boyfriend copy examples:
+- “I got {identity}. Let’s see if you actually know football.”
+- “Take this quiz and prove you understand my matchday chaos.”
+- “If you get Tactical Girl, I’m concerned.”
+
+Girls Group copy examples:
+- “Girls, which World Cup fan are you?”
+- “Take the quiz and drop your fan type.”
+- “Who is the most chaotic in the group?”
+
+Everyone copy examples:
+- “Which fan are you?”
+- “Make your Fangirl FC card.”
+- “Tag the friend who screams at football.”
+
+MODULE 3 — Compare Mode Types
+
+Extend compare links to include a mode:
+- bestie
+- boyfriend
+- girls
+- public
+
+Example:
+`/compare/[shareId]?mode=boyfriend`
+
+When friend opens compare link, page copy changes based on mode.
+
+Bestie page:
+Headline:
+“Your bestie got {identity}. Now find yours.”
+
+Boyfriend page:
+Headline:
+“She got {identity}. Can you match her energy?”
+
+Girls page:
+Headline:
+“Your group challenge starts here.”
+
+Public page:
+Headline:
+“Find your World Cup fan type.”
+
+Keep the same quiz and comparison logic.
+
+MODULE 4 — Funny Compare Labels
+
+Add compare result labels by mode.
+
+Bestie labels:
+- Football Besties
+- Chaos Duo
+- Matchday Twins
+- Loyal + Chaotic
+- Drama Sisters
+
+Boyfriend labels:
+- She Knows Ball
+- He Survived Matchday
+- Chaos vs Logic
+- She Carries the Vibes
+- Relationship Derby
+
+Girls Group labels:
+- Group Chat Champions
+- Screamer Squad
+- Vibe League
+- Penalty Drama Club
+- Bestie Cup Final
+
+Public labels:
+- World Cup Match
+- Fan Energy Match
+- Stadium Vibes
+
+Show:
+“You: {identity}”
+“Them: {identity}”
+“Compatibility: {percentage}%”
+“Label: {label}”
+
+MODULE 5 — Girls Challenge Upgrade
+
+Improve /challenges with social challenge cards.
+
+Add challenge categories:
+1. Bestie Challenge
+2. Boyfriend Challenge
+3. Girls Group Challenge
+4. Matchday Challenge
+
+Challenge examples:
+Bestie:
+- “Send this to the friend who screams the most.”
+- “Find out who is the real Loyal Queen.”
+- “Compare your fan type with your bestie.”
+
+Boyfriend:
+- “Make him take the quiz.”
+- “See if he knows football better than you.”
+- “Challenge him to predict your fan type.”
+
+Girls Group:
+- “Drop your fan type in the group chat.”
+- “Find the most chaotic girl in the group.”
+- “Start a Fangirl FC league with your friends.”
+
+Matchday:
+- “Make your matchday card.”
+- “Share your match prediction.”
+- “Unlock one new identity today.”
+
+Each completed challenge:
+- localStorage completed state
+- +0.5 stars once
+- CTA button that leads to card page or compare/share flow
+
+MODULE 6 — Star Visibility Upgrade
+
+Make stars more visible in:
+- result page
+- card page
+- compare page
+- challenges page
+
+Add copy:
+“Next level: share your card”
+“Next level: complete a challenge”
+“⭐ {stars}/5”
+
+Do not make this complicated.
+
+MODULE 7 — Analytics Events
+
+Track these console events using existing trackEvent helper:
+- photo_adjust_changed
+- share_target_selected
+- compare_mode_created
+- compare_mode_opened
+- social_challenge_completed
+
+ACCEPTANCE CRITERIA
+- Existing app still runs.
+- No broken routes.
+- Quiz works.
+- Card generation works.
+- PNG export works.
+- Selfie stays local.
+- Compare links still work.
+- Compare links support mode query param.
+- Photo controls work on mobile.
+- No auth.
+- No Stripe.
+- No ads.
+- No full Sticker Tracker build.

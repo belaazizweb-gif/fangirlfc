@@ -83,7 +83,10 @@ export function ResultCard({ identity, compareToId }: Props) {
       </div>
 
       <div className="glass rounded-2xl p-4">
-        <StarProgress stars={stars} hint={hint} />
+        <StarProgress
+          stars={stars}
+          hint={hint || "Next level: share your card"}
+        />
       </div>
 
       <div className="flex flex-col gap-3">

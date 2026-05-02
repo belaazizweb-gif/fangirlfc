@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { Suspense, useEffect, useState, use } from "react";
+import { useSearchParams } from "next/navigation";
 import { ComparisonResult } from "@/components/ComparisonResult";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { getTeam, TEAMS } from "@/lib/teams";
 import { loadShare } from "@/lib/share";
 import { awardStar, getStars } from "@/lib/stars";
 import { trackEvent } from "@/lib/analytics";
-import type { ShareRecord, FanIdentityId } from "@/types";
+import { getShareMode } from "@/lib/shareModes";
+import type { ShareRecord, FanIdentityId, ShareMode } from "@/types";
 
 interface PageProps {
   params: Promise<{ shareId: string }>;
 }
 
-export default function ComparePage({ params }: PageProps) {
-  const { shareId } = use(params);
+function Inner({ shareId }: { shareId: string }) {
+  const search = useSearchParams();
+  const mode: ShareMode = getShareMode(search.get("mode")).id;
+
   const [record, setRecord] = useState<ShareRecord | null | "loading">(
     "loading",
   );
@@ -28,6 +32,7 @@ export default function ComparePage({ params }: PageProps) {
         if (r) {
           awardStar("compare_friend");
           trackEvent("compare_completed", { shareId });
+          trackEvent("compare_mode_opened", { shareId, mode });
         }
       }
     });
@@ -38,7 +43,7 @@ export default function ComparePage({ params }: PageProps) {
     return () => {
       mounted = false;
     };
-  }, [shareId]);
+  }, [shareId, mode]);
 
   if (record === "loading") {
     return <div className="text-white/50">Loading their card…</div>;
@@ -74,6 +79,16 @@ export default function ComparePage({ params }: PageProps) {
         stars: record.stars,
       }}
       you={you}
+      mode={mode}
     />
+  );
+}
+
+export default function ComparePage({ params }: PageProps) {
+  const { shareId } = use(params);
+  return (
+    <Suspense fallback={<div className="text-white/50">Loading their card…</div>}>
+      <Inner shareId={shareId} />
+    </Suspense>
   );
 }

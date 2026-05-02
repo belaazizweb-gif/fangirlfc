@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { FanIdentity, Team, Template } from "@/types";
+import type { FanIdentity, SelfieAdjust, SelfieFit, Team, Template } from "@/types";
 import { Star } from "lucide-react";
 
 interface Props {
@@ -11,10 +11,13 @@ interface Props {
   displayName: string;
   selfieUrl: string | null;
   stars: number;
+  selfieAdjust?: SelfieAdjust;
 }
 
 const CARD_W = 360;
 const CARD_H = 640;
+
+const DEFAULT_ADJUST: SelfieAdjust = { fit: "portrait", zoom: 1 };
 
 export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
   props,
@@ -92,6 +95,20 @@ function StarRow({ stars, color }: { stars: number; color: string }) {
   );
 }
 
+function fitToCss(fit: SelfieFit): {
+  objectFit: "cover" | "contain";
+  objectPosition: string;
+} {
+  switch (fit) {
+    case "fit":
+      return { objectFit: "contain", objectPosition: "center" };
+    case "portrait":
+      return { objectFit: "cover", objectPosition: "50% 22%" };
+    case "fill":
+      return { objectFit: "cover", objectPosition: "center" };
+  }
+}
+
 function Selfie({
   selfieUrl,
   emoji,
@@ -99,6 +116,7 @@ function Selfie({
   ring,
   shape = "circle",
   bg = "rgba(255,255,255,0.18)",
+  adjust = DEFAULT_ADJUST,
 }: {
   selfieUrl: string | null;
   emoji: string;
@@ -106,7 +124,9 @@ function Selfie({
   ring: string;
   shape?: "circle" | "square";
   bg?: string;
+  adjust?: SelfieAdjust;
 }) {
+  const css = fitToCss(adjust.fit);
   return (
     <div
       className="relative overflow-hidden"
@@ -123,7 +143,13 @@ function Selfie({
           src={selfieUrl}
           alt=""
           crossOrigin="anonymous"
-          className="h-full w-full object-cover"
+          className="h-full w-full"
+          style={{
+            objectFit: css.objectFit,
+            objectPosition: css.objectPosition,
+            transform: adjust.zoom !== 1 ? `scale(${adjust.zoom})` : undefined,
+            transformOrigin: "center",
+          }}
         />
       ) : (
         <div
@@ -153,6 +179,7 @@ function SoftGirlCard({
   displayName,
   selfieUrl,
   stars,
+  selfieAdjust,
 }: Props) {
   return (
     <div
@@ -175,7 +202,6 @@ function SoftGirlCard({
           <StarRow stars={stars} color="#be185d" />
         </div>
 
-        {/* Big polaroid selfie */}
         <div
           className="mt-3 rounded-[20px] bg-white p-3 shadow-[0_24px_40px_-16px_rgba(190,24,93,0.55)]"
           style={{ transform: "rotate(-3deg)" }}
@@ -187,10 +213,10 @@ function SoftGirlCard({
             ring="#ffffff"
             shape="square"
             bg="linear-gradient(160deg,#ffe4ec,#f3d7ff)"
+            adjust={selfieAdjust}
           />
         </div>
 
-        {/* Title */}
         <div className="mt-5 text-center">
           <div className="text-[52px] font-black leading-[0.9] tracking-tight text-rose-900">
             {identity.title}
@@ -200,7 +226,6 @@ function SoftGirlCard({
           </div>
         </div>
 
-        {/* Vibes — emotional one-liners */}
         <div className="mt-auto w-full pt-4">
           <div className="flex flex-col items-center gap-1.5">
             {identity.vibes.map((v) => (
@@ -252,6 +277,7 @@ function ChaoticNeonCard({
   displayName,
   selfieUrl,
   stars,
+  selfieAdjust,
 }: Props) {
   return (
     <div
@@ -275,7 +301,6 @@ function ChaoticNeonCard({
           <StarRow stars={stars} color="#5eead4" />
         </div>
 
-        {/* Big selfie */}
         <div className="mt-4">
           <Selfie
             selfieUrl={selfieUrl}
@@ -284,10 +309,10 @@ function ChaoticNeonCard({
             ring="#5eead4"
             shape="square"
             bg="linear-gradient(160deg,#1b0033,#5b00b3)"
+            adjust={selfieAdjust}
           />
         </div>
 
-        {/* Glitched HUGE title */}
         <div className="relative mt-5 text-center">
           <div
             className="absolute inset-0 text-[54px] font-black uppercase leading-[0.85] tracking-tight text-cyan-300"
@@ -310,7 +335,6 @@ function ChaoticNeonCard({
           {team.flag} {team.name}
         </div>
 
-        {/* Vibes */}
         <div className="mt-auto w-full pt-4">
           <div className="flex flex-col gap-1.5">
             {identity.vibes.map((v) => (
@@ -339,6 +363,7 @@ function LoyalQueenCard({
   displayName,
   selfieUrl,
   stars,
+  selfieAdjust,
 }: Props) {
   return (
     <div
@@ -366,7 +391,6 @@ function LoyalQueenCard({
           ♛ Fangirl FC
         </div>
 
-        {/* Big medallion */}
         <div className="relative mt-4">
           <div
             className="absolute -inset-4 rounded-full"
@@ -383,11 +407,11 @@ function LoyalQueenCard({
               emoji={identity.emoji}
               size={210}
               ring="#facc15"
+              adjust={selfieAdjust}
             />
           </div>
         </div>
 
-        {/* Title */}
         <div className="mt-5 text-center">
           <div className="text-[48px] font-black uppercase leading-[0.9] tracking-tight text-amber-200">
             {identity.title}
@@ -397,7 +421,6 @@ function LoyalQueenCard({
           </div>
         </div>
 
-        {/* Vibes */}
         <div className="mt-auto w-full pt-4">
           <div className="mb-3 flex justify-center">
             <StarRow stars={stars} color="#facc15" />
@@ -429,7 +452,9 @@ function MatchdayPrincessCard({
   displayName,
   selfieUrl,
   stars,
+  selfieAdjust = DEFAULT_ADJUST,
 }: Props) {
+  const css = fitToCss(selfieAdjust.fit);
   return (
     <div
       className="relative h-full w-full"
@@ -449,14 +474,24 @@ function MatchdayPrincessCard({
         ))}
       </div>
 
-      {/* Huge hero selfie */}
       <div className="relative mx-5 mt-7 h-[400px] overflow-hidden rounded-[28px] shadow-[0_22px_40px_-18px_rgba(162,21,103,0.45)]">
         {selfieUrl ? (
           <img
             src={selfieUrl}
             alt=""
             crossOrigin="anonymous"
-            className="h-full w-full object-cover"
+            className="h-full w-full"
+            style={{
+              objectFit: css.objectFit,
+              objectPosition: css.objectPosition,
+              transform:
+                selfieAdjust.zoom !== 1
+                  ? `scale(${selfieAdjust.zoom})`
+                  : undefined,
+              transformOrigin: "center",
+              background:
+                "linear-gradient(160deg, #ffb6d5 0%, #ff8fc3 50%, #ffd58a 100%)",
+            }}
           />
         ) : (
           <div
@@ -473,7 +508,6 @@ function MatchdayPrincessCard({
           MATCHDAY 💖
         </div>
 
-        {/* Title overlaid for instant readability */}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
           <div className="text-[36px] font-black leading-[0.95] tracking-tight text-white drop-shadow">
             {identity.title}
@@ -484,7 +518,6 @@ function MatchdayPrincessCard({
         </div>
       </div>
 
-      {/* Vibes */}
       <div className="mx-5 mt-3 flex flex-col gap-1">
         {identity.vibes.map((v) => (
           <div
@@ -511,7 +544,8 @@ function ScreamerCard({
   team,
   displayName,
   selfieUrl,
-  stars,
+  stars: _stars,
+  selfieAdjust,
 }: Props) {
   const big = identity.title.toUpperCase();
   return (
@@ -542,7 +576,6 @@ function ScreamerCard({
       </div>
 
       <div className="relative flex h-full flex-col items-center px-6 pb-10 pt-9">
-        {/* HUGE meme title */}
         <div className="text-center">
           <div
             className="font-black uppercase leading-[0.85] tracking-tight text-black"
@@ -557,7 +590,6 @@ function ScreamerCard({
           </div>
         </div>
 
-        {/* Big selfie with shouting border */}
         <div
           className="mt-4 rotate-[-3deg] border-[6px] border-black bg-white p-1"
           style={{ boxShadow: "8px 8px 0 #000" }}
@@ -568,10 +600,10 @@ function ScreamerCard({
             size={210}
             ring="#000"
             shape="square"
+            adjust={selfieAdjust}
           />
         </div>
 
-        {/* Vibes — meme bottom text */}
         <div className="mt-auto w-full pt-4">
           <div className="flex flex-col gap-1">
             {identity.vibes.map((v) => (
@@ -610,6 +642,7 @@ function TacticalGirlCard({
   displayName,
   selfieUrl,
   stars,
+  selfieAdjust,
 }: Props) {
   return (
     <div
@@ -636,7 +669,6 @@ function TacticalGirlCard({
           <StarRow stars={stars} color="#22d3ee" />
         </div>
 
-        {/* Big square selfie */}
         <div className="mt-5">
           <Selfie
             selfieUrl={selfieUrl}
@@ -645,10 +677,10 @@ function TacticalGirlCard({
             ring="#22d3ee"
             shape="square"
             bg="linear-gradient(160deg,#0f172a,#0b0f17)"
+            adjust={selfieAdjust}
           />
         </div>
 
-        {/* Title */}
         <div className="mt-5 text-center">
           <div className="text-[44px] font-black leading-[0.9] tracking-tight text-white">
             {identity.title}
@@ -658,7 +690,6 @@ function TacticalGirlCard({
           </div>
         </div>
 
-        {/* Vibes as data rows */}
         <div className="mt-auto w-full pt-5">
           <div className="flex flex-col gap-2">
             {identity.vibes.map((v, i) => (

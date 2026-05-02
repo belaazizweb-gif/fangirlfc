@@ -69,6 +69,15 @@ export interface ShareRecord {
   createdAt: number;
 }
 
+export type ShareMode = "bestie" | "boyfriend" | "girls" | "public";
+
+export type SelfieFit = "fit" | "portrait" | "fill";
+
+export interface SelfieAdjust {
+  fit: SelfieFit;
+  zoom: number;
+}
+
 export interface QuizResult {
   identityId: FanIdentityId;
   scores: Record<FanIdentityId, number>;

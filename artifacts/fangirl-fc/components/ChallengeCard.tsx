@@ -11,19 +11,26 @@ interface Props {
   onComplete: () => void;
 }
 
+const CATEGORY_TINT: Record<Challenge["category"], string> = {
+  bestie: "from-pink-400/20 to-rose-300/5",
+  boyfriend: "from-fuchsia-400/20 to-violet-300/5",
+  girls: "from-amber-300/20 to-pink-300/5",
+  matchday: "from-cyan-400/15 to-emerald-300/5",
+};
+
 export function ChallengeCard({ challenge, done, onComplete }: Props) {
   return (
     <div
       className={cn(
-        "rounded-2xl border p-4 transition",
+        "rounded-2xl border bg-gradient-to-br p-4 backdrop-blur transition",
         done
-          ? "border-emerald-300/40 bg-emerald-400/10"
-          : "border-white/10 bg-white/5",
+          ? "border-emerald-300/40 from-emerald-400/15 to-emerald-300/5"
+          : `border-white/10 ${CATEGORY_TINT[challenge.category]}`,
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-bold text-white">{challenge.title}</h3>
             {done && (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-bold text-emerald-100">
@@ -53,9 +60,7 @@ export function ChallengeCard({ challenge, done, onComplete }: Props) {
           disabled={done}
           className={cn(
             "rounded-full px-4 py-2 text-xs font-bold transition",
-            done
-              ? "bg-emerald-400/20 text-emerald-100"
-              : "shine-button",
+            done ? "bg-emerald-400/20 text-emerald-100" : "shine-button",
           )}
         >
           {done ? "Completed" : "Mark done"}

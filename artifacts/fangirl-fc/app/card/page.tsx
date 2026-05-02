@@ -12,16 +12,19 @@ import { TeamSelector } from "@/components/TeamSelector";
 import { TemplateSelector } from "@/components/TemplateSelector";
 import { ShareActions } from "@/components/ShareActions";
 import { ShareCaptions } from "@/components/ShareCaptions";
+import { ShareTargetSelector } from "@/components/ShareTargetSelector";
 import { StarProgress } from "@/components/StarProgress";
 import { trackEvent } from "@/lib/analytics";
 import { awardStar, getStars, snapshot, getNextHint } from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
-import type { FanIdentityId } from "@/types";
+import { getShareMode } from "@/lib/shareModes";
+import type { FanIdentityId, SelfieFit, ShareMode } from "@/types";
 
 function Inner() {
   const params = useSearchParams();
   const id = (params.get("id") as FanIdentityId | null) ?? "chaotic";
+  const initialMode = (params.get("mode") as ShareMode | null) ?? "public";
   const identity = FAN_TYPES[id] ?? FAN_TYPES.chaotic;
 
   const [displayName, setDisplayName] = useState("");
@@ -30,6 +33,11 @@ function Inner() {
     IDENTITY_DEFAULT_TEMPLATE[id] ?? TEMPLATES[0]!.id,
   );
   const [selfie, setSelfie] = useState<string | null>(null);
+  const [selfieFit, setSelfieFit] = useState<SelfieFit>("portrait");
+  const [zoom, setZoom] = useState<number>(1);
+  const [shareMode, setShareMode] = useState<ShareMode>(
+    getShareMode(initialMode).id,
+  );
   const [stars, setStars] = useState(0.5);
   const [hint, setHint] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -45,6 +53,28 @@ function Inner() {
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
   const template = getTemplate(templateId);
+
+  const handleFitChange = (f: SelfieFit) => {
+    setSelfieFit(f);
+    trackEvent("photo_adjust_changed", { kind: "fit", value: f });
+  };
+
+  const handleZoomChange = (z: number) => {
+    setZoom(z);
+  };
+  const handleZoomCommit = () => {
+    trackEvent("photo_adjust_changed", { kind: "zoom", value: zoom });
+  };
+
+  const handleModeChange = (m: ShareMode) => {
+    setShareMode(m);
+    trackEvent("share_target_selected", { mode: m });
+    if (shareUrl) {
+      // refresh URL with new mode
+      const id = shareUrl.split("/").pop()?.split("?")[0];
+      if (id) setShareUrl(buildShareUrl(id, m));
+    }
+  };
 
   const handleDownload = async () => {
     if (!cardRef.current) return;
@@ -74,12 +104,17 @@ function Inner() {
         templateId,
         createdAt: Date.now(),
       });
-      const url = buildShareUrl(shareId);
+      const url = buildShareUrl(shareId, shareMode);
       setShareUrl(url);
       const next = awardStar("card_shared");
       setStars(next);
       setHint(getNextHint(next, snapshot().actions));
       trackEvent("compare_created", { shareId, identityId: identity.id });
+      trackEvent("compare_mode_created", {
+        shareId,
+        identityId: identity.id,
+        mode: shareMode,
+      });
     } finally {
       setBusy(false);
     }
@@ -107,12 +142,13 @@ function Inner() {
             displayName={displayName}
             selfieUrl={selfie}
             stars={stars}
+            selfieAdjust={{ fit: selfieFit, zoom }}
           />
         </div>
       </div>
 
       <div className="glass rounded-2xl p-4">
-        <StarProgress stars={stars} hint={hint} />
+        <StarProgress stars={stars} hint={hint || "Next level: share your card"} />
       </div>
 
       <div className="glass flex flex-col gap-4 rounded-2xl p-4">
@@ -129,10 +165,17 @@ function Inner() {
         </div>
         <div>
           <label className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-            Selfie (optional, local only)
+            Selfie · close-up, outfit, or matchday photo
           </label>
-          <div className="mt-2">
-            <PhotoUpload value={selfie} onChange={setSelfie} />
+          <div className="mt-2" onPointerUp={handleZoomCommit}>
+            <PhotoUpload
+              value={selfie}
+              onChange={setSelfie}
+              fit={selfieFit}
+              onFitChange={handleFitChange}
+              zoom={zoom}
+              onZoomChange={handleZoomChange}
+            />
           </div>
         </div>
         <div>
@@ -153,6 +196,8 @@ function Inner() {
         </div>
       </div>
 
+      <ShareTargetSelector value={shareMode} onChange={handleModeChange} />
+
       <ShareActions
         shareUrl={shareUrl}
         onShareClick={handleShare}
@@ -160,7 +205,7 @@ function Inner() {
         busy={busy}
       />
 
-      <ShareCaptions identity={identity} />
+      <ShareCaptions identity={identity} mode={shareMode} />
 
       <Link
         href={`/result?id=${identity.id}`}

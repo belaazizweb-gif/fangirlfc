@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { forwardRef, useRef, useState } from "react";
 import { Download } from "lucide-react";
-import type { FanIdentity, Team } from "@/types";
+import type { FanIdentity, ShareMode, Team } from "@/types";
 import { exportNodeAsPng } from "@/lib/exportImage";
+import { getShareMode, pickModeLabel } from "@/lib/shareModes";
 
 interface Side {
   identity: FanIdentity;
@@ -16,33 +17,15 @@ interface Side {
 interface Props {
   friend: Side;
   you?: Side | null;
+  mode?: ShareMode;
 }
 
-// Keys MUST be alphabetically sorted to match the lookup below.
-const RELATIONSHIPS: Record<string, string> = {
-  loyal_loyal: "Football Besties",
-  chaotic_chaotic: "Chaos Duo",
-  screamer_screamer: "Mutual Screamers",
-  princess_princess: "Matchday Twins",
-  soft_soft: "Soft Sisters",
-  tactical_tactical: "Brain Trust",
-  chaotic_screamer: "Chaos Duo",
-  chaotic_loyal: "Loyal + Chaotic",
-  loyal_tactical: "Brain Trust",
-  princess_soft: "Brunch Squad",
-  chaotic_princess: "Camera + Chaos",
-  chaotic_tactical: "Coach + Chaos",
-  screamer_soft: "Tears in Stereo",
-  loyal_princess: "Ride or Ring Light",
-};
-
-function compatibility(a: string, b: string): {
+function compatibility(a: string, b: string, mode: ShareMode): {
   score: number;
   quip: string;
   label: string;
 } {
   const key = [a, b].sort().join("_");
-  const label = RELATIONSHIPS[key] ?? "Different Vibes";
   let score = 60;
   let quip = "Different vibes, same passion.";
   if (a === b) {
@@ -70,7 +53,7 @@ function compatibility(a: string, b: string): {
     score = 72;
     quip = "Drama queen meets ride or die. Iconic combo.";
   }
-  return { score, quip, label };
+  return { score, quip, label: pickModeLabel(mode, a, b) };
 }
 
 interface CompareCardProps {
@@ -155,8 +138,9 @@ const CompareCard = forwardRef<HTMLDivElement, CompareCardProps>(
   },
 );
 
-export function ComparisonResult({ friend, you }: Props) {
-  const compat = you ? compatibility(friend.identity.id, you.identity.id) : null;
+export function ComparisonResult({ friend, you, mode = "public" }: Props) {
+  const meta = getShareMode(mode);
+  const compat = you ? compatibility(friend.identity.id, you.identity.id, mode) : null;
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -172,6 +156,15 @@ export function ComparisonResult({ friend, you }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="rounded-3xl border border-pink-300/30 bg-gradient-to-br from-pink-400/15 via-fuchsia-400/10 to-amber-200/10 p-5 text-center">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-pink-100">
+          {meta.emoji} {meta.label} mode
+        </div>
+        <h1 className="mt-3 text-[22px] font-black leading-tight text-white">
+          {meta.compareHeadline(friend.identity.title)}
+        </h1>
+      </div>
+
       <div className="glass rounded-3xl p-5 text-center">
         <div className="text-[11px] uppercase tracking-[0.25em] text-white/50">
           Your friend's fan card
@@ -190,7 +183,7 @@ export function ComparisonResult({ friend, you }: Props) {
 
       {!you ? (
         <Link
-          href={`/quiz?compareTo=${encodeURIComponent(friend.displayName)}`}
+          href={`/quiz?compareTo=${encodeURIComponent(friend.displayName)}&mode=${mode}`}
           className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
         >
           Take the quiz, see if you match
@@ -200,7 +193,7 @@ export function ComparisonResult({ friend, you }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-center">
               <div className="text-[10px] uppercase tracking-[0.25em] text-white/50">
-                Friend
+                Them
               </div>
               <div className="mt-1 text-3xl">{friend.identity.emoji}</div>
               <div className="mt-1 text-sm font-black text-white">

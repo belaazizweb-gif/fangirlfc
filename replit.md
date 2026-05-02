@@ -7,7 +7,10 @@ Monorepo built on the Replit pnpm workspace template.
 - **fangirl-fc** (`artifacts/fangirl-fc`) — Mobile-first **Next.js 16 PWA** for World Cup 2026.
   - Path: `/` · Port: `24216`
   - Stack: Next.js App Router, TypeScript, Tailwind CSS v4, Firebase Firestore (optional), html-to-image, lucide-react, nanoid
-  - Features: 5-question quiz → 6 fan identities (Chaotic Fan, Loyal Queen, Soft Fan, Matchday Princess, Last Minute Screamer, Tactical Girl), star progression (localStorage), fan card generator with PNG export, share/compare flow `/compare/[shareId]`, Sticker Tracker placeholder.
+  - Features: 5-question quiz → 6 fan identities (Chaotic Fan, Loyal Queen, Soft Fan, Matchday Princess, Last Minute Screamer, Tactical Girl), star progression (localStorage, capped at 5), fan card generator with PNG export (1080x1920), share/compare flow `/compare/[shareId]?mode=`, Sticker Tracker, Categorized Challenges (Bestie / Boyfriend / Girls / Matchday).
+  - **Photo controls** (`PhotoUpload.tsx`): Fit/Portrait/Fill modes + zoom slider (1x–2x). Controls only appear after a selfie is uploaded. All 6 templates (incl. Princess inline `<img>`) honor `fit` + `zoom` via `objectFit/objectPosition + transform: scale()`.
+  - **Share modes** (`lib/shareModes.ts`): bestie / boyfriend / girls / public. Each mode has its own emoji, label, captions, compare-page headline, and identity-pair label pool (`pickModeLabel` deterministically hashes a sorted pair). `ShareTargetSelector` lets the user choose; mode is appended as `?mode=` to the share URL (omitted for public).
+  - **Analytics** (`lib/analytics.ts`): client-only `console.log` events for photo_adjust_changed, share_target_selected, compare_mode_created, compare_mode_opened, social_challenge_completed (+ existing quiz/share/download events).
   - **Privacy**: selfies are loaded via `FileReader` and live only in component state. Never uploaded.
   - **Mock mode**: when `NEXT_PUBLIC_FIREBASE_*` env vars are missing, share links fall back to a localStorage store (`lib/mockStore.ts`).
   - **Disclaimer**: footer on every page notes the app is fan-made and not affiliated with FIFA.
