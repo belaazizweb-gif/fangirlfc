@@ -6,6 +6,7 @@ import { FAN_TYPES } from "@/lib/fanTypes";
 import { getTeam, TEAMS } from "@/lib/teams";
 import { loadShare } from "@/lib/share";
 import { awardStar, getStars } from "@/lib/stars";
+import { trackEvent } from "@/lib/analytics";
 import type { ShareRecord, FanIdentityId } from "@/types";
 
 interface PageProps {
@@ -24,7 +25,10 @@ export default function ComparePage({ params }: PageProps) {
     loadShare(shareId).then((r) => {
       if (mounted) {
         setRecord(r);
-        if (r) awardStar("compare_friend");
+        if (r) {
+          awardStar("compare_friend");
+          trackEvent("compare_completed", { shareId });
+        }
       }
     });
     if (typeof window !== "undefined") {

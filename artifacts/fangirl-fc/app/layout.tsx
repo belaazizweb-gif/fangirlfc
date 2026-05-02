@@ -47,12 +47,20 @@ export default function RootLayout({
                 Fangirl FC
               </span>
             </Link>
-            <Link
-              href="/stickers"
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-wider text-white/70 hover:bg-white/10"
-            >
-              Stickers · soon
-            </Link>
+            <nav className="flex items-center gap-1.5">
+              <Link
+                href="/challenges"
+                className="rounded-full border border-pink-300/30 bg-pink-300/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-pink-100 hover:bg-pink-300/20"
+              >
+                Challenges
+              </Link>
+              <Link
+                href="/stickers"
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-wider text-white/60 hover:bg-white/10"
+              >
+                Stickers
+              </Link>
+            </nav>
           </header>
           <main className="mt-6 flex-1">{children}</main>
           <footer className="mt-10 text-center text-[11px] leading-relaxed text-white/40">

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { FanIdentity } from "@/types";
 import { StarProgress } from "./StarProgress";
 import { awardStar, getNextHint, snapshot } from "@/lib/stars";
+import { unlockIdentity } from "@/lib/unlocks";
+import { trackEvent } from "@/lib/analytics";
 import { Sparkles, ArrowRight } from "lucide-react";
 
 interface Props {
@@ -21,7 +23,9 @@ export function ResultCard({ identity, compareToId }: Props) {
     setStars(updated);
     const snap = snapshot();
     setHint(getNextHint(updated, snap.actions));
-  }, []);
+    unlockIdentity(identity.id);
+    trackEvent("quiz_completed", { identityId: identity.id });
+  }, [identity.id]);
 
   return (
     <div className="flex flex-col gap-6">

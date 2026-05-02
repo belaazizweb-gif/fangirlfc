@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { QUIZ_QUESTIONS, scoreQuiz } from "@/lib/quizQuestions";
 import { QuestionCard } from "./QuestionCard";
 import { awardStar } from "@/lib/stars";
+import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 interface Props {
@@ -15,6 +16,9 @@ interface Props {
 export function Quiz({ compareTo }: Props) {
   const router = useRouter();
   const [step, setStep] = useState(0);
+  useEffect(() => {
+    trackEvent("quiz_started", { compareTo });
+  }, [compareTo]);
   const [answers, setAnswers] = useState<(number | null)[]>(
     Array(QUIZ_QUESTIONS.length).fill(null),
   );

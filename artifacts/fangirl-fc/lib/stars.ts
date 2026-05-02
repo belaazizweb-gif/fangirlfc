@@ -7,13 +7,15 @@ export type StarAction =
   | "quiz_completed"
   | "card_generated"
   | "card_shared"
-  | "compare_friend";
+  | "compare_friend"
+  | "challenge_completed";
 
 const ACTION_VALUES: Record<StarAction, number> = {
   quiz_completed: 1,
   card_generated: 0.5,
   card_shared: 0.5,
   compare_friend: 1,
+  challenge_completed: 0.5,
 };
 
 export const MAX_STARS = 5;
@@ -53,12 +55,15 @@ function setStars(value: number) {
 
 export function awardStar(action: StarAction): number {
   if (typeof window === "undefined") return STARTING_STARS;
-  const actions = getActions();
-  if (actions.includes(action)) {
-    return getStars();
+  // challenge_completed is repeatable (per-challenge dedup happens upstream)
+  if (action !== "challenge_completed") {
+    const actions = getActions();
+    if (actions.includes(action)) {
+      return getStars();
+    }
+    actions.push(action);
+    setActions(actions);
   }
-  actions.push(action);
-  setActions(actions);
   const next = getStars() + ACTION_VALUES[action];
   return setStars(next);
 }

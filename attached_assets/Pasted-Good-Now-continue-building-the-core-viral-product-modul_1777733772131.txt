@@ -1,0 +1,102 @@
+Good. Now continue building the core viral product modules while keeping the architecture clean.
+
+Do not publish yet.
+Do not add Stripe.
+Do not add ads.
+Do not add authentication.
+Do not build full Sticker Tracker yet.
+Do not change the existing working quiz/card/compare architecture.
+
+Build the following modules:
+
+1. CARD PREVIEW QUALITY UPGRADE
+- Improve the generated Fan Card visual quality.
+- Make cards more glossy, premium, TikTok/Instagram story ready.
+- Ensure 1080x1920 export still works.
+- Improve text hierarchy and readability.
+- Add stronger template styling for:
+  Soft Girl
+  Chaotic Neon
+  Loyal Queen
+  Matchday Princess
+  Tactical Girl
+  Last Minute Screamer
+
+2. DAILY CHALLENGE MODULE
+Add a simple /challenges page.
+No backend required.
+Use static daily challenges for now:
+- Tag the friend who screams the most
+- Predict today’s winner
+- Make your matchday mood card
+- Compare with one friend
+- Unlock a second fan identity
+
+Each challenge should show:
+- title
+- short description
+- reward stars
+- CTA button
+- localStorage completed state
+
+Award +0.5 stars when a challenge is completed.
+
+3. UNLOCK SYSTEM
+Add an “Unlocked Identities” section.
+Show 6 identities with locked/unlocked status.
+User unlocks current quiz result automatically.
+Store unlocked identities in localStorage.
+Show progress:
+“2/6 identities unlocked”
+
+4. SHARE COPY GENERATOR
+After card generation, add ready-to-copy captions:
+- “This is literally me 😭”
+- “Which fan are you?”
+- “Tag your football bestie”
+- “I got Chaotic Fan. What did you get?”
+
+Add one-click copy buttons.
+
+5. COMPARE CARD UPGRADE
+Improve compare result page:
+- Show both identities visually.
+- Add compatibility percentage.
+- Add funny relationship labels:
+  “Football Besties”
+  “Chaos Duo”
+  “Loyal + Chaotic”
+  “Matchday Twins”
+- Add shareable comparison card export if simple.
+
+6. STICKER TRACKER PLACEHOLDER UPGRADE ONLY
+Do not build sticker tracking.
+Improve /stickers page as a teaser:
+- “Sticker Tracker WC 2026 — coming soon”
+- Email waitlist input stored in localStorage only for now
+- Founder access teaser
+- Link back to Fan Card
+
+7. BASIC ANALYTICS EVENTS PLACEHOLDER
+Create a simple analytics helper file:
+- trackEvent(name, payload)
+- currently console.log only
+Events:
+- quiz_started
+- quiz_completed
+- card_generated
+- card_exported
+- compare_created
+- compare_completed
+- challenge_completed
+- sticker_waitlist_clicked
+
+Acceptance criteria:
+- App still runs cleanly.
+- No broken routes.
+- Existing quiz/card/compare still work.
+- No Firebase credentials required.
+- No selfie upload.
+- No auth.
+- No Stripe.
+- Mobile-first maintained.

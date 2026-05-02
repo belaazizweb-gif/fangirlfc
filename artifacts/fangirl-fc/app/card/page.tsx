@@ -11,7 +11,9 @@ import { PhotoUpload } from "@/components/PhotoUpload";
 import { TeamSelector } from "@/components/TeamSelector";
 import { TemplateSelector } from "@/components/TemplateSelector";
 import { ShareActions } from "@/components/ShareActions";
+import { ShareCaptions } from "@/components/ShareCaptions";
 import { StarProgress } from "@/components/StarProgress";
+import { trackEvent } from "@/lib/analytics";
 import { awardStar, getStars, snapshot, getNextHint } from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
@@ -50,6 +52,8 @@ function Inner() {
       const next = awardStar("card_generated");
       setStars(next);
       setHint(getNextHint(next, snapshot().actions));
+      trackEvent("card_exported", { identityId: identity.id, templateId });
+      trackEvent("card_generated", { identityId: identity.id, templateId });
     } finally {
       setBusy(false);
     }
@@ -73,6 +77,7 @@ function Inner() {
       const next = awardStar("card_shared");
       setStars(next);
       setHint(getNextHint(next, snapshot().actions));
+      trackEvent("compare_created", { shareId, identityId: identity.id });
     } finally {
       setBusy(false);
     }
@@ -152,6 +157,8 @@ function Inner() {
         onDownload={handleDownload}
         busy={busy}
       />
+
+      <ShareCaptions identity={identity} />
 
       <Link
         href={`/result?id=${identity.id}`}

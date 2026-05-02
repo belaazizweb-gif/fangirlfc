@@ -6,9 +6,10 @@ export async function exportNodeAsPng(
   node: HTMLElement,
   fileName: string,
 ): Promise<void> {
+  // Card renders at 360x640 (9:16). pixelRatio 3 → 1080x1920 export.
   const dataUrl = await toPng(node, {
     cacheBust: true,
-    pixelRatio: 2,
+    pixelRatio: 3,
     backgroundColor: "#000000",
   });
 

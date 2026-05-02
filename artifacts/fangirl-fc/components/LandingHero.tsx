@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Sparkles, Heart, Share2 } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
 import { TEMPLATES } from "@/lib/templates";
+import { UnlockedIdentities } from "./UnlockedIdentities";
 
 const PREVIEW_CARDS = [
   {
@@ -172,6 +173,9 @@ export function LandingHero() {
           ))}
         </div>
       </div>
+
+      {/* Unlocked identities */}
+      <UnlockedIdentities />
 
       {/* Quote / social proof */}
       <div className="relative overflow-hidden rounded-3xl border border-pink-300/20 bg-gradient-to-br from-pink-400/15 via-fuchsia-400/10 to-amber-200/15 p-5">
