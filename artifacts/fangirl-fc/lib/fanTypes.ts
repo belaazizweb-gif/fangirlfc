@@ -5,7 +5,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "chaotic",
     title: "Chaotic Fan",
     emoji: "⚡",
-    slogan: "I support my team… and the drama.",
+    slogan: "football is not a sport, it's trauma",
     description:
       "You scream, you cry, you yell at the screen. Your group chat is unhinged on matchdays and you wouldn't have it any other way.",
     rarity: "Rare drop · 1 in 12 fans",
@@ -15,9 +15,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Matchday Energy", value: "UNSTABLE" },
     ],
     vibes: [
-      "I scream at my TV",
-      "My groupchat is unhinged",
-      "I cry. I yell. I stay.",
+      "screams at the TV like they can hear me",
+      "celebrates goals that get cancelled",
+      "ruins everyone's mood when we lose",
     ],
     shareTrigger: "tag your loudest friend",
     colors: {
@@ -30,7 +30,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "loyal",
     title: "Loyal Queen",
     emoji: "👑",
-    slogan: "Win or lose, I'm staying.",
+    slogan: "win or lose, I'm staying",
     description:
       "Ride or die. You don't switch teams when they lose, you don't fake it, and you outlast every bandwagon fan in the room.",
     rarity: "Royal tier · top 8% of fans",
@@ -40,9 +40,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Missed Matches", value: "0" },
     ],
     vibes: [
-      "I will defend my team no matter what",
-      "I never switched sides",
-      "Win or lose, I'm here",
+      "defends my team even when we're wrong",
+      "argues with rival fans I've never met",
+      "never misses a match, ever",
     ],
     shareTrigger: "tag your ride or die",
     colors: {
@@ -55,7 +55,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "soft",
     title: "Soft Fan",
     emoji: "🌸",
-    slogan: "I said I wouldn't care… I lied.",
+    slogan: "I said I wouldn't care. I lied to myself.",
     description:
       "You swore you weren't into football. Then they lost on penalties and you cried on the bathroom floor. We see you.",
     rarity: "Sweet tier · 1 in 9 fans",
@@ -65,9 +65,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Stress Level", value: "CUTE" },
     ],
     vibes: [
-      "I said I don't care… I lied",
-      "I cry over football matches",
-      "Pretending I'm chill",
+      "said I didn't care, then cried alone after the loss",
+      "pretends she's chill, refreshes the score every 30 seconds",
+      "tells the group chat she's fine — she's not fine",
     ],
     shareTrigger: "this is literally me 😭",
     colors: {
@@ -80,7 +80,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "princess",
     title: "Matchday Princess",
     emoji: "💅",
-    slogan: "I came for the vibes and stayed for the chaos.",
+    slogan: "I came for the vibes and stayed for the chaos",
     description:
       "Outfit planned, nails done, photos staged. You're here for the spectacle and the score is just a backdrop to your story.",
     rarity: "Iconic tier · 1 in 14 fans",
@@ -90,9 +90,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Vibes", value: "IMMACULATE" },
     ],
     vibes: [
-      "Outfit planned, score optional",
-      "Here for the vibes",
-      "My selfies are immaculate",
+      "cares more about her outfit than the score",
+      "posts more stories than goals scored",
+      "here for vibes, drama, and memories",
     ],
     shareTrigger: "which one are you?",
     colors: {
@@ -105,7 +105,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "screamer",
     title: "Last Minute Screamer",
     emoji: "😭",
-    slogan: "Football is not a sport, it's trauma.",
+    slogan: "stoppage time is going to kill me one day",
     description:
       "Stoppage time turns you into a creature. The neighbours know your team's name. You've lost your voice three times this season.",
     rarity: "Iconic tier · 1 in 11 fans",
@@ -115,9 +115,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Tears", value: "GUARANTEED" },
     ],
     vibes: [
-      "Stoppage time turns me feral",
-      "The neighbours know",
-      "I lost my voice again",
+      "starts screaming at minute 88 like it's the end of the world",
+      "the neighbours know every player on my team by name",
+      "lost my voice three times this season and would do it again",
     ],
     shareTrigger: "tag your screamer bestie",
     colors: {
@@ -130,7 +130,7 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
     id: "tactical",
     title: "Tactical Girl",
     emoji: "🧠",
-    slogan: "Cute, but I actually know ball.",
+    slogan: "cute, but I actually know ball — try me",
     description:
       "You called the formation change before the manager did. You quote xG. You will not be talked over at the bar.",
     rarity: "Galaxy tier · top 5% of fans",
@@ -140,9 +140,9 @@ export const FAN_TYPES: Record<FanIdentityId, FanIdentity> = {
       { label: "Confidence", value: "HIGH" },
     ],
     vibes: [
-      "Cute, but I know ball",
-      "I called the formation change",
-      "I quote xG unprompted",
+      "explained the offside rule to a man who didn't ask",
+      "called the formation change before the manager did",
+      "mutes the group chat when they say 'but he was open'",
     ],
     shareTrigger: "tag a tactical girl",
     colors: {

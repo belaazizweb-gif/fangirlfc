@@ -148,7 +148,7 @@ export function ResultCard({ identity, compareToId }: Props) {
                   >
                     —
                   </span>
-                  <span className="flex-1">{v.toLowerCase()}</span>
+                  <span className="flex-1">{v}</span>
                 </li>
               ))}
             </ul>

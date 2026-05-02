@@ -308,7 +308,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               >
                 —
               </span>
-              <span className="flex-1">{v.toLowerCase()}</span>
+              <span className="flex-1">{v}</span>
             </div>
           ))}
         </div>
