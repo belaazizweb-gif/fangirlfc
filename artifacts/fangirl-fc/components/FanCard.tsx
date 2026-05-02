@@ -144,10 +144,10 @@ function fitToCss(fit: SelfieFit) {
 
 function pickTitleSize(title: string): number {
   const len = title.length;
-  if (len <= 9) return 28;
-  if (len <= 12) return 24;
-  if (len <= 16) return 20;
-  return 18;
+  if (len <= 9) return 38;
+  if (len <= 12) return 32;
+  if (len <= 16) return 26;
+  return 22;
 }
 
 function ratingFromStars(stars: number): number {
@@ -218,16 +218,16 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
       {/* Content */}
       <div className="relative flex h-full flex-col px-5 pb-4 pt-5">
-        {/* Tiny WC header */}
+        {/* WC header */}
         <div className="text-center">
           <div
-            className="text-[7.5px] font-extrabold uppercase tracking-[0.4em]"
+            className="text-[9px] font-extrabold uppercase tracking-[0.4em]"
             style={{ color: theme.accent }}
           >
             ⚽ FIFA World Cup
           </div>
           <div
-            className="text-[15px] font-black leading-tight"
+            className="text-[20px] font-black leading-tight"
             style={{
               color: theme.accentDeep,
               fontFamily: FONT_SERIF,
@@ -239,30 +239,39 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         </div>
 
         {/* Top row: rating | photo arch | side cursive */}
-        <div className="mt-1 grid grid-cols-[54px_1fr_54px] items-start gap-1">
-          {/* LEFT: 99 rating + heart + tiny cursive */}
+        <div className="mt-1 grid grid-cols-[68px_1fr_68px] items-start gap-1">
+          {/* LEFT: rating + stars + heart + cursive */}
           <div className="flex flex-col items-center">
             <div
-              className="text-[36px] font-black leading-none"
+              className="text-[56px] font-black leading-[0.85]"
               style={{
                 color: theme.accent,
                 fontFamily: FONT_SERIF,
+                textShadow: `1px 1px 0 ${theme.frameInkSoft}66`,
               }}
             >
               {rating}
             </div>
             <div
-              className="-mt-0.5 text-[8px] font-extrabold uppercase tracking-[0.2em]"
+              className="mt-0.5 text-[10.5px] font-extrabold uppercase tracking-[0.22em]"
               style={{ color: theme.accentDeep }}
             >
               Fangirl
             </div>
+            <div
+              className="mt-1 flex gap-0.5 text-[12px] leading-none"
+              style={{ color: theme.frameInk }}
+            >
+              <span>★</span>
+              <span>★</span>
+              <span>★</span>
+            </div>
             <Heart
-              className="mt-2 h-3 w-3"
+              className="mt-1.5 h-4 w-4"
               style={{ color: theme.accent, fill: theme.accent }}
             />
             <div
-              className="mt-1 text-center text-[10px] italic leading-[1.05]"
+              className="mt-1 text-center text-[12px] italic leading-[1.0]"
               style={{ color: theme.textMuted, fontFamily: FONT_SCRIPT }}
             >
               Football is
@@ -275,9 +284,9 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
           {/* CENTER: arched photo with gold border */}
           <div
-            className="relative mx-auto h-[218px] w-full overflow-hidden"
+            className="relative mx-auto h-[208px] w-full overflow-hidden"
             style={{
-              borderRadius: "110px 110px 14px 14px",
+              borderRadius: "108px 108px 14px 14px",
               border: `2.5px solid ${theme.photoBorder}`,
               background: theme.photoBg,
               boxShadow: `inset 0 0 0 1.5px ${theme.frameInkSoft}, 0 8px 22px -8px rgba(0,0,0,0.22)`,
@@ -322,10 +331,10 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
             />
           </div>
 
-          {/* RIGHT: Girl Power cursive + sparkles */}
+          {/* RIGHT: Girl Power cursive + sparkles + stars */}
           <div className="flex flex-col items-center pt-2">
             <div
-              className="text-center text-[15px] italic leading-[1.0]"
+              className="text-center text-[20px] italic leading-[0.95]"
               style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
             >
               Girl
@@ -333,20 +342,18 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               Power
             </div>
             <Heart
-              className="mt-1 h-2.5 w-2.5"
+              className="mt-1 h-3.5 w-3.5"
               style={{ color: theme.accent, fill: theme.accent }}
             />
             <Sparkles
-              className="mt-3 h-3.5 w-3.5"
+              className="mt-2 h-5 w-5"
               style={{ color: theme.frameInk }}
             />
-            <div className="mt-2 flex flex-col items-center gap-0.5">
-              <span
-                className="text-[16px] leading-none"
-                style={{ color: theme.frameInk }}
-              >
-                ✦
-              </span>
+            <div
+              className="mt-1.5 text-[14px] leading-none"
+              style={{ color: theme.frameInk }}
+            >
+              ✦
             </div>
           </div>
         </div>
@@ -354,7 +361,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         {/* Crown + identity title */}
         <div className="mt-2 text-center">
           <Crown
-            className="mx-auto h-4 w-4"
+            className="mx-auto h-5 w-5"
             style={{ color: theme.frameInk, fill: theme.frameInk }}
           />
           <h2
@@ -362,14 +369,14 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
             style={{
               color: theme.accentDeep,
               fontSize: titleSize,
-              letterSpacing: "0.01em",
+              letterSpacing: "0.005em",
               fontFamily: FONT_SERIF,
             }}
           >
             {identity.title}
           </h2>
           <div
-            className="mt-0.5 flex items-center justify-center gap-2 text-[13px] italic"
+            className="mt-1 flex items-center justify-center gap-2 text-[16px] italic leading-none"
             style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
           >
             <span style={{ color: theme.frameInk }}>♡</span>
@@ -379,32 +386,32 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
         </div>
 
         {/* Team line */}
-        <div className="mt-1 flex items-center justify-center gap-1.5">
+        <div className="mt-1.5 flex items-center justify-center gap-1.5">
           <span
-            className="text-[8.5px] font-extrabold uppercase tracking-[0.22em]"
+            className="text-[10px] font-extrabold uppercase tracking-[0.22em]"
             style={{ color: theme.accentDeep }}
           >
             Team:
           </span>
           <span
-            className="text-[13px] italic leading-none"
+            className="text-[16px] italic leading-none"
             style={{ color: theme.accent, fontFamily: FONT_SCRIPT }}
           >
             {team.name}
           </span>
-          <span className="text-[14px] leading-none">{team.flag}</span>
+          <span className="text-[16px] leading-none">{team.flag}</span>
         </div>
 
         {/* 3 viral vibe lines */}
-        <div className="mt-1.5 flex flex-col gap-[3px] px-1">
+        <div className="mt-2 flex flex-col gap-[4px] px-1">
           {identity.vibes.map((v) => (
             <div
               key={v}
-              className="flex items-start gap-1.5 text-[10.5px] leading-[1.22]"
+              className="flex items-start gap-1.5 text-[12.5px] font-medium leading-[1.22]"
               style={{ color: theme.text }}
             >
               <Heart
-                className="mt-[2px] h-2 w-2 shrink-0"
+                className="mt-[3px] h-2.5 w-2.5 shrink-0"
                 style={{ color: theme.accent, fill: theme.accent }}
               />
               <span className="flex-1">{v}</span>
@@ -414,11 +421,11 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
         {/* Slogan in script */}
         <p
-          className="mt-1.5 text-center italic leading-snug"
+          className="mt-2 text-center italic leading-tight"
           style={{
             color: theme.accentDeep,
             fontFamily: FONT_SCRIPT,
-            fontSize: 14,
+            fontSize: 18,
           }}
         >
           “{identity.slogan}”
@@ -426,36 +433,36 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
 
         {/* CTA */}
         <div
-          className="mt-1 text-center text-[8.5px] font-extrabold uppercase tracking-[0.22em]"
+          className="mt-1.5 text-center text-[10.5px] font-extrabold uppercase tracking-[0.22em]"
           style={{ color: theme.accent }}
         >
           → {identity.shareTrigger}
         </div>
 
         {/* Footer signature */}
-        <div className="mt-auto pt-1.5">
+        <div className="mt-auto pt-2">
           <div
-            className="text-center text-[8px] font-extrabold uppercase tracking-[0.34em]"
+            className="text-center text-[10px] font-extrabold uppercase tracking-[0.34em]"
             style={{ color: theme.accentDeep }}
           >
             Football · Friends · Forever
           </div>
           <div
-            className="mt-1 flex items-center justify-center gap-1 text-[8.5px] italic"
+            className="mt-1 flex items-center justify-center gap-1.5 text-[12px] italic leading-none"
             style={{ color: theme.frameInk, fontFamily: FONT_SCRIPT }}
           >
             <Heart
-              className="h-2 w-2"
+              className="h-2.5 w-2.5"
               style={{ color: theme.accent, fill: theme.accent }}
             />
             Fangirl forever
             <Heart
-              className="h-2 w-2"
+              className="h-2.5 w-2.5"
               style={{ color: theme.accent, fill: theme.accent }}
             />
           </div>
           <div
-            className="mt-1.5 flex items-center justify-between text-[7.5px] font-extrabold uppercase tracking-[0.22em]"
+            className="mt-1.5 flex items-center justify-between text-[9px] font-extrabold uppercase tracking-[0.22em]"
             style={{ color: theme.textMuted }}
           >
             <span>#WC2026</span>
