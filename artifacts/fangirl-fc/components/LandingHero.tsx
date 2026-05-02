@@ -1,138 +1,143 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Sparkles, Heart, Share2 } from "lucide-react";
+import { ArrowRight, Sparkles, Heart, Share2, Camera } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
-import { TEMPLATES } from "@/lib/templates";
+import { TEMPLATES, getTemplate } from "@/lib/templates";
+import { FanCard } from "./FanCard";
 import { UnlockedIdentities } from "./UnlockedIdentities";
+import type { FanIdentityId } from "@/types";
 
-const PREVIEW_CARDS = [
+const HERO_PREVIEWS: Array<{
+  identityId: FanIdentityId;
+  templateId: string;
+  name: string;
+  team: { code: string; name: string; flag: string };
+  rotate: string;
+  z: string;
+  translate: string;
+}> = [
   {
-    identityId: "princess" as const,
+    identityId: "soft",
     templateId: "soft-girl",
     name: "Maya",
-    team: { flag: "🇧🇷", name: "Brazil" },
-    rotate: "-rotate-6",
+    team: { code: "BRA", name: "Brazil", flag: "🇧🇷" },
+    rotate: "-rotate-[10deg]",
     z: "z-10",
+    translate: "translate-x-3 translate-y-6",
   },
   {
-    identityId: "loyal" as const,
-    templateId: "loyal-queen",
-    name: "Sana",
-    team: { flag: "🇦🇷", name: "Argentina" },
-    rotate: "rotate-0",
-    z: "z-20",
-  },
-  {
-    identityId: "chaotic" as const,
+    identityId: "chaotic",
     templateId: "chaotic-neon",
     name: "Lex",
-    team: { flag: "🇪🇸", name: "Spain" },
-    rotate: "rotate-6",
+    team: { code: "ESP", name: "Spain", flag: "🇪🇸" },
+    rotate: "rotate-0",
+    z: "z-30",
+    translate: "translate-y-0",
+  },
+  {
+    identityId: "loyal",
+    templateId: "loyal-queen",
+    name: "Sana",
+    team: { code: "ARG", name: "Argentina", flag: "🇦🇷" },
+    rotate: "rotate-[10deg]",
     z: "z-10",
+    translate: "-translate-x-3 translate-y-6",
   },
 ];
 
-function MiniCard({
-  preview,
-}: {
-  preview: (typeof PREVIEW_CARDS)[number];
-}) {
-  const identity = FAN_TYPES[preview.identityId];
-  const template =
-    TEMPLATES.find((t) => t.id === preview.templateId) ?? TEMPLATES[0]!;
+const PREVIEW_SCALE = 0.38;
+const CARD_W = 360;
+const CARD_H = 640;
+const SCALED_W = CARD_W * PREVIEW_SCALE;
+const SCALED_H = CARD_H * PREVIEW_SCALE;
 
+function HeroCard({ preview }: { preview: (typeof HERO_PREVIEWS)[number] }) {
+  const identity = FAN_TYPES[preview.identityId];
+  const template = getTemplate(preview.templateId);
   return (
     <div
-      className={`relative h-44 w-28 shrink-0 overflow-hidden rounded-2xl border border-white/15 shadow-[0_18px_40px_-12px_rgba(255,77,191,0.55)] ${preview.rotate} ${preview.z}`}
-      style={{ background: template.background }}
+      className={`relative ${preview.rotate} ${preview.z} ${preview.translate}`}
+      style={{ width: SCALED_W, height: SCALED_H }}
     >
-      <div className="absolute -right-4 -top-4 text-[90px] leading-none opacity-20">
-        {identity.emoji}
+      <div
+        style={{
+          width: CARD_W,
+          height: CARD_H,
+          transform: `scale(${PREVIEW_SCALE})`,
+          transformOrigin: "top left",
+        }}
+      >
+        <FanCard
+          identity={identity}
+          team={preview.team}
+          template={template}
+          displayName={preview.name}
+          selfieUrl={null}
+          stars={3.5}
+        />
       </div>
-      <div className="relative flex h-full flex-col p-2.5">
-        <div
-          className="text-[7px] font-extrabold uppercase tracking-[0.3em]"
-          style={{ color: template.accent }}
-        >
-          Fangirl FC
-        </div>
-        <div
-          className="mt-1 flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{
-            borderColor: template.accent,
-            background: "rgba(255,255,255,0.18)",
-          }}
-        >
-          <span className="text-base">{identity.emoji}</span>
-        </div>
-        <div
-          className="mt-1.5 truncate text-xs font-black"
-          style={{ color: template.text }}
-        >
-          {preview.name}
-        </div>
-        <div
-          className="text-[8px] font-semibold opacity-80"
-          style={{ color: template.text }}
-        >
-          {preview.team.flag} {preview.team.name}
-        </div>
-        <div className="mt-auto">
-          <div
-            className="text-[7px] font-bold uppercase tracking-wider opacity-80"
-            style={{ color: template.accent }}
-          >
-            Identity
-          </div>
-          <div
-            className="text-[10px] font-black leading-tight"
-            style={{ color: template.text }}
-          >
-            {identity.title}
-          </div>
-        </div>
-      </div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/15 to-transparent opacity-60 mix-blend-overlay" />
     </div>
   );
 }
 
 export function LandingHero() {
   return (
-    <div className="flex flex-col gap-8">
-      {/* Hero */}
-      <div className="text-center">
-        <span className="inline-flex items-center gap-1 rounded-full border border-pink-300/30 bg-pink-300/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-pink-200 backdrop-blur">
-          <Sparkles className="h-3 w-3" /> World Cup 2026 · for the girls
-        </span>
-        <h1 className="mt-4 text-[42px] font-black leading-[0.95] tracking-tight">
-          Which <span className="gradient-text">football fangirl</span> are you?
-        </h1>
-        <p className="mt-3 px-2 text-[15px] leading-snug text-white/80">
-          Take the 60-second quiz. Get your card. Send it to your bestie.
-        </p>
-      </div>
+    <div className="flex flex-col gap-10">
+      {/* ---------------- HERO ---------------- */}
+      <section className="relative -mx-4 overflow-hidden rounded-b-[40px] px-4 pb-10 pt-2">
+        {/* Glossy gradient background */}
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 70% at 50% 0%, rgba(255,182,217,0.55) 0%, rgba(255,182,217,0) 55%), radial-gradient(120% 70% at 100% 30%, rgba(246,196,83,0.35) 0%, rgba(246,196,83,0) 55%), radial-gradient(120% 70% at 0% 50%, rgba(183,148,255,0.45) 0%, rgba(183,148,255,0) 55%), linear-gradient(180deg, #1a0c25 0%, #0b0613 100%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-60"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(255,255,255,0.25), transparent 70%) 50% 8%/220px 220px no-repeat",
+          }}
+        />
 
-      {/* 3 card mockups */}
-      <div className="relative -mx-2">
-        <div className="absolute inset-x-6 -top-6 -bottom-6 -z-10 rounded-[40px] bg-gradient-to-br from-pink-500/40 via-fuchsia-400/25 to-amber-300/30 blur-3xl" />
-        <div className="flex items-end justify-center gap-1.5 px-2">
-          {PREVIEW_CARDS.map((p) => (
-            <MiniCard key={p.identityId} preview={p} />
-          ))}
+        <div className="text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-[0.28em] text-white/90 backdrop-blur">
+            <Sparkles className="h-3 w-3" /> World Cup 2026 · for the girls
+          </span>
+          <h1 className="mt-5 text-[40px] font-black leading-[0.95] tracking-tight">
+            Find your{" "}
+            <span className="gradient-text">World Cup fan personality</span>
+          </h1>
+          <p className="mt-3 px-4 text-[15px] leading-snug text-white/85">
+            Take the quiz. Get your Fangirl Card. Send it to your bestie.
+          </p>
         </div>
-        <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.2em] text-white/50">
-          <Heart className="h-3 w-3 text-pink-300" />
-          <span>1 in 6 identities · totally shareable</span>
-          <Share2 className="h-3 w-3 text-pink-300" />
-        </div>
-      </div>
 
-      {/* CTAs */}
-      <div className="relative">
-        <div className="absolute inset-0 -z-10 rounded-[32px] bg-gradient-to-br from-pink-500/30 via-fuchsia-500/20 to-amber-300/25 blur-2xl" />
-        <div className="flex flex-col gap-2.5">
+        {/* Real big card previews — fanned */}
+        <div className="relative mt-8 flex h-[300px] items-center justify-center">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-2 -z-10 mx-auto h-[260px] w-[80%] rounded-[40px] bg-gradient-to-br from-pink-400/40 via-fuchsia-400/20 to-amber-300/30 blur-3xl"
+          />
+          <div className="flex items-center justify-center gap-0">
+            {HERO_PREVIEWS.map((p, i) => (
+              <div
+                key={p.identityId}
+                style={{ marginLeft: i === 0 ? 0 : -22 }}
+                className="drop-shadow-[0_24px_36px_rgba(255,77,191,0.3)]"
+              >
+                <HeroCard preview={p} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTAs */}
+        <div className="mt-6 flex flex-col gap-2.5">
           <Link
             href="/quiz"
             className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
@@ -142,63 +147,156 @@ export function LandingHero() {
           </Link>
           <Link
             href="/card?id=princess"
-            className="flex items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-white/5 px-6 py-3.5 text-sm font-semibold text-pink-100 backdrop-blur transition hover:bg-white/10"
+            className="flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
           >
-            Make my Fangirl Card
+            <Camera className="h-4 w-4" /> Make my card
           </Link>
+          <p className="mt-1 text-center text-[11px] text-white/60">
+            5 questions · 60 seconds · no signup
+          </p>
         </div>
-        <p className="mt-2 text-center text-[11px] text-white/50">
-          5 questions · 60 seconds · no signup
-        </p>
-      </div>
+      </section>
 
-      {/* Identity grid */}
-      <div>
-        <div className="mb-3 text-center text-[11px] uppercase tracking-[0.25em] text-white/50">
-          6 fan identities to unlock
+      {/* ---------------- TAGLINE / SOCIAL FEEL ---------------- */}
+      <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-pink-400/20 via-fuchsia-400/10 to-amber-200/20 p-6 text-center">
+        <div className="absolute -right-6 -top-6 text-[110px] leading-none opacity-10">
+          💖
         </div>
-        <div className="grid grid-cols-2 gap-2.5">
-          {FAN_TYPE_LIST.map((f, i) => (
+        <div className="absolute -left-6 -bottom-6 text-[110px] leading-none opacity-10">
+          ⚽
+        </div>
+        <p className="relative text-[16px] font-bold leading-snug text-white/95">
+          Made for girls who watch football for the{" "}
+          <span className="gradient-text">vibes, the drama,</span> and the
+          memories.
+        </p>
+      </section>
+
+      {/* ---------------- HOW IT WORKS ---------------- */}
+      <section>
+        <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+          How it works
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {[
+            {
+              n: "1",
+              title: "Answer 5 questions",
+              copy: "Tell us how you really watch football.",
+              tint: "from-pink-400/30 to-rose-400/10",
+            },
+            {
+              n: "2",
+              title: "Unlock your fan identity",
+              copy: "Get your card with vibes, slogan, and a rare drop.",
+              tint: "from-fuchsia-400/30 to-violet-400/10",
+            },
+            {
+              n: "3",
+              title: "Share & compare with your bestie",
+              copy: "Send your card. See if you're a power duo.",
+              tint: "from-amber-300/30 to-pink-300/10",
+            },
+          ].map((s) => (
             <div
-              key={f.id}
-              className="glass animate-float rounded-2xl p-3 text-left"
-              style={{ animationDelay: `${(i % 3) * 0.4}s` }}
+              key={s.n}
+              className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
             >
-              <div className="text-2xl">{f.emoji}</div>
-              <div className="mt-1 text-sm font-bold">{f.title}</div>
-              <div className="line-clamp-2 text-[11px] text-white/60">
-                {f.slogan}
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
+                  {s.n}
+                </div>
+                <div>
+                  <div className="text-[15px] font-bold text-white">
+                    {s.title}
+                  </div>
+                  <div className="text-[12.5px] leading-snug text-white/70">
+                    {s.copy}
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Unlocked identities */}
+      {/* ---------------- IDENTITY PREVIEW ---------------- */}
+      <section>
+        <div className="mb-3 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+            6 fan identities
+          </div>
+          <div className="mt-1 text-[18px] font-black tracking-tight">
+            Which one are you?
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {FAN_TYPE_LIST.map((f) => {
+            const t = getTemplate(
+              {
+                soft: "soft-girl",
+                chaotic: "chaotic-neon",
+                loyal: "loyal-queen",
+                princess: "matchday-princess",
+                screamer: "last-minute-screamer",
+                tactical: "tactical-girl",
+              }[f.id] ?? "soft-girl",
+            );
+            return (
+              <Link
+                key={f.id}
+                href={`/card?id=${f.id}`}
+                className="group relative overflow-hidden rounded-2xl border border-white/15 p-3.5 transition active:scale-[0.98]"
+                style={{ background: t.background }}
+              >
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-50 mix-blend-overlay"
+                />
+                <div
+                  className="absolute -right-3 -top-3 text-[68px] leading-none opacity-25"
+                  aria-hidden
+                >
+                  {f.emoji}
+                </div>
+                <div className="relative">
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 text-2xl shadow-[0_10px_24px_-8px_rgba(0,0,0,0.45)]"
+                  >
+                    {f.emoji}
+                  </div>
+                  <div
+                    className="mt-3 text-[15px] font-black leading-tight"
+                    style={{ color: t.text }}
+                  >
+                    {f.title}
+                  </div>
+                  <div
+                    className="mt-1 line-clamp-2 text-[11px] font-medium leading-snug"
+                    style={{ color: t.text, opacity: 0.78 }}
+                  >
+                    {f.slogan}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Unlocked identities (only shows if user has any) */}
       <UnlockedIdentities />
 
-      {/* Quote / social proof */}
-      <div className="relative overflow-hidden rounded-3xl border border-pink-300/20 bg-gradient-to-br from-pink-400/15 via-fuchsia-400/10 to-amber-200/15 p-5">
-        <div className="absolute -right-6 -top-6 text-[120px] leading-none opacity-10">
-          💅
-        </div>
-        <p className="relative text-[15px] font-semibold leading-snug text-white/90">
-          "It said I'm a Last Minute Screamer and honestly… accurate."
-        </p>
-        <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-pink-200/70">
-          — every group chat, right now
-        </p>
-      </div>
-
-      {/* How it works */}
-      <div className="glass rounded-2xl p-4 text-xs text-white/70">
-        <div className="font-bold text-white/90">How it works</div>
-        <ol className="mt-2 list-decimal space-y-1 pl-5">
-          <li>Answer 5 quick questions.</li>
-          <li>Get your fan identity + a Fangirl Card you can save.</li>
-          <li>Send it to a friend, see how compatible you are.</li>
-        </ol>
-      </div>
+      {/* ---------------- STICKER TEASER (subtle) ---------------- */}
+      <section className="text-center">
+        <Link
+          href="/stickers"
+          className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/60 transition hover:bg-white/10"
+        >
+          <Heart className="h-3 w-3 text-pink-300" />
+          Sticker tracker · coming soon
+        </Link>
+      </section>
     </div>
   );
 }

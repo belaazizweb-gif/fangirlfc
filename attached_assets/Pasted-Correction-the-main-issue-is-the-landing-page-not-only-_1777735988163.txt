@@ -1,0 +1,105 @@
+Correction: the main issue is the landing page, not only the generated cards.
+
+Before any more redesign, please do a visual QA of the real generated cards and landing.
+
+PART 1 — Generate real examples
+Run the full user flow manually:
+1. Start quiz
+2. Complete quiz to get each identity if possible
+3. Open card editor
+4. Use a sample image/selfie placeholder
+5. Generate one card for each identity/template:
+   - Soft Fan
+   - Chaotic Fan
+   - Loyal Queen
+   - Matchday Princess
+   - Last Minute Screamer
+   - Tactical Girl
+6. Provide screenshots/previews of the 6 generated cards.
+Do not assume the cards are good. Show the actual visual output.
+
+PART 2 — Landing page redesign
+The current landing page still feels too plain and not attractive enough for women/TikTok audience.
+
+Redesign the landing only.
+
+Do NOT change app logic.
+Do NOT change quiz/card/compare logic.
+Do NOT add new features.
+
+Landing goals:
+- Must feel premium, feminine, glossy, fun, social, TikTok-ready.
+- Must immediately show what the app does.
+- Must make girls want to click.
+- Must show real card previews, not tiny abstract mockups.
+- Must feel like a viral social product, not a dark SaaS page.
+
+Landing required structure:
+
+1. Hero section
+Headline:
+“Find your World Cup fan personality”
+
+Alternative smaller line:
+“Take the quiz. Get your Fangirl Card. Send it to your bestie.”
+
+Primary CTA:
+“Find my fan type”
+
+Secondary CTA:
+“Make my card”
+
+2. Large visual preview
+Show 3 BIG cards, not tiny cards:
+- one Soft Fan
+- one Chaotic Fan
+- one Loyal Queen
+They must be large enough to understand the product instantly.
+
+3. Social proof style section
+Do not use fake reviews.
+Instead use:
+“Made for girls who watch football for the vibes, the drama, and the memories.”
+
+4. How it works
+3 simple cards:
+- Answer 5 questions
+- Unlock your fan identity
+- Share and compare with your bestie
+
+5. Identity preview section
+Show 6 identities, but visually polished:
+- bigger icons
+- better spacing
+- more glossy cards
+- not cheap dark boxes
+
+6. Sticker Tracker teaser
+Keep it subtle at the bottom only.
+Do not emphasize it.
+
+Design direction:
+- pink/gold/lavender gradients
+- soft glow
+- glossy cards
+- larger preview images
+- rounded premium sections
+- mobile-first
+- more vertical spacing
+- less dark empty space
+- more visual energy
+
+Important:
+The first screen on mobile must show:
+- headline
+- short value proposition
+- big card preview
+- CTA
+
+Acceptance criteria:
+- Landing looks attractive on mobile.
+- User understands the app in 3 seconds.
+- Card previews are large and premium.
+- CTA is obvious.
+- No fake testimonials.
+- No broken routes.
