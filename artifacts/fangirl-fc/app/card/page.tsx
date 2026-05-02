@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { TEAMS, getTeam } from "@/lib/teams";
-import { TEMPLATES, getTemplate } from "@/lib/templates";
+import { TEMPLATES, getTemplate, IDENTITY_DEFAULT_TEMPLATE } from "@/lib/templates";
 import { FanCard } from "@/components/FanCard";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TeamSelector } from "@/components/TeamSelector";
@@ -26,7 +26,9 @@ function Inner() {
 
   const [displayName, setDisplayName] = useState("");
   const [teamCode, setTeamCode] = useState<string>(TEAMS[0]!.code);
-  const [templateId, setTemplateId] = useState<string>(TEMPLATES[0]!.id);
+  const [templateId, setTemplateId] = useState<string>(
+    IDENTITY_DEFAULT_TEMPLATE[id] ?? TEMPLATES[0]!.id,
+  );
   const [selfie, setSelfie] = useState<string | null>(null);
   const [stars, setStars] = useState(0.5);
   const [hint, setHint] = useState("");

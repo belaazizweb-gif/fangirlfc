@@ -1,10 +1,13 @@
 import type { Template } from "@/types";
 
+// Each template id corresponds to one of the 6 identities.
+// Layouts are hand-built per id in components/FanCard.tsx — these meta
+// values are only used for the picker swatch + share record persistence.
 export const TEMPLATES: Template[] = [
   {
     id: "soft-girl",
     name: "Soft Girl",
-    description: "pastel pink, lavender, gold sparkle",
+    description: "Pastel · Pinterest · sparkly polaroid",
     background:
       "linear-gradient(160deg, #ffe4ec 0%, #f3d7ff 50%, #fff1c4 100%)",
     cardClass: "text-rose-900",
@@ -13,44 +16,11 @@ export const TEMPLATES: Template[] = [
     badge: "bg-white/70 text-rose-700",
   },
   {
-    id: "dark-academia",
-    name: "Dark Academia",
-    description: "black velvet, gold trim, ivory",
-    background:
-      "linear-gradient(160deg, #0f0f10 0%, #1c1410 60%, #2b1d12 100%)",
-    cardClass: "text-amber-100",
-    accent: "#f5e1a4",
-    text: "#f5e1a4",
-    badge: "bg-amber-200/15 text-amber-100",
-  },
-  {
-    id: "stadium-sunset",
-    name: "Stadium Sunset",
-    description: "orange, pink, purple gradient",
-    background:
-      "linear-gradient(165deg, #ff6a3d 0%, #ff3da6 45%, #6f3dff 100%)",
-    cardClass: "text-white",
-    accent: "#ffe27a",
-    text: "#ffffff",
-    badge: "bg-white/20 text-white",
-  },
-  {
-    id: "classic-fut",
-    name: "Classic FUT",
-    description: "black + gold, sporty vibe",
-    background:
-      "linear-gradient(160deg, #0a0a0a 0%, #1a1a1a 50%, #2a1a00 100%)",
-    cardClass: "text-amber-300",
-    accent: "#fbbf24",
-    text: "#fde68a",
-    badge: "bg-amber-400/15 text-amber-200",
-  },
-  {
     id: "chaotic-neon",
     name: "Chaotic Neon",
-    description: "purple, neon, Gen Z TikTok",
+    description: "Glitch · neon · broken grid",
     background:
-      "linear-gradient(160deg, #1b0033 0%, #5b00b3 50%, #ff00d4 100%)",
+      "linear-gradient(160deg, #1b0033 0%, #5b00b3 45%, #ff00d4 100%)",
     cardClass: "text-fuchsia-100",
     accent: "#5eead4",
     text: "#ffffff",
@@ -59,16 +29,59 @@ export const TEMPLATES: Template[] = [
   {
     id: "loyal-queen",
     name: "Loyal Queen",
-    description: "royal gold + white, crown accent",
+    description: "Black + gold · luxury badge",
     background:
-      "linear-gradient(160deg, #fef9c3 0%, #fde68a 45%, #f59e0b 100%)",
-    cardClass: "text-amber-950",
-    accent: "#7c2d12",
-    text: "#451a03",
-    badge: "bg-amber-900/15 text-amber-950",
+      "linear-gradient(160deg, #050505 0%, #1a1306 55%, #3d2c0a 100%)",
+    cardClass: "text-amber-200",
+    accent: "#facc15",
+    text: "#fef3c7",
+    badge: "bg-amber-400/15 text-amber-200",
+  },
+  {
+    id: "matchday-princess",
+    name: "Matchday Princess",
+    description: "IG story · soft UI · pink",
+    background:
+      "linear-gradient(160deg, #ffd2e5 0%, #ff8fc3 55%, #ffe7a8 100%)",
+    cardClass: "text-rose-900",
+    accent: "#a21567",
+    text: "#3a0a30",
+    badge: "bg-white/60 text-rose-800",
+  },
+  {
+    id: "last-minute-screamer",
+    name: "Last Minute Screamer",
+    description: "Meme · big text · chaos",
+    background:
+      "linear-gradient(160deg, #ffef3a 0%, #ff6f3a 55%, #c9001a 100%)",
+    cardClass: "text-black",
+    accent: "#000000",
+    text: "#0a0a0a",
+    badge: "bg-black/80 text-yellow-300",
+  },
+  {
+    id: "tactical-girl",
+    name: "Tactical Girl",
+    description: "Minimal · stats · dashboard",
+    background:
+      "linear-gradient(160deg, #0b0f17 0%, #111827 55%, #0b0f17 100%)",
+    cardClass: "text-white",
+    accent: "#22d3ee",
+    text: "#e5e7eb",
+    badge: "bg-cyan-400/15 text-cyan-200",
   },
 ];
 
 export function getTemplate(id: string): Template {
-  return TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];
+  return TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0]!;
 }
+
+// Recommend a template for each identity (used when linking from result page).
+export const IDENTITY_DEFAULT_TEMPLATE: Record<string, string> = {
+  soft: "soft-girl",
+  chaotic: "chaotic-neon",
+  loyal: "loyal-queen",
+  princess: "matchday-princess",
+  screamer: "last-minute-screamer",
+  tactical: "tactical-girl",
+};
