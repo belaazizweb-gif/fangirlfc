@@ -6,8 +6,8 @@ import type { Template } from "@/types";
 export const TEMPLATES: Template[] = [
   {
     id: "soft-girl",
-    name: "Soft Girl",
-    description: "Pastel · Pinterest · sparkly polaroid",
+    name: "Soft Fan",
+    description: "Soft pinks · matchday pastels",
     background:
       "linear-gradient(160deg, #ffe4ec 0%, #f3d7ff 50%, #fff1c4 100%)",
     cardClass: "text-rose-900",
@@ -17,8 +17,8 @@ export const TEMPLATES: Template[] = [
   },
   {
     id: "chaotic-neon",
-    name: "Chaotic Neon",
-    description: "Glitch · neon · broken grid",
+    name: "Chaotic Fan",
+    description: "Electric purple · loud nights",
     background:
       "linear-gradient(160deg, #1b0033 0%, #5b00b3 45%, #ff00d4 100%)",
     cardClass: "text-fuchsia-100",
@@ -29,7 +29,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "loyal-queen",
     name: "Loyal Queen",
-    description: "Black + gold · luxury badge",
+    description: "Black + gold · ride or die",
     background:
       "linear-gradient(160deg, #050505 0%, #1a1306 55%, #3d2c0a 100%)",
     cardClass: "text-amber-200",
@@ -40,7 +40,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "matchday-princess",
     name: "Matchday Princess",
-    description: "IG story · soft UI · pink",
+    description: "Rose stadium · pretty in chaos",
     background:
       "linear-gradient(160deg, #ffd2e5 0%, #ff8fc3 55%, #ffe7a8 100%)",
     cardClass: "text-rose-900",
@@ -51,7 +51,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "last-minute-screamer",
     name: "Last Minute Screamer",
-    description: "Meme · big text · chaos",
+    description: "Burning red · stoppage time",
     background:
       "linear-gradient(160deg, #ffef3a 0%, #ff6f3a 55%, #c9001a 100%)",
     cardClass: "text-black",
@@ -62,7 +62,7 @@ export const TEMPLATES: Template[] = [
   {
     id: "tactical-girl",
     name: "Tactical Girl",
-    description: "Minimal · stats · dashboard",
+    description: "Deep navy · cool floodlights",
     background:
       "linear-gradient(160deg, #0b0f17 0%, #111827 55%, #0b0f17 100%)",
     cardClass: "text-white",

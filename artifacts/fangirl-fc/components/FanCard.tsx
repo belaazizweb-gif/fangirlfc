@@ -1,8 +1,13 @@
 "use client";
 
 import { forwardRef } from "react";
-import type { FanIdentity, SelfieAdjust, SelfieFit, Team, Template } from "@/types";
-import { Star } from "lucide-react";
+import type {
+  FanIdentity,
+  SelfieAdjust,
+  SelfieFit,
+  Team,
+  Template,
+} from "@/types";
 
 interface Props {
   identity: FanIdentity;
@@ -16,83 +21,101 @@ interface Props {
 
 const CARD_W = 360;
 const CARD_H = 640;
-
 const DEFAULT_ADJUST: SelfieAdjust = { fit: "portrait", zoom: 1 };
 
-export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
-  props,
-  ref,
-) {
-  const { template } = props;
-  return (
-    <div
-      ref={ref}
-      style={{
-        width: CARD_W,
-        height: CARD_H,
-        boxShadow:
-          "0 30px 80px -30px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.08)",
-      }}
-      className="relative overflow-hidden rounded-[36px]"
-    >
-      {renderTemplate(template.id, props)}
-    </div>
-  );
-});
+type Theme = {
+  bg: string;
+  photoBg: string;
+  text: string;
+  textMuted: string;
+  accent: string;
+  accentInk: string;
+  ambient: string;
+  crowdShadow: string;
+  light: boolean;
+};
 
-function renderTemplate(id: string, props: Props) {
-  switch (id) {
-    case "soft-girl":
-      return <SoftGirlCard {...props} />;
-    case "chaotic-neon":
-      return <ChaoticNeonCard {...props} />;
-    case "loyal-queen":
-      return <LoyalQueenCard {...props} />;
-    case "matchday-princess":
-      return <MatchdayPrincessCard {...props} />;
-    case "last-minute-screamer":
-      return <ScreamerCard {...props} />;
-    case "tactical-girl":
-      return <TacticalGirlCard {...props} />;
-    default:
-      return <SoftGirlCard {...props} />;
-  }
-}
+const TEMPLATE_TO_THEME: Record<string, string> = {
+  "soft-girl": "soft",
+  "chaotic-neon": "chaotic",
+  "loyal-queen": "loyal",
+  "matchday-princess": "princess",
+  "last-minute-screamer": "screamer",
+  "tactical-girl": "tactical",
+};
 
-/* ------------------------------- shared bits ------------------------------ */
+const THEMES: Record<string, Theme> = {
+  chaotic: {
+    bg: "linear-gradient(170deg, #160628 0%, #2c0a52 55%, #1a0735 100%)",
+    photoBg: "#0d0420",
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,0.78)",
+    accent: "#ff5cc4",
+    accentInk: "#1a0735",
+    ambient: "rgba(255, 92, 196, 0.34)",
+    crowdShadow: "rgba(0,0,0,0.55)",
+    light: false,
+  },
+  loyal: {
+    bg: "linear-gradient(170deg, #050505 0%, #1a1306 55%, #0a0905 100%)",
+    photoBg: "#000000",
+    text: "#fde68a",
+    textMuted: "rgba(253,230,138,0.78)",
+    accent: "#facc15",
+    accentInk: "#0a0905",
+    ambient: "rgba(250, 204, 21, 0.30)",
+    crowdShadow: "rgba(0,0,0,0.6)",
+    light: false,
+  },
+  soft: {
+    bg: "linear-gradient(170deg, #fff5f9 0%, #fce7f3 50%, #f5d0fe 100%)",
+    photoBg: "#fdf2f8",
+    text: "#831843",
+    textMuted: "rgba(131,24,67,0.78)",
+    accent: "#db2777",
+    accentInk: "#ffffff",
+    ambient: "rgba(219, 39, 119, 0.18)",
+    crowdShadow: "rgba(131,24,67,0.32)",
+    light: true,
+  },
+  princess: {
+    bg: "linear-gradient(170deg, #fff1f2 0%, #ffd1dc 50%, #fecaca 100%)",
+    photoBg: "#fff5f5",
+    text: "#881337",
+    textMuted: "rgba(136,19,55,0.78)",
+    accent: "#e11d48",
+    accentInk: "#ffffff",
+    ambient: "rgba(225, 29, 72, 0.20)",
+    crowdShadow: "rgba(136,19,55,0.32)",
+    light: true,
+  },
+  screamer: {
+    bg: "linear-gradient(170deg, #1a0908 0%, #5a1810 55%, #2c0d07 100%)",
+    photoBg: "#0d0302",
+    text: "#fed7aa",
+    textMuted: "rgba(254,215,170,0.80)",
+    accent: "#fb923c",
+    accentInk: "#1a0908",
+    ambient: "rgba(251, 146, 60, 0.34)",
+    crowdShadow: "rgba(0,0,0,0.6)",
+    light: false,
+  },
+  tactical: {
+    bg: "linear-gradient(170deg, #050b18 0%, #0c1a30 55%, #050b18 100%)",
+    photoBg: "#020610",
+    text: "#e0f7ff",
+    textMuted: "rgba(224,247,255,0.78)",
+    accent: "#22d3ee",
+    accentInk: "#020610",
+    ambient: "rgba(34, 211, 238, 0.28)",
+    crowdShadow: "rgba(0,0,0,0.6)",
+    light: false,
+  },
+};
 
-function StarRow({ stars, color }: { stars: number; color: string }) {
-  const filled = Math.floor(stars);
-  const half = stars - filled >= 0.5;
-  return (
-    <div className="flex items-center gap-0.5">
-      {Array.from({ length: 5 }).map((_, i) => {
-        const full = i < filled;
-        const halfStar = !full && i === filled && half;
-        return (
-          <div key={i} className="relative h-3 w-3">
-            <Star
-              className="absolute inset-0 h-3 w-3"
-              strokeWidth={2}
-              style={{ color, opacity: 0.25 }}
-            />
-            {(full || halfStar) && (
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={{ width: halfStar ? "50%" : "100%" }}
-              >
-                <Star
-                  className="h-3 w-3"
-                  strokeWidth={2}
-                  style={{ color, fill: color }}
-                />
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+function getTheme(templateId: string, identityId: string): Theme {
+  const fromTemplate = TEMPLATE_TO_THEME[templateId];
+  return THEMES[fromTemplate ?? identityId] ?? THEMES.chaotic!;
 }
 
 function fitToCss(fit: SelfieFit): {
@@ -109,651 +132,194 @@ function fitToCss(fit: SelfieFit): {
   }
 }
 
-function Selfie({
-  selfieUrl,
-  emoji,
-  size,
-  ring,
-  shape = "circle",
-  bg = "rgba(255,255,255,0.18)",
-  adjust = DEFAULT_ADJUST,
-}: {
-  selfieUrl: string | null;
-  emoji: string;
-  size: number;
-  ring: string;
-  shape?: "circle" | "square";
-  bg?: string;
-  adjust?: SelfieAdjust;
-}) {
-  const css = fitToCss(adjust.fit);
-  return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: shape === "circle" ? "9999px" : "24px",
-        background: bg,
-        boxShadow: `0 0 0 4px ${ring}, 0 18px 36px -12px rgba(0,0,0,0.55)`,
-      }}
-    >
-      {selfieUrl ? (
-        <img
-          src={selfieUrl}
-          alt=""
-          crossOrigin="anonymous"
-          className="h-full w-full"
-          style={{
-            objectFit: css.objectFit,
-            objectPosition: css.objectPosition,
-            transform: adjust.zoom !== 1 ? `scale(${adjust.zoom})` : undefined,
-            transformOrigin: "center",
-          }}
-        />
-      ) : (
-        <div
-          className="flex h-full w-full items-center justify-center"
-          style={{ fontSize: size * 0.55 }}
-        >
-          {emoji}
-        </div>
-      )}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(150deg, rgba(255,255,255,0.4), rgba(255,255,255,0) 55%)",
-          mixBlendMode: "overlay",
-        }}
-      />
-    </div>
-  );
+function pickTitleSize(title: string): number {
+  const len = title.length;
+  if (len <= 9) return 60;
+  if (len <= 12) return 54;
+  if (len <= 15) return 46;
+  return 40;
 }
 
-/* --------------------------------- SOFT ----------------------------------- */
+export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
+  {
+    identity,
+    team,
+    template,
+    displayName,
+    selfieUrl,
+    selfieAdjust = DEFAULT_ADJUST,
+  },
+  ref,
+) {
+  const theme = getTheme(template.id, identity.id);
+  const css = fitToCss(selfieAdjust.fit);
+  const big = identity.title.toUpperCase();
+  const titleSize = pickTitleSize(big);
 
-function SoftGirlCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars,
-  selfieAdjust,
-}: Props) {
   return (
     <div
-      className="relative h-full w-full"
+      ref={ref}
       style={{
-        background:
-          "radial-gradient(130% 75% at 15% 0%, #ffc8e2 0%, transparent 50%), radial-gradient(130% 75% at 85% 100%, #e8c2ff 0%, transparent 50%), linear-gradient(160deg, #fbe4f0 0%, #f5c8f0 45%, #ead8ff 100%)",
+        width: CARD_W,
+        height: CARD_H,
+        background: theme.bg,
+        color: theme.text,
+        boxShadow:
+          "0 30px 80px -30px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(255,255,255,0.06)",
       }}
+      className="relative overflow-hidden rounded-[36px]"
     >
-      {/* Large blossom watermark */}
+      {/* Floodlight halos from top corners */}
       <div
         aria-hidden
-        className="pointer-events-none absolute"
+        className="pointer-events-none absolute inset-0"
         style={{
-          right: -30,
-          top: 130,
-          fontSize: 260,
-          lineHeight: 1,
-          opacity: 0.28,
-          filter: "saturate(1.6)",
+          background: `radial-gradient(ellipse 70% 45% at 12% -8%, ${theme.ambient}, transparent 65%), radial-gradient(ellipse 70% 45% at 88% -8%, ${theme.ambient}, transparent 65%)`,
         }}
-      >
-        🌸
-      </div>
-
-      {/* Inner decorative border frame */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-2.5 rounded-[30px]"
-        style={{ border: "2px solid rgba(190,24,93,0.22)" }}
       />
 
-      <Sparkle x={22} y={50} size={22} color="rgba(190,24,93,0.70)" />
-      <Sparkle x={306} y={78} size={18} color="rgba(190,24,93,0.58)" />
-      <Sparkle x={30} y={518} size={16} color="rgba(190,24,93,0.52)" />
-      <Sparkle x={310} y={554} size={24} color="rgba(190,24,93,0.68)" />
-      <Sparkle x={184} y={22} size={13} color="rgba(190,24,93,0.42)" />
-      <Sparkle x={52} y={290} size={10} color="rgba(190,24,93,0.36)" />
+      {/* Subtle vertical jersey-stripe texture */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: theme.light
+            ? "repeating-linear-gradient(90deg, rgba(0,0,0,0.022) 0 22px, transparent 22px 44px)"
+            : "repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0 22px, transparent 22px 44px)",
+        }}
+      />
 
-      <div className="relative flex h-full flex-col items-center px-7 py-7">
-        <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-rose-700">
-            ✿ Fangirl FC
+      <div className="relative flex h-full flex-col px-6 pb-6 pt-5">
+        {/* TOP: thin meta + BIG title */}
+        <div
+          className="flex items-center justify-between text-[9.5px] font-bold uppercase tracking-[0.32em]"
+          style={{ color: theme.accent, opacity: 0.9 }}
+        >
+          <span>Fangirl FC · 26</span>
+          <span className="max-w-[55%] truncate">
+            {team.flag} {team.name}
           </span>
-          <StarRow stars={stars} color="#be185d" />
         </div>
 
-        {/* Selfie with pink glow aura */}
-        <div className="relative mt-3">
+        <h2
+          className="mt-2 font-black uppercase"
+          style={{
+            fontSize: titleSize,
+            lineHeight: 0.88,
+            letterSpacing: "-0.025em",
+            color: theme.text,
+          }}
+        >
+          {big}
+        </h2>
+
+        {/* CENTER: dominant photo */}
+        <div
+          className="relative mt-3 flex-1 overflow-hidden rounded-[20px]"
+          style={{
+            background: theme.photoBg,
+            boxShadow: `inset 0 0 0 1px ${theme.accent}33, 0 18px 40px -16px rgba(0,0,0,0.55)`,
+          }}
+        >
+          {selfieUrl ? (
+            <img
+              src={selfieUrl}
+              alt=""
+              crossOrigin="anonymous"
+              className="absolute inset-0 h-full w-full"
+              style={{
+                objectFit: css.objectFit,
+                objectPosition: css.objectPosition,
+                transform:
+                  selfieAdjust.zoom !== 1
+                    ? `scale(${selfieAdjust.zoom})`
+                    : undefined,
+                transformOrigin: "center",
+              }}
+            />
+          ) : (
+            <div
+              className="flex h-full w-full items-center justify-center"
+              style={{
+                fontSize: 170,
+                opacity: theme.light ? 0.55 : 0.8,
+                color: theme.accent,
+              }}
+            >
+              {identity.emoji}
+            </div>
+          )}
+
+          {/* Floodlight beam from top-left */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -inset-5 rounded-[30px]"
+            className="pointer-events-none absolute inset-0"
             style={{
-              background:
-                "radial-gradient(circle, rgba(190,24,93,0.38), transparent 70%)",
-              filter: "blur(18px)",
+              background: `radial-gradient(ellipse 80% 60% at 22% -10%, ${theme.ambient}, transparent 60%)`,
+              mixBlendMode: theme.light ? "multiply" : "screen",
             }}
           />
+
+          {/* Crowd silhouette darken at the bottom of the photo */}
           <div
-            className="relative rounded-[22px] bg-white p-3 shadow-[0_24px_44px_-16px_rgba(190,24,93,0.55)]"
-            style={{ transform: "rotate(-3deg)" }}
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[42%]"
+            style={{
+              background: `linear-gradient(to top, ${theme.crowdShadow} 0%, transparent 100%)`,
+            }}
+          />
+
+          {/* Tiny matchday tag */}
+          <div
+            className="absolute right-2.5 top-2.5 rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-[0.18em]"
+            style={{
+              background: theme.accent,
+              color: theme.accentInk,
+            }}
           >
-            <Selfie
-              selfieUrl={selfieUrl}
-              emoji={identity.emoji}
-              size={220}
-              ring="#f9a8d4"
-              shape="square"
-              bg="linear-gradient(160deg,#ffe4ec,#f3d7ff)"
-              adjust={selfieAdjust}
-            />
+            ⚽ MD · 26
           </div>
+
+          {/* Display name strip — minimal, on the photo */}
+          {displayName && (
+            <div
+              className="absolute inset-x-3 bottom-2.5 truncate text-center text-[11px] font-extrabold uppercase tracking-[0.22em]"
+              style={{
+                color: "#fff",
+                textShadow: "0 1px 6px rgba(0,0,0,0.7)",
+              }}
+            >
+              {displayName}
+            </div>
+          )}
         </div>
 
-        <div className="mt-5 text-center">
-          <div
-            className="text-[52px] font-black leading-[0.9] tracking-tight text-rose-900"
-            style={{ textShadow: "0 2px 20px rgba(190,24,93,0.20)" }}
-          >
-            {identity.title}
-          </div>
-          <div className="mt-1 text-[13px] font-bold text-rose-700">
-            {displayName || "Anonymous"} · {team.flag} {team.name}
-          </div>
-        </div>
-
-        <div className="mt-auto w-full pt-4">
-          <div className="flex flex-col items-center gap-2">
-            {identity.vibes.map((v) => (
-              <div
-                key={v}
-                className="w-full rounded-full px-4 py-2 text-center text-[13px] font-bold text-white shadow-[0_6px_18px_-4px_rgba(190,24,93,0.48)]"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #be185d 0%, #db2777 100%)",
-                }}
+        {/* BOTTOM: 3 short behavior lines + strong quote */}
+        <div className="mt-3.5 flex flex-col gap-[3px]">
+          {identity.vibes.map((v) => (
+            <div
+              key={v}
+              className="flex gap-2 text-[12.5px] leading-[1.25]"
+              style={{ color: theme.text, opacity: 0.92 }}
+            >
+              <span
+                className="font-black"
+                style={{ color: theme.accent }}
               >
-                ✦ {v}
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-rose-600/90">
-            ✿ {identity.shareTrigger}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Sparkle({
-  x,
-  y,
-  size,
-  color,
-}: {
-  x: number;
-  y: number;
-  size: number;
-  color: string;
-}) {
-  return (
-    <div
-      className="pointer-events-none absolute"
-      style={{ left: x, top: y, width: size, height: size }}
-    >
-      <svg viewBox="0 0 24 24" width={size} height={size} fill={color}>
-        <path d="M12 0 L13.5 10.5 L24 12 L13.5 13.5 L12 24 L10.5 13.5 L0 12 L10.5 10.5 Z" />
-      </svg>
-    </div>
-  );
-}
-
-/* -------------------------------- CHAOTIC --------------------------------- */
-
-function ChaoticNeonCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars,
-  selfieAdjust,
-}: Props) {
-  return (
-    <div
-      className="relative h-full w-full"
-      style={{
-        background:
-          "linear-gradient(160deg, #1b0033 0%, #5b00b3 45%, #ff00d4 100%)",
-      }}
-    >
-      <div className="pointer-events-none absolute inset-x-0 top-12 h-1 bg-cyan-300/80" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-16 h-1 bg-yellow-300/70" />
-      <div className="absolute right-3 top-3 rotate-3 rounded-md bg-yellow-300 px-2 py-0.5 text-[9px] font-black uppercase text-black shadow-md">
-        ★ Rare Drop
-      </div>
-
-      <div className="relative flex h-full flex-col items-center p-6 text-white">
-        <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-300">
-            FANGIRL FC // 404
-          </span>
-          <StarRow stars={stars} color="#5eead4" />
+                —
+              </span>
+              <span className="flex-1">{v.toLowerCase()}</span>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-4">
-          <Selfie
-            selfieUrl={selfieUrl}
-            emoji={identity.emoji}
-            size={210}
-            ring="#5eead4"
-            shape="square"
-            bg="linear-gradient(160deg,#1b0033,#5b00b3)"
-            adjust={selfieAdjust}
-          />
-        </div>
-
-        <div className="relative mt-5 text-center">
-          <div
-            className="absolute inset-0 text-[54px] font-black uppercase leading-[0.85] tracking-tight text-cyan-300"
-            style={{ transform: "translate(-2px, 1px)", mixBlendMode: "screen" }}
-          >
-            {identity.title}
-          </div>
-          <div
-            className="absolute inset-0 text-[54px] font-black uppercase leading-[0.85] tracking-tight text-pink-400"
-            style={{ transform: "translate(2px, -1px)", mixBlendMode: "screen" }}
-          >
-            {identity.title}
-          </div>
-          <div className="relative text-[54px] font-black uppercase leading-[0.85] tracking-tight text-white">
-            {identity.title}
-          </div>
-        </div>
-        <div className="mt-1 text-[11px] font-black uppercase tracking-widest text-cyan-300">
-          @{(displayName || "anonymous").replace(/\s+/g, "_").toLowerCase()} ·{" "}
-          {team.flag} {team.name}
-        </div>
-
-        <div className="mt-auto w-full pt-4">
-          <div className="flex flex-col gap-1.5">
-            {identity.vibes.map((v) => (
-              <div
-                key={v}
-                className="border-l-4 border-cyan-300 bg-black/55 px-3 py-2 text-[14px] font-black uppercase tracking-tight text-yellow-300"
-              >
-                ▸ {v}
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center text-[10px] font-black uppercase tracking-[0.3em] text-cyan-300">
-            ★ {identity.shareTrigger}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* --------------------------------- LOYAL ---------------------------------- */
-
-function LoyalQueenCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars,
-  selfieAdjust,
-}: Props) {
-  return (
-    <div
-      className="relative h-full w-full"
-      style={{
-        background:
-          "radial-gradient(80% 60% at 50% 0%, #3d2c0a 0%, #050505 70%), linear-gradient(180deg, #050505 0%, #1a1306 100%)",
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-3 rounded-[28px]"
-        style={{ border: "1px solid rgba(250,204,21,0.55)" }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(125deg, rgba(250,204,21,0.18) 0%, transparent 35%)",
-          mixBlendMode: "overlay",
-        }}
-      />
-
-      <div className="relative flex h-full flex-col items-center px-7 py-8 text-amber-100">
-        <div className="text-[10px] font-extrabold uppercase tracking-[0.5em] text-amber-300">
-          ♛ Fangirl FC
-        </div>
-
-        <div className="relative mt-4">
-          <div
-            className="absolute -inset-4 rounded-full"
-            style={{
-              background:
-                "conic-gradient(from 90deg, #facc15, #fde68a, #92400e, #facc15)",
-              filter: "blur(2px)",
-              opacity: 0.85,
-            }}
-          />
-          <div className="relative">
-            <Selfie
-              selfieUrl={selfieUrl}
-              emoji={identity.emoji}
-              size={210}
-              ring="#facc15"
-              adjust={selfieAdjust}
-            />
-          </div>
-        </div>
-
-        <div className="mt-5 text-center">
-          <div className="text-[48px] font-black uppercase leading-[0.9] tracking-tight text-amber-200">
-            {identity.title}
-          </div>
-          <div className="mt-1 text-[11px] font-bold uppercase tracking-[0.4em] text-amber-400/80">
-            {displayName || "Anonymous"} · {team.flag} {team.name}
-          </div>
-        </div>
-
-        <div className="mt-auto w-full pt-4">
-          <div className="mb-3 flex justify-center">
-            <StarRow stars={stars} color="#facc15" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            {identity.vibes.map((v) => (
-              <div
-                key={v}
-                className="rounded-md border border-amber-400/30 bg-amber-400/5 px-3 py-2 text-center text-[13px] font-bold text-amber-100"
-              >
-                {v}
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.4em] text-amber-400/80">
-            ♛ {identity.shareTrigger}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------- PRINCESS -------------------------------- */
-
-function MatchdayPrincessCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars,
-  selfieAdjust = DEFAULT_ADJUST,
-}: Props) {
-  const css = fitToCss(selfieAdjust.fit);
-  return (
-    <div
-      className="relative h-full w-full"
-      style={{
-        background:
-          "linear-gradient(160deg, #ffd2e5 0%, #ff8fc3 55%, #ffe7a8 100%)",
-      }}
-    >
-      <div className="absolute inset-x-4 top-3 flex gap-1">
-        {[1, 0.7, 0.3, 0, 0].map((p, i) => (
-          <div
-            key={i}
-            className="h-1 flex-1 overflow-hidden rounded-full bg-white/40"
-          >
-            <div className="h-full bg-white" style={{ width: `${p * 100}%` }} />
-          </div>
-        ))}
-      </div>
-
-      <div className="relative mx-5 mt-7 h-[400px] overflow-hidden rounded-[28px] shadow-[0_22px_40px_-18px_rgba(162,21,103,0.45)]">
-        {selfieUrl ? (
-          <img
-            src={selfieUrl}
-            alt=""
-            crossOrigin="anonymous"
-            className="h-full w-full"
-            style={{
-              objectFit: css.objectFit,
-              objectPosition: css.objectPosition,
-              transform:
-                selfieAdjust.zoom !== 1
-                  ? `scale(${selfieAdjust.zoom})`
-                  : undefined,
-              transformOrigin: "center",
-              background:
-                "linear-gradient(160deg, #ffb6d5 0%, #ff8fc3 50%, #ffd58a 100%)",
-            }}
-          />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center text-[180px]"
-            style={{
-              background:
-                "linear-gradient(160deg, #ffb6d5 0%, #ff8fc3 50%, #ffd58a 100%)",
-            }}
-          >
-            {identity.emoji}
-          </div>
-        )}
-        <div className="absolute right-3 top-3 rotate-[5deg] rounded-full bg-rose-600 px-2.5 py-1 text-[10px] font-black uppercase text-white shadow">
-          MATCHDAY 💖
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4">
-          <div className="text-[36px] font-black leading-[0.95] tracking-tight text-white drop-shadow">
-            {identity.title}
-          </div>
-          <div className="mt-0.5 text-[11px] font-bold text-white/90">
-            {displayName || "Anonymous"} · {team.flag} {team.name}
-          </div>
-        </div>
-      </div>
-
-      <div className="mx-5 mt-3 flex flex-col gap-1">
-        {identity.vibes.map((v) => (
-          <div
-            key={v}
-            className="rounded-full bg-white/80 px-3 py-1.5 text-[12px] font-black text-rose-900"
-          >
-            ♡ {v}
-          </div>
-        ))}
-      </div>
-
-      <div className="mx-5 mt-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] text-rose-800/80">
-        <span>💅 {identity.shareTrigger}</span>
-        <StarRow stars={stars} color="#a21567" />
-      </div>
-    </div>
-  );
-}
-
-/* -------------------------------- SCREAMER -------------------------------- */
-
-function ScreamerCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars: _stars,
-  selfieAdjust,
-}: Props) {
-  const big = identity.title.toUpperCase();
-  return (
-    <div
-      className="relative h-full w-full"
-      style={{
-        background:
-          "linear-gradient(160deg, #ffef3a 0%, #ff6f3a 55%, #c9001a 100%)",
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-5"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, #000 0 18px, #ffd400 18px 36px)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-5"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, #000 0 18px, #ffd400 18px 36px)",
-        }}
-      />
-      <div className="absolute right-4 top-9 rotate-12 rounded-md border-[3px] border-black px-3 py-1 text-center text-[14px] font-black uppercase tracking-wider text-black">
-        CERTIFIED
-        <div className="text-[9px] font-black leading-none">menace</div>
-      </div>
-
-      <div className="relative flex h-full flex-col items-center px-6 pb-10 pt-9">
-        <div className="text-center">
-          <div
-            className="font-black uppercase leading-[0.85] tracking-tight text-black"
-            style={{
-              fontSize: big.length > 16 ? 50 : 60,
-              WebkitTextStroke: "2px #fff",
-              textShadow:
-                "4px 4px 0 #fff, -1px -1px 0 #000, 0 8px 0 rgba(0,0,0,0.25)",
-            }}
-          >
-            {big}
-          </div>
-        </div>
-
-        <div
-          className="mt-4 rotate-[-3deg] border-[6px] border-black bg-white p-1"
-          style={{ boxShadow: "8px 8px 0 #000" }}
+        <p
+          className="mt-2.5 text-[13px] font-semibold italic leading-snug"
+          style={{ color: theme.text, opacity: 0.96 }}
         >
-          <Selfie
-            selfieUrl={selfieUrl}
-            emoji={identity.emoji}
-            size={210}
-            ring="#000"
-            shape="square"
-            adjust={selfieAdjust}
-          />
-        </div>
-
-        <div className="mt-auto w-full pt-4">
-          <div className="flex flex-col gap-1">
-            {identity.vibes.map((v) => (
-              <div
-                key={v}
-                className="text-center font-black uppercase leading-tight text-black"
-                style={{
-                  fontSize: 18,
-                  WebkitTextStroke: "1.2px #fff",
-                  textShadow: "2.5px 2.5px 0 #fff",
-                }}
-              >
-                "{v}"
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 flex items-center justify-between">
-            <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black uppercase text-yellow-300">
-              {(displayName || "Anon").toUpperCase()} · {team.flag} {team.name}
-            </div>
-            <div className="rounded-md bg-black px-2 py-1 text-[10px] font-black uppercase text-yellow-300">
-              ★ {identity.shareTrigger}
-            </div>
-          </div>
-        </div>
+          “{identity.slogan}”
+        </p>
       </div>
     </div>
   );
-}
-
-/* -------------------------------- TACTICAL -------------------------------- */
-
-function TacticalGirlCard({
-  identity,
-  team,
-  displayName,
-  selfieUrl,
-  stars,
-  selfieAdjust,
-}: Props) {
-  return (
-    <div
-      className="relative h-full w-full"
-      style={{
-        background:
-          "linear-gradient(160deg, #0b0f17 0%, #0f172a 55%, #0b0f17 100%)",
-      }}
-    >
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.14]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(34,211,238,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,0.35) 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-
-      <div className="relative flex h-full flex-col items-center px-7 py-7 text-white">
-        <div className="flex w-full items-center justify-between">
-          <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">
-            fangirlfc · v26
-          </div>
-          <StarRow stars={stars} color="#22d3ee" />
-        </div>
-
-        <div className="mt-5">
-          <Selfie
-            selfieUrl={selfieUrl}
-            emoji={identity.emoji}
-            size={220}
-            ring="#22d3ee"
-            shape="square"
-            bg="linear-gradient(160deg,#0f172a,#0b0f17)"
-            adjust={selfieAdjust}
-          />
-        </div>
-
-        <div className="mt-5 text-center">
-          <div className="text-[44px] font-black leading-[0.9] tracking-tight text-white">
-            {identity.title}
-          </div>
-          <div className="mt-1 text-[11px] font-bold uppercase tracking-[0.3em] text-cyan-300">
-            {displayName || "Anonymous"} · {team.flag} {team.name}
-          </div>
-        </div>
-
-        <div className="mt-auto w-full pt-5">
-          <div className="flex flex-col gap-2">
-            {identity.vibes.map((v, i) => (
-              <div
-                key={v}
-                className="flex items-center gap-2 border-b border-white/10 pb-1.5 text-sm font-bold text-white/95"
-              >
-                <span className="text-[10px] font-black text-cyan-300">
-                  0{i + 1}
-                </span>
-                <span className="flex-1">{v}</span>
-                <span className="text-cyan-300">▸</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-300">
-            ◆ {identity.shareTrigger}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+});

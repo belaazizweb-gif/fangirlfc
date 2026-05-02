@@ -135,27 +135,23 @@ export function ResultCard({ identity, compareToId }: Props) {
             >
               {identity.description}
             </p>
-            <dl className="mt-5 grid grid-cols-3 gap-2">
-              {identity.defaultStats.map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-xl bg-black/25 px-2 py-2 text-center backdrop-blur"
+            <ul className="mt-5 flex flex-col gap-1.5">
+              {identity.vibes.map((v) => (
+                <li
+                  key={v}
+                  className="flex gap-2 text-sm font-medium leading-snug"
+                  style={{ color: identity.colors.text, opacity: 0.92 }}
                 >
-                  <dt
-                    className="text-[9px] font-medium uppercase tracking-wider"
-                    style={{ color: identity.colors.text, opacity: 0.7 }}
+                  <span
+                    className="font-black"
+                    style={{ color: identity.colors.accent }}
                   >
-                    {s.label}
-                  </dt>
-                  <dd
-                    className="mt-0.5 text-sm font-extrabold"
-                    style={{ color: identity.colors.text }}
-                  >
-                    {s.value}
-                  </dd>
-                </div>
+                    —
+                  </span>
+                  <span className="flex-1">{v.toLowerCase()}</span>
+                </li>
               ))}
-            </dl>
+            </ul>
           </div>
         </div>
       </div>
