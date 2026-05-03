@@ -297,79 +297,102 @@ export function LandingHero() {
             The girls loved it 💖
           </div>
         </div>
-        <div className="flex flex-col gap-3">
-          {[
-            {
-              name: "Yasmine",
-              flag: "🇫🇷",
-              handle: "@yasmiiine_fc",
-              avatar: "💅",
-              stars: 5,
-              text: "I sent my card to my bestie and she immediately said 'that is SO you'. The Loyal Queen identity is literally me, I cried a little.",
-              identity: "Loyal Queen",
-              color: "from-violet-400/20 to-pink-400/10",
-            },
-            {
-              name: "Amira",
-              flag: "🇲🇦",
-              handle: "@amira_football",
-              avatar: "🔥",
-              stars: 5,
-              text: "Showed my card at the watch party and now everyone wants one. My team France better win or I'm going chaotic mode for real.",
-              identity: "Chaotic Fan",
-              color: "from-pink-400/20 to-fuchsia-400/10",
-            },
-            {
-              name: "Sofia",
-              flag: "🇧🇷",
-              handle: "@sofiinha",
-              avatar: "⭐",
-              stars: 5,
-              text: "The quiz is too accurate. I answered honestly and got Soft Girl and yeah... I do watch matches just to cry during the anthem.",
-              identity: "Soft Girl",
-              color: "from-rose-400/20 to-amber-300/10",
-            },
-            {
-              name: "Inès",
-              flag: "🇩🇿",
-              handle: "@ines.wc26",
-              avatar: "👑",
-              stars: 5,
-              text: "Love that it's finally something made for us. Not the 'football for girls 🙄' kind — actually made by someone who gets it.",
-              identity: "Matchday Princess",
-              color: "from-amber-300/20 to-pink-300/10",
-            },
-          ].map((r) => (
-            <div
-              key={r.handle}
-              className={`relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${r.color} p-4 backdrop-blur`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-[22px]">
-                  {r.avatar}
+        {/* Horizontal scroll — bleed to screen edges */}
+        <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-3 px-4" style={{ width: "max-content" }}>
+            {[
+              {
+                name: "Chloe",
+                flag: "🇫🇷",
+                handle: "@chloe.fc",
+                photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=80&h=80&fit=crop&crop=face&auto=format",
+                stars: 5,
+                text: "I sent my card to my bestie and she immediately said 'that is SO you'. The Loyal Queen identity is literally me, I cried a little.",
+                identity: "Loyal Queen",
+                grad: "from-violet-500/30 to-pink-500/10",
+              },
+              {
+                name: "Sofia",
+                flag: "🇧🇷",
+                handle: "@sofiinha",
+                photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face&auto=format",
+                stars: 5,
+                text: "The quiz is too accurate. I answered honestly and got Soft Girl and yeah... I do watch matches just to cry during the anthem.",
+                identity: "Soft Girl",
+                grad: "from-rose-500/30 to-amber-300/10",
+              },
+              {
+                name: "Jade",
+                flag: "🇬🇧",
+                handle: "@jade_wc26",
+                photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face&auto=format",
+                stars: 5,
+                text: "Showed my card at the watch party and now everyone wants one. This better be the year England finally wins something.",
+                identity: "Chaotic Fan",
+                grad: "from-pink-500/30 to-fuchsia-500/10",
+              },
+              {
+                name: "Emma",
+                flag: "🇩🇪",
+                handle: "@emma.fangirl",
+                photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=face&auto=format",
+                stars: 5,
+                text: "Love that it's finally something made for us. Not the 'football for girls 🙄' kind — actually made by someone who gets it.",
+                identity: "Matchday Princess",
+                grad: "from-amber-400/30 to-pink-400/10",
+              },
+              {
+                name: "Valentina",
+                flag: "🇮🇹",
+                handle: "@vale_calcio",
+                photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=80&h=80&fit=crop&crop=face&auto=format",
+                stars: 5,
+                text: "My boyfriend doesn't understand why I need a fan card for the World Cup. I sent it to him anyway. He gets it now.",
+                identity: "Tactical Girl",
+                grad: "from-emerald-400/20 to-fuchsia-400/10",
+              },
+            ].map((r) => (
+              <div
+                key={r.handle}
+                className={`relative w-[240px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${r.grad} p-4 backdrop-blur`}
+              >
+                {/* Avatar photo */}
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={r.photo}
+                    alt={r.name}
+                    width={40}
+                    height={40}
+                    className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white/20"
+                  />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[13px] font-extrabold text-white leading-none">{r.name}</span>
+                      <span className="text-[11px]">{r.flag}</span>
+                    </div>
+                    <div className="text-[10px] text-white/40 leading-none mt-0.5">{r.handle}</div>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[13px] font-extrabold text-white">{r.name}</span>
-                    <span className="text-[12px]">{r.flag}</span>
-                    <span className="text-[11px] text-white/40">{r.handle}</span>
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-0.5">
-                    {Array.from({ length: r.stars }).map((_, i) => (
-                      <span key={i} className="text-[11px]">⭐</span>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[13px] leading-snug text-white/85">
-                    &ldquo;{r.text}&rdquo;
-                  </p>
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] font-bold text-white/55">
-                    {r.identity}
-                  </div>
+                {/* Stars */}
+                <div className="mt-2.5 flex gap-0.5">
+                  {Array.from({ length: r.stars }).map((_, i) => (
+                    <span key={i} className="text-[10px]">⭐</span>
+                  ))}
+                </div>
+                {/* Quote */}
+                <p className="mt-2 text-[12px] leading-snug text-white/80">
+                  &ldquo;{r.text}&rdquo;
+                </p>
+                {/* Identity badge */}
+                <div className="mt-3 inline-flex items-center rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] font-bold text-white/50">
+                  {r.identity}
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+        {/* Scroll hint */}
+        <p className="mt-1.5 text-center text-[10px] text-white/25">swipe to see more →</p>
       </section>
 
       {/* ---------------- STICKER TEASER (subtle) ---------------- */}
