@@ -1,0 +1,376 @@
+You are a senior full-stack engineer.
+
+Implement **Phase 3: Team Ranking + Official Progression Write Centralization**.
+
+⚠️ STRICT RULES:
+
+* Do NOT break Phase 1 official card/team.
+* Do NOT break Phase 2 official stars/ranking.
+* Do NOT modify free card generation.
+* Do NOT remove localStorage stars/cards.
+* Do NOT implement Cloud Functions yet.
+* Do NOT implement votes yet.
+* Do NOT refactor unrelated code.
+* Keep changes minimal, safe, and production-minded.
+
+---
+
+# CONTEXT
+
+Current system:
+
+## Phase 1
+
+Each signed-in user can have:
+
+* `officialTeamCode`
+* `officialCard`
+
+Stored in `users/{uid}`.
+
+## Phase 2
+
+Official stars exist:
+
+`users/{uid}`:
+
+```ts
+officialStars?: number
+officialXp?: number
+rankScore?: number
+officialStarActions?: Record<string, number>
+```
+
+Leaderboard exists:
+
+`leaderboard/{uid}`:
+
+```ts
+uid
+displayName
+photoURL
+officialStars
+officialXp
+rankScore
+officialTeamCode
+officialCardIdentityId
+officialCardDisplayName
+updatedAt
+```
+
+Known limitation:
+
+* leaderboard writes may be partially duplicated outside the official star award flow.
+* team ranking does not exist yet.
+
+---
+
+# PRODUCT GOAL
+
+Add country/team competition.
+
+Users already choose one official team.
+Now every official star earned by a user should also contribute to that user’s official team.
+
+The app should show:
+
+* individual ranking
+* team/country ranking
+
+---
+
+# ARCHITECTURE DECISION
+
+`awardOfficialStars(uid, action)` must become the central official progression write path.
+
+When stars are awarded:
+
+1. update `users/{uid}`
+2. update `leaderboard/{uid}`
+3. update `teams/{teamCode}` if user has `officialTeamCode`
+
+This avoids duplicated writes and inconsistent rankings.
+
+---
+
+# PHASE 3 REQUIREMENTS
+
+## 1. Centralize leaderboard writes
+
+Review all current calls to:
+
+* `writeLeaderboardEntry`
+* direct writes to `leaderboard/{uid}`
+* duplicated ranking/profile sync logic
+
+Refactor carefully so that:
+
+* `awardOfficialStars(uid, action)` updates leaderboard after a successful award.
+* UI components do not manually write leaderboard after awarding stars unless absolutely necessary.
+* If a user changes official card/team without earning stars, leaderboard should still be refreshed through a safe helper like:
+
+```ts
+refreshOfficialLeaderboardEntry(uid)
+```
+
+Required exported utilities:
+
+```ts
+awardOfficialStars(uid, action)
+refreshOfficialLeaderboardEntry(uid)
+```
+
+Rules:
+
+* `awardOfficialStars` handles reward + leaderboard + team update.
+* `refreshOfficialLeaderboardEntry` only mirrors safe public fields to leaderboard, no star changes.
+
+---
+
+## 2. Add team ranking collection
+
+Create/update Firestore collection:
+
+```txt
+teams/{teamCode}
+```
+
+Fields:
+
+```ts
+teamCode: string
+teamName: string
+flag?: string
+totalStars: number
+totalXp: number
+rankScore: number
+memberCount: number
+updatedAt: serverTimestamp
+```
+
+Important:
+
+* Use existing `lib/teams.ts` as source of valid team codes/names.
+* Do not create invalid team documents.
+* Do not expose private user data.
+
+---
+
+## 3. Team score calculation
+
+MVP formula:
+
+```ts
+team.rankScore = totalXp + totalStars * 100
+```
+
+When a user earns official stars:
+
+* read user profile
+* get `officialTeamCode`
+* if no officialTeamCode, skip team update
+* if valid teamCode:
+
+  * increment `teams/{teamCode}.totalStars` by the awarded stars delta
+  * increment `teams/{teamCode}.totalXp` by the awarded XP delta
+  * recompute/increment rankScore accordingly
+  * ensure teamName is set
+
+Use Firestore transaction if possible.
+
+Do not recalculate all users.
+MVP uses incremental aggregation.
+
+---
+
+## 4. Member count handling
+
+For Phase 3, keep this simple and safe.
+
+When a user sets official team for the first time:
+
+* increment `teams/{teamCode}.memberCount` by 1
+
+If user changes official team:
+
+* decrement old team memberCount by 1
+* increment new team memberCount by 1
+
+Important:
+
+* Do NOT move historical stars between teams in Phase 3.
+* Only future stars go to the current official team.
+* Add a code comment explaining this MVP decision.
+
+If changing memberCount safely is too complex because team changes are handled in another function, create a helper:
+
+```ts
+setOfficialTeamWithAggregation(uid, newTeamCode)
+```
+
+And use it wherever official team changes are confirmed.
+
+---
+
+## 5. Team ranking page
+
+Create route:
+
+```txt
+/team-ranking
+```
+
+Display top teams:
+
+Query:
+
+```ts
+teams orderBy rankScore desc limit 50
+```
+
+UI fields:
+
+* rank number
+* flag / team code
+* team name
+* totalStars
+* totalXp
+* memberCount
+* rankScore
+
+States:
+
+* loading
+* empty
+* permission error with clear message
+* normal list
+
+Add navigation link:
+
+* label: `Teams`
+* place near `Ranking`
+
+Do not overdesign. Keep existing style.
+
+---
+
+## 6. Update individual ranking if needed
+
+Keep `/ranking` working.
+
+If leaderboard documents are refreshed after Phase 3, individual ranking should still show:
+
+* displayName
+* officialStars
+* officialXp
+* officialTeamCode
+* officialCard identity/title
+
+Do not regress fallback behavior.
+
+---
+
+## 7. Firestore rules
+
+Update `firestore.rules`.
+
+Required:
+
+### leaderboard
+
+* public read
+* owner write only
+* no email field
+
+### teams
+
+* public read
+* authenticated users may update team aggregate docs only if fields are safe
+* for MVP client-side aggregation, allow authenticated updates to:
+
+  * totalStars
+  * totalXp
+  * rankScore
+  * memberCount
+  * updatedAt
+  * teamCode
+  * teamName
+  * flag
+
+Be careful:
+
+* No private fields.
+* No arbitrary user data inside teams docs.
+
+If rules are not deployed, app should fail gracefully.
+
+---
+
+## 8. Data validation
+
+Validate:
+
+* action name from allowlist
+* teamCode exists in `lib/teams.ts`
+* officialTeamCode is valid before updating team aggregate
+* stars/xp deltas come only from allowlist
+* no negative totals if decrementing memberCount
+
+---
+
+## 9. Manual tests required
+
+Run and report:
+
+1. Typecheck clean
+2. Existing card creation still works signed out
+3. Signed-in user makes official card and gets stars
+4. `leaderboard/{uid}` updates automatically from centralized flow
+5. `teams/{teamCode}` is created/updated
+6. Replace official card awards stars only up to cap
+7. Team ranking page loads
+8. Individual ranking page still loads
+9. Changing official team updates member counts correctly
+10. Existing routes still work
+
+---
+
+# DELIVERABLES
+
+After implementation, provide:
+
+1. Files changed/created
+2. New Firestore collection
+3. Exact new fields
+4. Explanation of centralized write flow
+5. Team ranking scoring formula
+6. Manual test results
+7. Firestore rules changes
+8. Known limitations
+
+---
+
+# KNOWN MVP LIMITATIONS TO DOCUMENT
+
+* No Cloud Functions yet, so aggregation is still client-side.
+* Historical stars are not moved if user changes team.
+* Team ranking becomes fully trusted only after backend validation in a later phase.
+* Firestore rules must be deployed manually if CLI is unavailable.
+
+---
+
+# IMPORTANT
+
+Implement Phase 3 only.
+
+Do NOT implement:
+
+* votes
+* comments
+* full anti-cheat backend
+* Cloud Functions
+* team missions
+* payments
+* premium logic
+
+Start now.

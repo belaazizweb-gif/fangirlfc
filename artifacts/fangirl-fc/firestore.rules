@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Share records — anyone can read, only auth users can create/update/delete their own
+    // Share records — public read; auth users can create/update/delete their own
     match /shares/{shareId} {
       allow read: if true;
       allow create: if request.auth != null
@@ -13,16 +13,30 @@ service cloud.firestore {
                              && request.auth.uid == resource.data.get('userId', '');
     }
 
-    // Per-user profile — owner only (includes official stars, official card, star action log)
+    // Per-user profile — owner only
+    // Includes: stars, unlocks, officialCard, officialTeamCode, officialStars, officialXp,
+    //           rankScore, officialStarActions
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Public leaderboard — safe fields only (no email)
+    // Public individual leaderboard — safe fields only, no email
     // Anyone can read; only the matching auth user can write their own entry
     match /leaderboard/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Team ranking aggregate — public read; authenticated users can write
+    // Only safe aggregate fields are permitted (no private user data)
+    match /teams/{teamCode} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.data.keys().hasOnly([
+                        'teamCode', 'teamName', 'flag',
+                        'totalStars', 'totalXp', 'rankScore',
+                        'memberCount', 'updatedAt'
+                      ]);
     }
 
     // Deny everything else

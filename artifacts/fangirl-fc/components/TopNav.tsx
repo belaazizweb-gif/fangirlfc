@@ -11,18 +11,20 @@ import {
   Target,
   Sticker,
   Medal,
+  Flag,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
-  { href: "/quiz",        label: "Quiz",       icon: HelpCircle   },
-  { href: "/matchday",    label: "Matchday",   icon: CalendarDays },
-  { href: "/groups",      label: "Groups",     icon: Users        },
-  { href: "/my-cards",    label: "Cards",      icon: Layers       },
-  { href: "/level",       label: "Level",      icon: Trophy       },
-  { href: "/ranking",     label: "Ranking",    icon: Medal        },
-  { href: "/challenges",  label: "Challenges", icon: Target       },
-  { href: "/stickers",    label: "Stickers",   icon: Sticker      },
+  { href: "/quiz",          label: "Quiz",       icon: HelpCircle   },
+  { href: "/matchday",      label: "Matchday",   icon: CalendarDays },
+  { href: "/groups",        label: "Groups",     icon: Users        },
+  { href: "/my-cards",      label: "Cards",      icon: Layers       },
+  { href: "/level",         label: "Level",      icon: Trophy       },
+  { href: "/ranking",       label: "Ranking",    icon: Medal        },
+  { href: "/team-ranking",  label: "Teams",      icon: Flag         },
+  { href: "/challenges",    label: "Challenges", icon: Target       },
+  { href: "/stickers",      label: "Stickers",   icon: Sticker      },
 ];
 
 export function TopNav() {
