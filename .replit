@@ -34,3 +34,12 @@ externalPort = 3001
 [[ports]]
 localPort = 24216
 externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+NEXT_PUBLIC_FIREBASE_PROJECT_ID = "fangirl-fc"
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = "fangirl-fc.firebaseapp.com"
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = "571610969500"
+NEXT_PUBLIC_FIREBASE_APP_ID = "1:571610969500:web:40aa5696f3bfb7a93ac459"
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = "fangirl-fc.appspot.com"
