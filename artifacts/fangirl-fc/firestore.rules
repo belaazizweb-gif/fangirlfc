@@ -3,43 +3,74 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Share records — public read; auth users can create/update/delete their own
+    // ── Share records ─────────────────────────────────────────────────────────
+    // Public read; auth users can create/update/delete their own shares.
     match /shares/{shareId} {
       allow read: if true;
       allow create: if request.auth != null
-                    && request.resource.data.keys().hasAll(['shareId', 'identityId', 'stars', 'teamCode', 'displayName', 'templateId', 'createdAt'])
+                    && request.resource.data.keys().hasAll([
+                         'shareId', 'identityId', 'stars', 'teamCode',
+                         'displayName', 'templateId', 'createdAt'
+                       ])
                     && request.resource.data.shareId == shareId;
       allow update, delete: if request.auth != null
                              && request.auth.uid == resource.data.get('userId', '');
     }
 
-    // Per-user profile — owner only
-    // Includes: stars, unlocks, officialCard, officialTeamCode, officialStars, officialXp,
-    //           rankScore, officialStarActions
+    // ── Per-user profile ──────────────────────────────────────────────────────
+    // Owner read/write — but officialStars, officialXp, rankScore, and
+    // officialStarActions may ONLY be written by the Cloud Function (admin SDK).
+    // Client writes to those fields are denied.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Create: client can create own doc but must not include progression fields.
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.keys().hasAny([
+                         'officialStars', 'officialXp', 'rankScore', 'officialStarActions'
+                       ]);
+
+      // Update: client can update own doc but must not change progression fields.
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny(['officialStars', 'officialXp', 'rankScore', 'officialStarActions']);
     }
 
-    // Public individual leaderboard — safe fields only, no email
-    // Anyone can read; only the matching auth user can write their own entry
+    // ── Public individual leaderboard ─────────────────────────────────────────
+    // Public read. Score fields (officialStars, officialXp, rankScore) are
+    // written exclusively by the Cloud Function via admin SDK.
+    // Client may update non-score display fields (displayName, card, team) via
+    // merge writes; scores are preserved by merge semantics.
     match /leaderboard/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Team ranking aggregate — public read; authenticated users can write
-    // Only safe aggregate fields are permitted (no private user data)
+    // ── Team ranking aggregate ────────────────────────────────────────────────
+    // Public read. Score fields (totalStars, totalXp, rankScore) are written
+    // exclusively by the Cloud Function via admin SDK — client writes to those
+    // fields are denied.
+    // Client may update memberCount and team identity fields (teamCode, teamName,
+    // flag, updatedAt) to support the team-change member-count flow.
     match /teams/{teamCode} {
       allow read: if true;
-      allow write: if request.auth != null
-                   && request.resource.data.keys().hasOnly([
-                        'teamCode', 'teamName', 'flag',
-                        'totalStars', 'totalXp', 'rankScore',
-                        'memberCount', 'updatedAt'
-                      ]);
+
+      // Create: client may create team docs for memberCount tracking, but
+      // must not include score fields (they start at 0 implicitly).
+      allow create: if request.auth != null
+                    && !request.resource.data.keys().hasAny([
+                         'totalStars', 'totalXp', 'rankScore'
+                       ]);
+
+      // Update: client may change memberCount / identity fields but not scores.
+      allow update: if request.auth != null
+                    && !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny(['totalStars', 'totalXp', 'rankScore']);
     }
 
-    // Deny everything else
+    // ── Deny everything else ──────────────────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

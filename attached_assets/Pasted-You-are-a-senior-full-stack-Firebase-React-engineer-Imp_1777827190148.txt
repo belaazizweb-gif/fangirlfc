@@ -1,0 +1,319 @@
+You are a senior full-stack Firebase + React engineer.
+
+Implement **Phase 4: Secure Official Progression with Cloud Functions**.
+
+⚠️ STRICT RULES:
+
+* Do NOT break existing card creation.
+* Do NOT break Phase 1 official card/team.
+* Do NOT break Phase 2 individual ranking.
+* Do NOT break Phase 3 team ranking.
+* Do NOT implement new gameplay features.
+* Do NOT implement votes, comments, premium, payments, or missions.
+* Do NOT refactor unrelated UI.
+* Keep the frontend UX identical unless required for secure progression.
+
+---
+
+# GOAL
+
+Move official progression authority from the client to Firebase Cloud Functions.
+
+Currently, the client can directly update:
+
+* `users/{uid}.officialStars`
+* `users/{uid}.officialXp`
+* `users/{uid}.rankScore`
+* `users/{uid}.officialStarActions`
+* `teams/{teamCode}.totalStars`
+* `teams/{teamCode}.totalXp`
+* `teams/{teamCode}.rankScore`
+* `leaderboard/{uid}`
+
+This is acceptable for MVP, but not secure.
+
+After Phase 4:
+
+* Client may still set official card/team.
+* Client must NOT directly award official stars.
+* Client must NOT directly update team totals.
+* Cloud Function becomes the only trusted path for official progression.
+
+---
+
+# REQUIRED ARCHITECTURE
+
+Create callable Cloud Function:
+
+```ts
+awardOfficialStarsSecure({ action: string })
+```
+
+The function must:
+
+1. Require authenticated user.
+2. Use `context.auth.uid`.
+3. Validate action against fixed allowlist.
+4. Read `users/{uid}`.
+5. Enforce once/cap logic server-side.
+6. Calculate deltas server-side.
+7. Update:
+
+   * `users/{uid}`
+   * `teams/{officialTeamCode}` if valid
+   * `leaderboard/{uid}`
+8. Use Firestore transaction for user + team updates.
+9. Never trust stars/xp values from client.
+10. Return safe result:
+
+```ts
+{
+  awarded: boolean,
+  action: string,
+  starsDelta: number,
+  xpDelta: number,
+  officialStars: number,
+  officialXp: number,
+  rankScore: number,
+  reason?: string
+}
+```
+
+---
+
+# STAR ACTION ALLOWLIST
+
+Use exact values:
+
+```ts
+publish_official_card: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+
+replace_official_card: {
+  stars: 0.25,
+  xp: 25,
+  maxCount: 3
+}
+
+share_official_card: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+
+complete_profile: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+```
+
+Rules:
+
+* Unknown action → reject.
+* once action already used → return `{ awarded: false, reason: "already_awarded" }`.
+* maxCount reached → return `{ awarded: false, reason: "max_count_reached" }`.
+* missing user profile → return safe error, do not create fake profile silently.
+
+---
+
+# TEAM AGGREGATION
+
+If `users/{uid}.officialTeamCode` exists and is valid:
+
+* update `teams/{teamCode}`:
+
+  * increment `totalStars` by `starsDelta`
+  * increment `totalXp` by `xpDelta`
+  * increment `rankScore` by `xpDelta + starsDelta * 100`
+  * preserve existing `memberCount`
+  * ensure `teamCode`, `teamName`, `flag`, `updatedAt`
+
+If no valid official team:
+
+* skip team update safely.
+
+Important:
+
+* Do NOT move historical stars.
+* Do NOT recalculate all users.
+* Do NOT modify memberCount in this function.
+
+---
+
+# LEADERBOARD UPDATE
+
+After the transaction, write/update:
+
+```txt
+leaderboard/{uid}
+```
+
+Safe public fields only:
+
+```ts
+uid
+displayName
+photoURL
+officialStars
+officialXp
+rankScore
+officialTeamCode
+officialCardIdentityId
+officialCardDisplayName
+updatedAt
+```
+
+No email.
+
+This write must happen from backend.
+
+---
+
+# FRONTEND CHANGES
+
+Update frontend so:
+
+## 1. Client no longer writes official stars directly
+
+Replace old client `awardOfficialStars(uid, action)` logic with a callable function wrapper:
+
+```ts
+awardOfficialStars(uid, action)
+```
+
+But internally it calls:
+
+```ts
+httpsCallable(functions, "awardOfficialStarsSecure")
+```
+
+Keep the same frontend API if possible to avoid UI changes.
+
+## 2. Keep fallback clean
+
+If Cloud Functions are not deployed yet:
+
+* Show clear error message.
+* Do NOT silently update stars client-side.
+* Do NOT write team totals client-side.
+* Do NOT fake success.
+
+## 3. Keep `refreshOfficialLeaderboardEntry(uid)` only if needed for official card/team display changes
+
+But it must NOT write stars, xp, or rankScore from client anymore.
+
+If it still writes leaderboard:
+
+* only mirror safe display fields.
+* do not overwrite score fields unless read from user profile.
+* ideally remove client leaderboard score writes completely after backend function exists.
+
+---
+
+# FIRESTORE RULES
+
+Update rules to enforce security.
+
+## users/{uid}
+
+Authenticated owner can update non-progression profile fields.
+
+Client must NOT directly update:
+
+* officialStars
+* officialXp
+* rankScore
+* officialStarActions
+
+unless unchanged.
+
+## teams/{teamCode}
+
+* allow read: true
+* deny client write to totals:
+
+  * totalStars
+  * totalXp
+  * rankScore
+* allow only safe memberCount/team profile updates if still needed by client-side official team change flow.
+
+If memberCount still updates client-side:
+
+* restrict fields as much as possible.
+* Do not allow client to update totalStars/totalXp/rankScore.
+
+## leaderboard/{uid}
+
+* allow read: true
+* deny client write OR allow owner write only for non-score display fields if necessary.
+* Prefer deny client write entirely if backend handles it.
+
+---
+
+# DEPLOYMENT REALITY
+
+If Firebase CLI or Functions setup does not exist:
+
+1. Detect current project structure.
+2. If no `functions/` directory exists, create a standard Firebase Functions TypeScript setup:
+
+   * `functions/package.json`
+   * `functions/tsconfig.json`
+   * `functions/src/index.ts`
+3. Use Firebase Functions v2 if the project uses modern setup.
+4. Do not require manual secret setup.
+5. Do not deploy unless credentials are already available.
+6. Provide exact manual deploy command:
+
+```bash
+firebase deploy --only functions,firestore:rules
+```
+
+---
+
+# REQUIRED TESTS
+
+Run and report:
+
+1. Typecheck frontend clean.
+2. Functions TypeScript build clean.
+3. Signed-out card creation still works.
+4. Signed-in Make Official calls secure function.
+5. First publish gets +0.5 official stars.
+6. Replace gets +0.25 up to max 3.
+7. 4th replace returns no award.
+8. `users/{uid}` progression updated only by function.
+9. `teams/{teamCode}` totalStars/totalXp/rankScore updated by function.
+10. `leaderboard/{uid}` updated by function.
+11. `/ranking` still loads.
+12. `/team-ranking` still loads.
+13. Old client-side progression write path removed/disabled.
+
+---
+
+# DELIVERABLES
+
+After implementation, provide:
+
+1. Files changed/created
+2. Cloud Function name
+3. Exact backend progression flow
+4. Firestore rules changes
+5. Frontend changes
+6. Manual deployment commands
+7. Test results
+8. Known limitations
+
+---
+
+# IMPORTANT
+
+Implement Phase 4 only.
+
+Do NOT add new product features.
+
+Start now.
