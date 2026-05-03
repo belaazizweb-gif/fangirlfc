@@ -25,7 +25,7 @@ import {
   getNextHint,
 } from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
-import { buildShareUrl, newShareId, saveShare } from "@/lib/share";
+import { buildPayloadShareUrl, newShareId, saveShare } from "@/lib/share";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
 import { saveCard } from "@/lib/cardHistory";
 import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
@@ -111,8 +111,16 @@ function Inner() {
     setShareMode(m);
     trackEvent("share_target_selected", { mode: m });
     if (shareUrl) {
-      const sid = shareUrl.split("/").pop()?.split("?")[0];
-      if (sid) setShareUrl(buildShareUrl(sid, m));
+      const record = {
+        shareId: newShareId(),
+        identityId: identity.id,
+        stars,
+        teamCode,
+        displayName: displayName || "Anonymous Fan",
+        templateId,
+        createdAt: Date.now(),
+      };
+      setShareUrl(buildPayloadShareUrl(record, m));
     }
   };
 
@@ -136,7 +144,7 @@ function Inner() {
     setBusy(true);
     try {
       const shareId = newShareId();
-      await saveShare({
+      const record = {
         shareId,
         identityId: identity.id,
         stars,
@@ -144,8 +152,9 @@ function Inner() {
         displayName: displayName || "Anonymous Fan",
         templateId,
         createdAt: Date.now(),
-      });
-      const url = buildShareUrl(shareId, shareMode);
+      };
+      await saveShare(record);
+      const url = buildPayloadShareUrl(record, shareMode);
       setShareUrl(url);
       const next = awardIdentityStar(identity.id, "card_shared");
       setStars(next);
