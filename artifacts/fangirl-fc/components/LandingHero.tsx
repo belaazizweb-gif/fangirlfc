@@ -287,6 +287,91 @@ export function LandingHero() {
       {/* Unlocked identities (only shows if user has any) */}
       <UnlockedIdentities />
 
+      {/* ---------------- REVIEWS ---------------- */}
+      <section>
+        <div className="mb-4 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+            What fans say
+          </div>
+          <div className="mt-1 text-[18px] font-black tracking-tight">
+            The girls loved it 💖
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          {[
+            {
+              name: "Yasmine",
+              flag: "🇫🇷",
+              handle: "@yasmiiine_fc",
+              avatar: "💅",
+              stars: 5,
+              text: "I sent my card to my bestie and she immediately said 'that is SO you'. The Loyal Queen identity is literally me, I cried a little.",
+              identity: "Loyal Queen",
+              color: "from-violet-400/20 to-pink-400/10",
+            },
+            {
+              name: "Amira",
+              flag: "🇲🇦",
+              handle: "@amira_football",
+              avatar: "🔥",
+              stars: 5,
+              text: "Showed my card at the watch party and now everyone wants one. My team France better win or I'm going chaotic mode for real.",
+              identity: "Chaotic Fan",
+              color: "from-pink-400/20 to-fuchsia-400/10",
+            },
+            {
+              name: "Sofia",
+              flag: "🇧🇷",
+              handle: "@sofiinha",
+              avatar: "⭐",
+              stars: 5,
+              text: "The quiz is too accurate. I answered honestly and got Soft Girl and yeah... I do watch matches just to cry during the anthem.",
+              identity: "Soft Girl",
+              color: "from-rose-400/20 to-amber-300/10",
+            },
+            {
+              name: "Inès",
+              flag: "🇩🇿",
+              handle: "@ines.wc26",
+              avatar: "👑",
+              stars: 5,
+              text: "Love that it's finally something made for us. Not the 'football for girls 🙄' kind — actually made by someone who gets it.",
+              identity: "Matchday Princess",
+              color: "from-amber-300/20 to-pink-300/10",
+            },
+          ].map((r) => (
+            <div
+              key={r.handle}
+              className={`relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${r.color} p-4 backdrop-blur`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-[22px]">
+                  {r.avatar}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[13px] font-extrabold text-white">{r.name}</span>
+                    <span className="text-[12px]">{r.flag}</span>
+                    <span className="text-[11px] text-white/40">{r.handle}</span>
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-0.5">
+                    {Array.from({ length: r.stars }).map((_, i) => (
+                      <span key={i} className="text-[11px]">⭐</span>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[13px] leading-snug text-white/85">
+                    &ldquo;{r.text}&rdquo;
+                  </p>
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] font-bold text-white/55">
+                    {r.identity}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ---------------- STICKER TEASER (subtle) ---------------- */}
       <section className="text-center">
         <Link
