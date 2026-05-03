@@ -1,0 +1,314 @@
+You are a senior full-stack Firebase + React engineer.
+
+Implement **Phase 7: Direct Competition (Duel + Relative Positioning)**.
+
+⚠️ STRICT RULES:
+
+* Do NOT break Phases 1–6.
+* Do NOT modify Cloud Functions.
+* Do NOT write any new backend data.
+* DO NOT reintroduce client-side authority on stars.
+* DO NOT add votes, chat, comments, or payments.
+* All logic must be **read-only + UI-driven + deterministic**.
+* Keep implementation minimal, robust, and production-safe.
+
+---
+
+# GOAL
+
+Introduce **direct user tension**:
+
+Move from:
+
+* user vs system (ranking)
+
+To:
+
+* **user vs user (duel + comparison)**
+
+Without adding backend complexity.
+
+---
+
+# CORE FEATURES
+
+## 1. Relative Position Block (CRITICAL)
+
+On `OfficialCardSection`, below TeamRankBanner:
+
+Display user positioning vs others.
+
+### Logic:
+
+Fetch:
+
+```ts
+leaderboard ordered by rankScore desc limit 100
+```
+
+Find current user index.
+
+Compute:
+
+* rankPosition
+* totalUsers
+* percentile
+
+### Display:
+
+Case A (top 10%):
+
+```txt
+🏆 You're in the top 10% of fans
+```
+
+Case B (mid):
+
+```txt
+You're ahead of 68% of fans
+```
+
+Case C (low):
+
+```txt
+You're behind most fans — time to catch up
+```
+
+If no data:
+
+```txt
+Start competing to see your rank
+```
+
+---
+
+## 2. Rival Detection (VERY IMPORTANT)
+
+Find **closest competitor above user**:
+
+```ts
+rival = leaderboard[index - 1]
+```
+
+If exists, display:
+
+```txt
+You're just behind Ali (France)
+```
+
+Optional second line:
+
+```txt
+Only 0.5 ⭐ to pass them
+```
+
+Compute delta:
+
+```ts
+delta = rival.rankScore - user.rankScore
+```
+
+Convert to readable stars:
+
+```ts
+starsNeeded = ceil(delta / 100)
+```
+
+---
+
+## 3. Duel CTA (conversion driver)
+
+Below rival info:
+
+Button:
+
+```txt
+Beat them 🚀
+```
+
+Behavior:
+
+* scroll to Share Official Card CTA
+* or trigger share directly if official card
+
+No backend call here.
+
+---
+
+## 4. Micro Leaderboard (context)
+
+Below duel section, show 3–5 nearby users:
+
+```txt
+#7 You
+#6 Ali
+#5 Sara
+```
+
+Display:
+
+* rank
+* displayName
+* team flag
+* stars
+
+Highlight current user.
+
+---
+
+## 5. Dynamic Share Pressure (upgrade existing CTA)
+
+Enhance `OfficialShareCTA` logic:
+
+If rival exists:
+
+Replace generic text with:
+
+```txt
+Share to pass Ali
+```
+
+If delta small:
+
+```txt
+One share can push you ahead
+```
+
+If large:
+
+```txt
+Start climbing the ranking
+```
+
+---
+
+## 6. Post-Share Rival Feedback
+
+After successful share:
+
+If rival exists:
+
+```txt
+You're getting closer to Ali 🔥
+```
+
+If user surpasses (after reload or next render):
+
+```txt
+You just passed Ali 🚀
+```
+
+Detect by comparing previous rank vs new rank.
+
+---
+
+## 7. Lightweight Rank Memory (optional but clean)
+
+Use local state or localStorage:
+
+```ts
+lastKnownRank
+```
+
+Compare:
+
+* previous rank
+* new rank
+
+Used only for UI messaging.
+
+No backend write.
+
+---
+
+# DATA SOURCES
+
+Only read:
+
+* `leaderboard`
+* `teams`
+
+Do NOT read:
+
+* official_shares for ranking logic
+
+---
+
+# PERFORMANCE RULES
+
+* Limit leaderboard query to 100 max
+* No realtime listeners required
+* Fetch once per mount
+* Cache in state
+
+---
+
+# UI RULES
+
+* Use existing styling
+* No heavy animations
+* Keep layout consistent
+* No new pages required
+
+---
+
+# EDGE CASES
+
+Handle safely:
+
+* user not in top 100 → show generic message
+* leaderboard empty → fallback message
+* signed out → hide duel section
+* no official card → show hint only
+
+---
+
+# TESTS
+
+Run and report:
+
+1. Typecheck clean
+2. Card page still works
+3. Relative position text appears
+4. Rival detected correctly
+5. Delta stars calculation correct
+6. Duel CTA scrolls or focuses share
+7. Micro leaderboard renders correctly
+8. Share CTA adapts to rival
+9. Post-share message appears
+10. No regression in ranking pages
+11. Works with no data (fallback)
+12. Works signed out (no crash)
+
+---
+
+# DELIVERABLES
+
+Provide:
+
+1. Files changed
+2. Components added
+3. Rival detection logic
+4. Rank calculation method
+5. Test results
+6. Any fallback behavior
+
+---
+
+# IMPORTANT
+
+This phase is about:
+
+* tension
+* competition
+* motivation
+
+NOT about:
+
+* new backend
+* new features
+* complexity
+
+Keep it sharp, minimal, and effective.
+
+Start now.

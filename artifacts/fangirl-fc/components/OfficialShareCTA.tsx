@@ -8,6 +8,7 @@ import { saveOfficialShareRecord } from "@/lib/officialShare";
 import { buildPayloadShareUrl, newShareId } from "@/lib/share";
 import { getTeam } from "@/lib/teams";
 import type { OfficialCardData } from "@/lib/officialCard";
+import type { LeaderboardEntry } from "@/lib/officialStars";
 import type { FanIdentityId } from "@/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,6 +23,8 @@ interface Props {
   templateId: string;
   displayName: string;
   teamRank?: number | null;
+  rival?: LeaderboardEntry | null;
+  starsNeeded?: number;
   disabled?: boolean;
 }
 
@@ -49,11 +52,24 @@ function isOfficialMatch(
   );
 }
 
-function motivationText(rank: number | null | undefined, teamName: string): string {
-  if (!rank) return "Share and help your team rise";
-  if (rank === 1) return `Help ${teamName} secure the #1 spot`;
-  if (rank <= 3)  return "Only a few stars to reach #1";
-  if (rank <= 10) return `Help ${teamName} climb the rankings`;
+function rivalDisplayName(rival: LeaderboardEntry): string {
+  return rival.officialCardDisplayName?.trim() || rival.displayName?.trim() || "them";
+}
+
+function motivationText(
+  rival: LeaderboardEntry | null | undefined,
+  starsNeeded: number,
+  teamRank: number | null | undefined,
+  teamName: string,
+): string {
+  if (rival) {
+    if (starsNeeded <= 1) return "One share can push you ahead";
+    return `Share to pass ${rivalDisplayName(rival)}`;
+  }
+  if (!teamRank)          return "Share and help your team rise";
+  if (teamRank === 1)     return `Help ${teamName} secure the #1 spot`;
+  if (teamRank <= 3)      return "Only a few stars to reach #1";
+  if (teamRank <= 10)     return `Help ${teamName} climb the rankings`;
   return "Every share helps your country rise";
 }
 
@@ -69,6 +85,8 @@ export function OfficialShareCTA({
   templateId,
   displayName,
   teamRank,
+  rival,
+  starsNeeded = 0,
   disabled = false,
 }: Props) {
   const [sharing, setSharing] = useState(false);
@@ -107,29 +125,29 @@ export function OfficialShareCTA({
     setSharing(true);
     setOutcome(null);
 
-    // 1 — Build share link from official card data
-    const shareId    = newShareId();
+    // 1 — Build share link
+    const shareId     = newShareId();
     const shareRecord = {
       shareId,
-      identityId: officialCard!.identityId,
-      stars:      officialStars,
-      teamCode:   officialCard!.teamCode,
+      identityId:  officialCard!.identityId,
+      stars:       officialStars,
+      teamCode:    officialCard!.teamCode,
       displayName: officialCard!.displayName,
-      templateId: officialCard!.templateId,
-      createdAt:  Date.now(),
+      templateId:  officialCard!.templateId,
+      createdAt:   Date.now(),
     };
     const url = buildPayloadShareUrl(shareRecord, "public");
 
-    // 2 — Copy to clipboard (best-effort)
+    // 2 — Clipboard (best-effort)
     let copied = false;
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
         copied = true;
       }
-    } catch { /* clipboard not available — show URL inline */ }
+    } catch { /* show URL inline */ }
 
-    // 3 — Analytics write (fire-and-forget)
+    // 3 — Analytics (fire-and-forget)
     void saveOfficialShareRecord({
       shareId,
       uid:              user.uid,
@@ -146,19 +164,26 @@ export function OfficialShareCTA({
     let rewardKind: RewardKind;
     let rewardMsg: string;
     let boostLine: string;
+    const rivalName = rival ? rivalDisplayName(rival) : null;
 
     if (!award.ok) {
       rewardKind = "not_deployed";
       rewardMsg  = `Reward unavailable: ${award.error ?? "Could not contact progression service."}`;
-      boostLine  = "Sharing still helps your team";
+      boostLine  = rivalName
+        ? `You're getting closer to ${rivalName} 🔥`
+        : "Sharing still helps your team";
     } else if (!award.awarded) {
       rewardKind = "already";
       rewardMsg  = "Official share already rewarded.";
-      boostLine  = "Sharing still helps your team";
+      boostLine  = rivalName
+        ? `You're getting closer to ${rivalName} 🔥`
+        : "Sharing still helps your team";
     } else {
       rewardKind = "awarded";
       rewardMsg  = `+${award.stars} ⭐ Official share reward.`;
-      boostLine  = `You just boosted ${teamName} 🚀`;
+      boostLine  = rivalName
+        ? `You're getting closer to ${rivalName} 🔥`
+        : `You just boosted ${teamName} 🚀`;
     }
 
     setOutcome({ copied, url, rewardKind, rewardMsg, boostLine });
@@ -172,7 +197,7 @@ export function OfficialShareCTA({
     error:        "text-red-400",
   };
 
-  const motivation = motivationText(teamRank, teamName);
+  const motivation = motivationText(rival, starsNeeded, teamRank, teamName);
 
   return (
     <div className="mt-3 flex flex-col gap-2">
@@ -229,7 +254,7 @@ export function OfficialShareCTA({
             {outcome.rewardMsg}
           </div>
 
-          {/* Boost reinforcement line */}
+          {/* Rival / boost reinforcement */}
           <p className="text-[11px] text-white/45">{outcome.boostLine}</p>
 
           {/* Share again */}

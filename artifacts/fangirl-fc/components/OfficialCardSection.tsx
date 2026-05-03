@@ -13,10 +13,12 @@ import {
   refreshOfficialLeaderboardEntry,
   adjustTeamMemberCount,
 } from "@/lib/officialStars";
+import { fetchLeaderboardRank, type RankResult } from "@/lib/leaderboardRank";
 import { getTeam } from "@/lib/teams";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { OfficialShareCTA } from "@/components/OfficialShareCTA";
 import { TeamRankBanner } from "@/components/TeamRankBanner";
+import { DuelSection } from "@/components/DuelSection";
 import type { FanIdentityId } from "@/types";
 
 interface Props {
@@ -50,7 +52,9 @@ export function OfficialCardSection({
   const [showTeamConfirm, setShowTeamConfirm]   = useState(false);
   const [lastAward, setLastAward]               = useState<AwardBadge | null>(null);
   const [teamRank, setTeamRank]                 = useState<number | null>(null);
-  const loadedUid = useRef<string | null>(null);
+  const [rankResult, setRankResult]             = useState<RankResult | null>(null);
+  const loadedUid  = useRef<string | null>(null);
+  const shareRef   = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) {
@@ -59,6 +63,7 @@ export function OfficialCardSection({
       setOfficialStars(0);
       setOfficialXp(0);
       setTeamRank(null);
+      setRankResult(null);
       loadedUid.current = null;
       return;
     }
@@ -71,6 +76,8 @@ export function OfficialCardSection({
       setOfficialStars(profile?.officialStars ?? 0);
       setOfficialXp(profile?.officialXp ?? 0);
       setProfileLoading(false);
+      // Fetch leaderboard rank once after profile loads (read-only, fire-and-forget)
+      void fetchLeaderboardRank(user.uid).then(setRankResult);
     });
   }, [user]);
 
@@ -154,6 +161,11 @@ export function OfficialCardSection({
     // If the user has no officialTeamCode yet (first card), always write the
     // team alongside the card so future replacements can detect conflicts.
     void doSave(officialTeamCode === null);
+  };
+
+  // ----- duel scroll -----
+  const handleDuelClick = () => {
+    shareRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   // ----- render states -----
@@ -245,6 +257,15 @@ export function OfficialCardSection({
   const hasExisting     = officialCard !== null;
   const currentIdentity = officialCard ? FAN_TYPES[officialCard.identityId] : null;
   const currentTeamObj  = officialCard ? getTeam(officialCard.teamCode) : null;
+
+  // DuelSection is only relevant when the card being viewed IS the official card
+  // (same guard as OfficialShareCTA's isMatch check)
+  const isOfficialCardInView =
+    !officialCard ||
+    (identityId === officialCard.identityId &&
+      teamCode === officialCard.teamCode &&
+      templateId === officialCard.templateId &&
+      trimmedName === officialCard.displayName.trim());
 
   return (
     <div
@@ -349,19 +370,32 @@ export function OfficialCardSection({
         onRankLoaded={setTeamRank}
       />
 
-      {/* Official Share CTA — shown whenever user is signed in */}
-      <OfficialShareCTA
-        user={user}
-        officialCard={officialCard}
-        officialTeamCode={officialTeamCode}
-        officialStars={officialStars}
-        identityId={identityId}
-        teamCode={teamCode}
-        templateId={templateId}
-        displayName={displayName}
-        teamRank={teamRank}
-        disabled={status === "saving"}
-      />
+      {/* Phase 7 — Duel + relative positioning (only when viewing official card) */}
+      {isOfficialCardInView && (
+        <DuelSection
+          rankResult={rankResult}
+          hasOfficialCard={officialCard !== null}
+          onDuelClick={handleDuelClick}
+        />
+      )}
+
+      {/* Official Share CTA — scroll target for duel CTA */}
+      <div ref={shareRef}>
+        <OfficialShareCTA
+          user={user}
+          officialCard={officialCard}
+          officialTeamCode={officialTeamCode}
+          officialStars={officialStars}
+          identityId={identityId}
+          teamCode={teamCode}
+          templateId={templateId}
+          displayName={displayName}
+          teamRank={teamRank}
+          rival={rankResult?.rival ?? null}
+          starsNeeded={rankResult?.starsNeeded ?? 0}
+          disabled={status === "saving"}
+        />
+      </div>
     </div>
   );
 }
