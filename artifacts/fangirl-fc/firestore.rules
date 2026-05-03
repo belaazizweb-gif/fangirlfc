@@ -17,21 +17,34 @@ service cloud.firestore {
                              && request.auth.uid == resource.data.get('userId', '');
     }
 
+    // ── Official share analytics ──────────────────────────────────────────────
+    // Analytics/debug collection — NOT reward authority.
+    // Auth user can create their own record; no public read; no update/delete.
+    match /official_shares/{shareId} {
+      allow read: if false;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.shareId == shareId
+                    && request.resource.data.keys().hasAll([
+                         'shareId', 'uid', 'identityId', 'templateId',
+                         'displayName', 'shareUrl', 'createdAt'
+                       ])
+                    && !request.resource.data.keys().hasAny(['officialStars', 'officialXp', 'rankScore']);
+      allow update, delete: if false;
+    }
+
     // ── Per-user profile ──────────────────────────────────────────────────────
     // Owner read/write — but officialStars, officialXp, rankScore, and
     // officialStarActions may ONLY be written by the Cloud Function (admin SDK).
-    // Client writes to those fields are denied.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
 
-      // Create: client can create own doc but must not include progression fields.
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && !request.resource.data.keys().hasAny([
                          'officialStars', 'officialXp', 'rankScore', 'officialStarActions'
                        ]);
 
-      // Update: client can update own doc but must not change progression fields.
       allow update: if request.auth != null
                     && request.auth.uid == userId
                     && !request.resource.data.diff(resource.data).affectedKeys()
@@ -39,32 +52,24 @@ service cloud.firestore {
     }
 
     // ── Public individual leaderboard ─────────────────────────────────────────
-    // Public read. Score fields (officialStars, officialXp, rankScore) are
-    // written exclusively by the Cloud Function via admin SDK.
-    // Client may update non-score display fields (displayName, card, team) via
-    // merge writes; scores are preserved by merge semantics.
+    // Public read. Scores written exclusively by Cloud Function (admin SDK).
+    // Client may merge non-score display fields; merge semantics preserve scores.
     match /leaderboard/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // ── Team ranking aggregate ────────────────────────────────────────────────
-    // Public read. Score fields (totalStars, totalXp, rankScore) are written
-    // exclusively by the Cloud Function via admin SDK — client writes to those
-    // fields are denied.
-    // Client may update memberCount and team identity fields (teamCode, teamName,
-    // flag, updatedAt) to support the team-change member-count flow.
+    // Public read. Score fields written exclusively by Cloud Function.
+    // Client may update memberCount + identity fields for team-change flow.
     match /teams/{teamCode} {
       allow read: if true;
 
-      // Create: client may create team docs for memberCount tracking, but
-      // must not include score fields (they start at 0 implicitly).
       allow create: if request.auth != null
                     && !request.resource.data.keys().hasAny([
                          'totalStars', 'totalXp', 'rankScore'
                        ]);
 
-      // Update: client may change memberCount / identity fields but not scores.
       allow update: if request.auth != null
                     && !request.resource.data.diff(resource.data).affectedKeys()
                         .hasAny(['totalStars', 'totalXp', 'rankScore']);

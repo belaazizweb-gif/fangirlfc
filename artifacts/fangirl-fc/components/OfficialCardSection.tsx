@@ -15,6 +15,7 @@ import {
 } from "@/lib/officialStars";
 import { getTeam } from "@/lib/teams";
 import { FAN_TYPES } from "@/lib/fanTypes";
+import { OfficialShareCTA } from "@/components/OfficialShareCTA";
 import type { FanIdentityId } from "@/types";
 
 interface Props {
@@ -337,6 +338,19 @@ export function OfficialCardSection({
           One official card per account · earns official stars for the ranking
         </p>
       )}
+
+      {/* Official Share CTA — shown whenever user is signed in */}
+      <OfficialShareCTA
+        user={user}
+        officialCard={officialCard}
+        officialTeamCode={officialTeamCode}
+        officialStars={officialStars}
+        identityId={identityId}
+        teamCode={teamCode}
+        templateId={templateId}
+        displayName={displayName}
+        disabled={status === "saving"}
+      />
     </div>
   );
 }

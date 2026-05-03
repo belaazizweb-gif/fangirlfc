@@ -1,0 +1,254 @@
+You are a senior full-stack Firebase + React engineer.
+
+Implement **Phase 5: Secure Viral Share Loop + Official Share Reward**.
+
+⚠️ STRICT RULES:
+
+* Do NOT break Phase 1 official card/team.
+* Do NOT break Phase 2 ranking.
+* Do NOT break Phase 3 team ranking.
+* Do NOT break Phase 4 secure Cloud Function progression.
+* Do NOT reintroduce client-side official star writes.
+* Do NOT add votes, comments, payments, premium, or missions.
+* Keep implementation minimal, stable, and measurable.
+
+---
+
+# GOAL
+
+Create a real viral loop around the official card.
+
+Users should be encouraged to share their official fan card and earn the existing secure reward:
+
+```ts
+share_official_card: +0.5 stars, +50 XP, once per account
+```
+
+This reward already exists in the backend allowlist.
+Now connect it safely to the product flow.
+
+---
+
+# PRODUCT LOOP
+
+User flow:
+
+1. User creates a card
+2. User makes it official
+3. User sees:
+
+   * official card
+   * stars
+   * ranking
+   * team contribution
+4. User clicks “Share Official Card”
+5. App generates share link
+6. App calls secure Cloud Function:
+
+   * `awardOfficialStarsSecure({ action: "share_official_card" })`
+7. User gets reward once
+8. Shared link opens compare/card experience for recipient
+
+---
+
+# REQUIREMENTS
+
+## 1. Detect official card
+
+On the card page, determine whether the currently displayed card matches the user’s official card.
+
+A current card matches official card if:
+
+```ts
+identityId === officialCard.identityId
+teamCode === officialCard.teamCode
+templateId === officialCard.templateId
+displayName.trim() === officialCard.displayName.trim()
+```
+
+If matched, show official share CTA.
+
+---
+
+## 2. Add Official Share CTA
+
+In `OfficialCardSection` or the closest clean card UI area, add:
+
+Button label:
+
+```txt
+Share Official Card
+```
+
+States:
+
+* Signed out:
+
+  * hidden or disabled with message: “Sign in to share your official card.”
+* Signed in but no official card:
+
+  * hidden or message: “Publish an official card first.”
+* Current card is not official:
+
+  * show message: “Only your official card can earn share rewards.”
+* Current card is official:
+
+  * show active button.
+
+---
+
+## 3. Share behavior
+
+When user clicks “Share Official Card”:
+
+1. Generate the existing share link using current project share utilities.
+2. Copy to clipboard if supported.
+3. Call:
+
+```ts
+awardOfficialStars(uid, "share_official_card")
+```
+
+Important:
+
+* This must use Phase 4 secure Cloud Function wrapper.
+* Do NOT write stars locally.
+* Do NOT fake success if Cloud Function is unavailable.
+* If reward already awarded, show a neutral message:
+
+  * “Official share already rewarded.”
+* If reward awarded, show:
+
+  * “+0.5 ⭐ Official share reward”
+* If share link copied but reward fails, keep share link success but show reward error separately.
+
+---
+
+## 4. Add tracking data
+
+Create a Firestore collection:
+
+```txt
+official_shares/{shareId}
+```
+
+Fields:
+
+```ts
+shareId: string
+uid: string
+officialTeamCode: string | null
+identityId: string
+templateId: string
+displayName: string
+createdAt: serverTimestamp
+shareUrl?: string
+```
+
+Rules:
+
+* authenticated user can create their own official share records
+* public read not necessary
+* no update/delete from client
+
+This is for analytics/debugging only, not reward authority.
+
+---
+
+## 5. Safe reward logic
+
+Do not modify the backend allowlist unless required.
+
+`share_official_card` should remain:
+
+* once per account
+* +0.5 stars
+* +50 XP
+
+The backend already controls this.
+
+---
+
+## 6. UI feedback
+
+After click:
+
+Show:
+
+* share link / copied message
+* reward result separately
+
+Examples:
+
+* Link copied. +0.5 ⭐ Official share reward.
+* Link copied. Official share already rewarded.
+* Link copied. Reward unavailable: Cloud Function not deployed.
+
+Do not overdesign.
+
+---
+
+## 7. Firestore rules
+
+Add rules for:
+
+```txt
+official_shares/{shareId}
+```
+
+Client can create only if:
+
+* signed in
+* `request.resource.data.uid == request.auth.uid`
+* allowed fields only
+* no update/delete
+
+---
+
+## 8. Tests
+
+Run and report:
+
+1. Typecheck clean
+2. Signed-out normal share still works
+3. Signed-in non-official card does not get official reward
+4. Signed-in official card shows Share Official Card
+5. Click generates/copies share link
+6. Click writes `official_shares/{shareId}`
+7. Click calls secure reward function
+8. First share awards +0.5 stars
+9. Second share returns already rewarded / no duplicate award
+10. `/ranking` updates after reward
+11. `/team-ranking` updates after reward
+12. Existing card download/share/compare routes unaffected
+
+---
+
+# DELIVERABLES
+
+After implementation, provide:
+
+1. Files changed/created
+2. New Firestore collection
+3. Exact official share flow
+4. Firestore rules changes
+5. Test results
+6. Known limitations
+
+---
+
+# IMPORTANT
+
+Implement Phase 5 only.
+
+Do NOT implement:
+
+* votes
+* comments
+* team missions
+* premium
+* payments
+* AI
+* new card templates
+
+Start now.
