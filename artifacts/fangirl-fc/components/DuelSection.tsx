@@ -1,6 +1,6 @@
 "use client";
 
-import { Swords, Star } from "lucide-react";
+import { Swords, Star, Target } from "lucide-react";
 import { getTeam } from "@/lib/teams";
 import type { RankResult } from "@/lib/leaderboardRank";
 
@@ -22,13 +22,25 @@ function positionText(rank: number, percentile: number, total: number): string {
 }
 
 function rivalName(entry: { officialCardDisplayName?: string | null; displayName?: string }): string {
-  return entry.officialCardDisplayName?.trim() || entry.displayName?.trim() || "them";
+  return entry.officialCardDisplayName?.trim() || entry.displayName?.trim() || "";
+}
+
+function nextGoalText(
+  rival: RankResult["rival"],
+  rank: number,
+): string {
+  if (rival) {
+    const name = rivalName(rival);
+    return name ? `Next goal: pass ${name}` : "Next goal: pass the fan just ahead";
+  }
+  if (rank === 1) return "Next goal: keep your #1 spot";
+  if (rank !== -1) return "Next goal: keep climbing the ranking";
+  return "Next goal: publish your official card and enter the ranking";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props) {
-  // While loading or signed out, render nothing
   if (!rankResult) return null;
 
   const { rank, percentile, total, rival, starsNeeded, nearby } = rankResult;
@@ -45,9 +57,14 @@ export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props)
     );
   }
 
-  const rivalTeam      = rival?.officialTeamCode ? getTeam(rival.officialTeamCode) : null;
-  const rivalNameStr   = rival ? rivalName(rival) : null;
-  const duelButtonText = rival ? "Beat them 🚀" : isRanked ? "Start climbing 🚀" : null;
+  const rivalTeam    = rival?.officialTeamCode ? getTeam(rival.officialTeamCode) : null;
+  const rivalNameStr = rival ? rivalName(rival) : null;
+  const displayRival = rivalNameStr || "A fan";
+  const hasRivalName = Boolean(rivalNameStr);
+
+  const duelButtonText = rival ? `Beat ${hasRivalName ? rivalNameStr : "them"} 🚀`
+    : isRanked ? "Start climbing 🚀"
+    : null;
 
   return (
     <div className="mt-2 flex flex-col gap-2">
@@ -60,18 +77,19 @@ export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props)
         </p>
       </div>
 
-      {/* ── Rival block ── */}
-      {rival && rivalNameStr && (
-        <div className="rounded-xl border border-pink-300/20 bg-pink-400/8 px-3 py-2">
-          <p className="text-[12px] font-bold text-white/80">
-            You're just behind{" "}
-            <span className="text-pink-200">{rivalNameStr}</span>
-            {rivalTeam ? ` (${rivalTeam.flag} ${rivalTeam.name})` : ""}
+      {/* ── Rival block — human copy ── */}
+      {rival && (
+        <div className="rounded-xl border border-pink-300/20 bg-pink-400/8 px-3 py-2.5">
+          <p className="text-[12px] font-bold text-white/85">
+            {hasRivalName
+              ? <><span className="text-pink-200">{rivalNameStr}</span>{rivalTeam ? ` from ${rivalTeam.flag} ${rivalTeam.name}` : ""} is just ahead of you.</>
+              : "A fan is just ahead of you."
+            }
           </p>
           {starsNeeded > 0 && (
             <div className="mt-1 flex items-center gap-1 text-[11px] text-amber-300/80">
               <Star className="h-2.5 w-2.5 fill-amber-300/60" />
-              Only {starsNeeded} ⭐ to pass them
+              Only {starsNeeded} ⭐ to pass them.
             </div>
           )}
         </div>
@@ -95,7 +113,7 @@ export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props)
             return (
               <div
                 key={entry.uid}
-                className={`flex items-center gap-2 rounded-lg px-2 py-1 text-[11px] transition ${
+                className={`flex items-center gap-2 rounded-lg px-2 py-1 text-[11px] ${
                   isUser
                     ? "bg-pink-400/20 font-extrabold text-pink-100"
                     : "text-white/50"
@@ -119,6 +137,14 @@ export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props)
           })}
         </div>
       )}
+
+      {/* ── Next goal ── */}
+      <div className="flex items-center gap-2 rounded-xl bg-white/4 px-3 py-2">
+        <Target className="h-3 w-3 shrink-0 text-emerald-400/60" />
+        <p className="text-[11px] text-white/50">
+          {nextGoalText(rival, rank)}
+        </p>
+      </div>
 
     </div>
   );

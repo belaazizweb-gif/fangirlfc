@@ -1,0 +1,197 @@
+You are a senior product-minded React/Firebase engineer.
+
+Implement **UX Optimization Phase: Official Card Clarity + Share Conversion**.
+
+⚠️ STRICT RULES:
+
+* Do NOT change backend logic.
+* Do NOT modify Cloud Functions.
+* Do NOT change Firestore rules.
+* Do NOT add new data models.
+* Do NOT add new rewards.
+* Do NOT break Phases 1–7.
+* UI-only improvements.
+* Keep changes minimal, controlled, and reversible.
+
+---
+
+# GOAL
+
+Improve user understanding and conversion.
+
+Current problem:
+
+* Users may not understand the difference between normal cards and official cards.
+* The Share Official Card CTA is not dominant enough.
+* Post-share feedback does not clearly connect sharing to ranking/progression.
+
+---
+
+# UX PRIORITIES
+
+## 1. Clarify “Official Card”
+
+In `OfficialCardSection`, add a short explanation near the title:
+
+```txt
+Your official card is the only card that counts for stars, ranking, and team competition.
+```
+
+When user successfully makes a card official, show:
+
+```txt
+You are now competing globally.
+```
+
+Do not over-explain.
+
+---
+
+## 2. Reorder visual hierarchy
+
+On card page official section, order should be:
+
+1. Official card status / explanation
+2. Rival / relative position
+3. Share Official Card CTA
+4. Team rank banner
+5. Official card metadata
+
+If current structure is different, adjust minimally.
+
+---
+
+## 3. Make Share Official Card CTA dominant
+
+In `OfficialShareCTA`:
+
+* make primary button more visually prominent
+* label should be direct:
+
+```txt
+Share to climb ranking 🚀
+```
+
+If rival exists:
+
+```txt
+Share to pass {rivalName} 🚀
+```
+
+If no official card match:
+
+keep current blocking messages.
+
+---
+
+## 4. Stronger post-share feedback
+
+After share:
+
+If reward awarded:
+
+```txt
++0.5 ⭐ earned
+You are now climbing the ranking.
+```
+
+If rival exists:
+
+```txt
++0.5 ⭐ earned
+You are getting closer to {rivalName}.
+```
+
+If already rewarded:
+
+```txt
+Reward already claimed.
+Sharing still helps your team.
+```
+
+If reward error:
+
+```txt
+Share link created.
+Reward unavailable: {error}
+```
+
+---
+
+## 5. Add “Next Goal” block
+
+In `DuelSection`, add a simple next goal:
+
+If user has rival:
+
+```txt
+Next goal: pass {rivalName}
+```
+
+If top user / no rival:
+
+```txt
+Next goal: keep your #1 spot
+```
+
+If not ranked:
+
+```txt
+Next goal: publish your official card and enter ranking
+```
+
+Do not add complex logic.
+
+---
+
+## 6. Make rival more human
+
+Change rival copy from cold text to:
+
+```txt
+{rivalName} from {teamName} is just ahead of you.
+Only X ⭐ to pass them.
+```
+
+Fallback:
+
+```txt
+A fan is just ahead of you.
+```
+
+---
+
+# TESTS
+
+Run and report:
+
+1. Typecheck clean
+2. Card page loads
+3. Official explanation appears
+4. Make Official success shows “competing globally”
+5. Share CTA is dominant and label changes with rival
+6. Post-share reward message updated
+7. Next goal appears
+8. Rival message updated
+9. Ranking pages unaffected
+10. Signed-out flow unaffected
+
+---
+
+# DELIVERABLES
+
+Provide:
+
+1. Files changed
+2. UX changes made
+3. Test results
+4. Any fallback behavior
+
+---
+
+# IMPORTANT
+
+This is not a feature phase.
+This is a UX conversion pass.
+
+Start now.

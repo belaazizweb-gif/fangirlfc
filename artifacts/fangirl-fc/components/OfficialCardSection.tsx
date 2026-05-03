@@ -76,7 +76,6 @@ export function OfficialCardSection({
       setOfficialStars(profile?.officialStars ?? 0);
       setOfficialXp(profile?.officialXp ?? 0);
       setProfileLoading(false);
-      // Fetch leaderboard rank once after profile loads (read-only, fire-and-forget)
       void fetchLeaderboardRank(user.uid).then(setRankResult);
     });
   }, [user]);
@@ -94,9 +93,8 @@ export function OfficialCardSection({
     setShowTeamConfirm(false);
 
     const isFirstCard  = officialCard === null;
-    const prevTeamCode = officialTeamCode; // capture before any state mutation
+    const prevTeamCode = officialTeamCode;
 
-    // 1 ── Write official card to users/{uid}
     const res = await setOfficialCard(
       user.uid,
       { identityId, teamCode, displayName: trimmedName, templateId },
@@ -117,15 +115,11 @@ export function OfficialCardSection({
     };
     setOfficialCardState(newCard);
 
-    // 2 ── Handle team change — adjust member counts (fire-and-forget)
-    // MVP: historical stars are NOT moved to the new team. Only future star
-    // awards will go to the new team. Full recalculation needs Cloud Functions.
     if (updateTeam) {
       setOfficialTeamCode(teamCode);
       void adjustTeamMemberCount(teamCode, prevTeamCode);
     }
 
-    // 3 ── Award stars (atomic transaction: users/{uid} + teams/{teamCode})
     const awardAction = isFirstCard ? "publish_official_card" : "replace_official_card";
     const award = await awardOfficialStars(user.uid, awardAction);
 
@@ -134,7 +128,6 @@ export function OfficialCardSection({
       ? award.newRankScore - newStars * 100
       : officialXp + (award.xp ?? 0);
 
-    // Badge and status always set in the same batch — prevents stale-badge renders
     const earnedBadge: AwardBadge | null =
       (award.awarded && award.stars) ? { stars: award.stars, xp: award.xp ?? 0 } : null;
 
@@ -143,7 +136,6 @@ export function OfficialCardSection({
     setLastAward(earnedBadge);
     setStatus("saved");
 
-    // 4 ── Refresh leaderboard from authoritative users/{uid} (fire-and-forget)
     void refreshOfficialLeaderboardEntry(user.uid);
   };
 
@@ -158,12 +150,9 @@ export function OfficialCardSection({
       setShowTeamConfirm(true);
       return;
     }
-    // If the user has no officialTeamCode yet (first card), always write the
-    // team alongside the card so future replacements can detect conflicts.
     void doSave(officialTeamCode === null);
   };
 
-  // ----- duel scroll -----
   const handleDuelClick = () => {
     shareRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
@@ -258,8 +247,6 @@ export function OfficialCardSection({
   const currentIdentity = officialCard ? FAN_TYPES[officialCard.identityId] : null;
   const currentTeamObj  = officialCard ? getTeam(officialCard.teamCode) : null;
 
-  // DuelSection is only relevant when the card being viewed IS the official card
-  // (same guard as OfficialShareCTA's isMatch check)
   const isOfficialCardInView =
     !officialCard ||
     (identityId === officialCard.identityId &&
@@ -277,6 +264,7 @@ export function OfficialCardSection({
           : "border-white/10 bg-white/5"
       }`}
     >
+      {/* ── 1. Official card status + explanation ── */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-[13px] font-bold text-white">
           {status === "saved" || hasExisting ? (
@@ -294,22 +282,18 @@ export function OfficialCardSection({
         )}
       </div>
 
-      {hasExisting && status !== "saved" && (
-        <div className="mt-2 rounded-xl bg-white/5 p-3 text-[12px]">
-          <p className="font-bold text-white">{officialCard!.displayName}</p>
-          <p className="mt-0.5 text-white/60">
-            {currentIdentity?.emoji} {currentIdentity?.title}
-            {" · "}
-            {currentTeamObj?.flag} {currentTeamObj?.name}
-          </p>
-          <p className="mt-0.5 text-white/40">Template: {officialCard!.templateId}</p>
-        </div>
+      {/* Explanation — shown when no official card yet */}
+      {!hasExisting && status === "idle" && (
+        <p className="mt-1.5 text-[11px] text-white/45">
+          Your official card is the only card that counts for stars, ranking, and team competition.
+        </p>
       )}
 
+      {/* Save success */}
       {status === "saved" && (
         <div className="mt-2">
-          <p className="text-[12px] text-emerald-300">
-            ✓ Official card saved successfully.
+          <p className="text-[12px] font-semibold text-emerald-300">
+            You are now competing globally.
           </p>
           {lastAward && (
             <div className="mt-1.5 flex items-center gap-1.5 rounded-xl bg-amber-400/15 px-3 py-1.5 text-[12px] font-bold text-amber-300">
@@ -357,29 +341,16 @@ export function OfficialCardSection({
         )}
       </button>
 
-      {!hasExisting && status === "idle" && (
-        <p className="mt-2 text-center text-[11px] text-white/40">
-          One official card per account · earns official stars for the ranking
-        </p>
-      )}
-
-      {/* Team rank banner + personal impact */}
-      <TeamRankBanner
-        officialTeamCode={officialTeamCode}
-        officialStars={officialStars}
-        onRankLoaded={setTeamRank}
-      />
-
-      {/* Phase 7 — Duel + relative positioning (only when viewing official card) */}
+      {/* ── 2. Rival / relative position ── */}
       {isOfficialCardInView && (
         <DuelSection
           rankResult={rankResult}
-          hasOfficialCard={officialCard !== null}
+          hasOfficialCard={hasExisting}
           onDuelClick={handleDuelClick}
         />
       )}
 
-      {/* Official Share CTA — scroll target for duel CTA */}
+      {/* ── 3. Share CTA (scroll target for duel button) ── */}
       <div ref={shareRef}>
         <OfficialShareCTA
           user={user}
@@ -396,6 +367,26 @@ export function OfficialCardSection({
           disabled={status === "saving"}
         />
       </div>
+
+      {/* ── 4. Team rank banner ── */}
+      <TeamRankBanner
+        officialTeamCode={officialTeamCode}
+        officialStars={officialStars}
+        onRankLoaded={setTeamRank}
+      />
+
+      {/* ── 5. Official card metadata ── */}
+      {hasExisting && status !== "saved" && (
+        <div className="mt-2 rounded-xl bg-white/5 p-3 text-[12px]">
+          <p className="font-bold text-white">{officialCard!.displayName}</p>
+          <p className="mt-0.5 text-white/60">
+            {currentIdentity?.emoji} {currentIdentity?.title}
+            {" · "}
+            {currentTeamObj?.flag} {currentTeamObj?.name}
+          </p>
+          <p className="mt-0.5 text-white/40">Template: {officialCard!.templateId}</p>
+        </div>
+      )}
     </div>
   );
 }

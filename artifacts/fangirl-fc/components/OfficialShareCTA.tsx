@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Check, Loader2, Star } from "lucide-react";
+import { Check, Loader2, Star, TrendingUp } from "lucide-react";
 import type { User } from "firebase/auth";
 import { awardOfficialStars } from "@/lib/officialStars";
 import { saveOfficialShareRecord } from "@/lib/officialShare";
@@ -34,8 +34,10 @@ interface ShareOutcome {
   copied: boolean;
   url: string;
   rewardKind: RewardKind;
-  rewardMsg: string;
-  boostLine: string;
+  /** Primary feedback line. */
+  primaryMsg: string;
+  /** Secondary / contextual line. */
+  secondaryMsg: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -56,21 +58,9 @@ function rivalDisplayName(rival: LeaderboardEntry): string {
   return rival.officialCardDisplayName?.trim() || rival.displayName?.trim() || "them";
 }
 
-function motivationText(
-  rival: LeaderboardEntry | null | undefined,
-  starsNeeded: number,
-  teamRank: number | null | undefined,
-  teamName: string,
-): string {
-  if (rival) {
-    if (starsNeeded <= 1) return "One share can push you ahead";
-    return `Share to pass ${rivalDisplayName(rival)}`;
-  }
-  if (!teamRank)          return "Share and help your team rise";
-  if (teamRank === 1)     return `Help ${teamName} secure the #1 spot`;
-  if (teamRank <= 3)      return "Only a few stars to reach #1";
-  if (teamRank <= 10)     return `Help ${teamName} climb the rankings`;
-  return "Every share helps your country rise";
+function buttonLabel(rival: LeaderboardEntry | null | undefined): string {
+  if (rival) return `Share to pass ${rivalDisplayName(rival)} 🚀`;
+  return "Share to climb ranking 🚀";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -84,7 +74,6 @@ export function OfficialShareCTA({
   teamCode,
   templateId,
   displayName,
-  teamRank,
   rival,
   starsNeeded = 0,
   disabled = false,
@@ -162,72 +151,63 @@ export function OfficialShareCTA({
     const award = await awardOfficialStars(user.uid, "share_official_card");
 
     let rewardKind: RewardKind;
-    let rewardMsg: string;
-    let boostLine: string;
+    let primaryMsg: string;
+    let secondaryMsg: string;
     const rivalName = rival ? rivalDisplayName(rival) : null;
 
     if (!award.ok) {
-      rewardKind = "not_deployed";
-      rewardMsg  = `Reward unavailable: ${award.error ?? "Could not contact progression service."}`;
-      boostLine  = rivalName
-        ? `You're getting closer to ${rivalName} 🔥`
-        : "Sharing still helps your team";
+      rewardKind   = "not_deployed";
+      primaryMsg   = "Share link created.";
+      secondaryMsg = `Reward unavailable: ${award.error ?? "Could not contact progression service."}`;
     } else if (!award.awarded) {
-      rewardKind = "already";
-      rewardMsg  = "Official share already rewarded.";
-      boostLine  = rivalName
-        ? `You're getting closer to ${rivalName} 🔥`
-        : "Sharing still helps your team";
+      rewardKind   = "already";
+      primaryMsg   = "Reward already claimed.";
+      secondaryMsg = "Sharing still helps your team.";
     } else {
-      rewardKind = "awarded";
-      rewardMsg  = `+${award.stars} ⭐ Official share reward.`;
-      boostLine  = rivalName
-        ? `You're getting closer to ${rivalName} 🔥`
-        : `You just boosted ${teamName} 🚀`;
+      rewardKind   = "awarded";
+      primaryMsg   = `+${award.stars} ⭐ earned`;
+      secondaryMsg = rivalName
+        ? `You are getting closer to ${rivalName}.`
+        : "You are now climbing the ranking.";
     }
 
-    setOutcome({ copied, url, rewardKind, rewardMsg, boostLine });
+    setOutcome({ copied, url, rewardKind, primaryMsg, secondaryMsg });
     setSharing(false);
   };
 
   const rewardColor: Record<RewardKind, string> = {
     awarded:      "text-amber-300",
     already:      "text-white/50",
-    not_deployed: "text-white/40",
+    not_deployed: "text-white/60",
     error:        "text-red-400",
   };
 
-  const motivation = motivationText(rival, starsNeeded, teamRank, teamName);
+  void starsNeeded;
 
   return (
     <div className="mt-3 flex flex-col gap-2">
-      {/* Button */}
+      {/* ── Dominant share button ── */}
       {!outcome && (
-        <>
-          <button
-            onClick={() => void handleShare()}
-            disabled={sharing || disabled}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-pink-400/10 px-5 py-2.5 text-[13px] font-extrabold text-pink-100 transition hover:bg-pink-400/20 disabled:opacity-50"
-          >
-            {sharing ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Sharing…
-              </>
-            ) : (
-              <>
-                <Share2 className="h-4 w-4" />
-                Share Official Card
-              </>
-            )}
-          </button>
-          {!sharing && (
-            <p className="text-center text-[11px] text-white/35">{motivation}</p>
+        <button
+          onClick={() => void handleShare()}
+          disabled={sharing || disabled}
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 px-5 py-3 text-[14px] font-extrabold text-white shadow-lg transition hover:from-pink-400 hover:to-purple-400 active:scale-[0.98] disabled:opacity-50"
+        >
+          {sharing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Sharing…
+            </>
+          ) : (
+            <>
+              <TrendingUp className="h-4 w-4" />
+              {buttonLabel(rival)}
+            </>
           )}
-        </>
+        </button>
       )}
 
-      {/* Outcome */}
+      {/* ── Outcome ── */}
       {outcome && (
         <div className="flex flex-col gap-1.5">
           {/* Link row */}
@@ -246,16 +226,16 @@ export function OfficialShareCTA({
             )}
           </div>
 
-          {/* Reward row */}
-          <div className={`flex items-center gap-1.5 text-[12px] font-semibold ${rewardColor[outcome.rewardKind]}`}>
+          {/* Primary reward line */}
+          <div className={`flex items-center gap-1.5 text-[13px] font-bold ${rewardColor[outcome.rewardKind]}`}>
             {outcome.rewardKind === "awarded" && (
-              <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
+              <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
             )}
-            {outcome.rewardMsg}
+            {outcome.primaryMsg}
           </div>
 
-          {/* Rival / boost reinforcement */}
-          <p className="text-[11px] text-white/45">{outcome.boostLine}</p>
+          {/* Secondary contextual line */}
+          <p className="text-[12px] text-white/55">{outcome.secondaryMsg}</p>
 
           {/* Share again */}
           <button
