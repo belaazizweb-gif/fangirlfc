@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Shield, ShieldCheck, ShieldAlert, LogIn, Loader2 } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, LogIn, Loader2, Star } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import {
   getUserProfile,
   setOfficialCard,
   type OfficialCardData,
 } from "@/lib/officialCard";
+import {
+  awardOfficialStars,
+  writeLeaderboardEntry,
+} from "@/lib/officialStars";
 import { getTeam } from "@/lib/teams";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import type { FanIdentityId } from "@/types";
@@ -21,6 +25,11 @@ interface Props {
 
 type Status = "idle" | "saving" | "saved" | "error";
 
+interface AwardBadge {
+  stars: number;
+  xp: number;
+}
+
 export function OfficialCardSection({
   identityId,
   teamCode,
@@ -28,19 +37,23 @@ export function OfficialCardSection({
   templateId,
 }: Props) {
   const { user, loading: authLoading } = useAuth();
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [officialCard, setOfficialCardState] = useState<OfficialCardData | null | undefined>(undefined);
-  const [officialTeamCode, setOfficialTeamCode] = useState<string | null>(null);
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [showTeamConfirm, setShowTeamConfirm] = useState(false);
+  const [profileLoading, setProfileLoading]       = useState(false);
+  const [officialCard, setOfficialCardState]       = useState<OfficialCardData | null | undefined>(undefined);
+  const [officialTeamCode, setOfficialTeamCode]   = useState<string | null>(null);
+  const [officialStars, setOfficialStars]         = useState<number>(0);
+  const [officialXp, setOfficialXp]               = useState<number>(0);
+  const [status, setStatus]                       = useState<Status>("idle");
+  const [errorMsg, setErrorMsg]                   = useState<string | null>(null);
+  const [showTeamConfirm, setShowTeamConfirm]     = useState(false);
+  const [lastAward, setLastAward]                 = useState<AwardBadge | null>(null);
   const loadedUid = useRef<string | null>(null);
 
-  // Load profile when user signs in
   useEffect(() => {
     if (!user) {
       setOfficialCardState(undefined);
       setOfficialTeamCode(null);
+      setOfficialStars(0);
+      setOfficialXp(0);
       loadedUid.current = null;
       return;
     }
@@ -50,6 +63,8 @@ export function OfficialCardSection({
     getUserProfile(user.uid).then((profile) => {
       setOfficialCardState(profile?.officialCard ?? null);
       setOfficialTeamCode(profile?.officialTeamCode ?? null);
+      setOfficialStars(profile?.officialStars ?? 0);
+      setOfficialXp(profile?.officialXp ?? 0);
       setProfileLoading(false);
     });
   }, [user]);
@@ -65,25 +80,61 @@ export function OfficialCardSection({
     setStatus("saving");
     setErrorMsg(null);
     setShowTeamConfirm(false);
+
+    const isFirstCard = officialCard === null;
+
     const res = await setOfficialCard(
       user.uid,
       { identityId, teamCode, displayName: trimmedName, templateId },
       { updateTeam },
     );
-    if (res.ok) {
-      setOfficialCardState({
-        identityId,
-        teamCode,
-        displayName: trimmedName,
-        templateId,
-        officialSince: null,
-      });
-      if (updateTeam) setOfficialTeamCode(teamCode);
-      setStatus("saved");
-    } else {
+    if (!res.ok) {
       setErrorMsg(res.error ?? "Something went wrong.");
       setStatus("error");
+      return;
     }
+
+    const newCard: OfficialCardData = {
+      identityId,
+      teamCode,
+      displayName: trimmedName,
+      templateId,
+      officialSince: null,
+    };
+    setOfficialCardState(newCard);
+    if (updateTeam) setOfficialTeamCode(teamCode);
+
+    // Award stars
+    const awardAction = isFirstCard ? "publish_official_card" : "replace_official_card";
+    const award = await awardOfficialStars(user.uid, awardAction);
+
+    const newStars    = award.newOfficialStars ?? officialStars;
+    const newXp       = (award.newRankScore !== undefined)
+      ? award.newRankScore - newStars * 100
+      : officialXp + (award.xp ?? 0);
+    const newRankScore = award.newRankScore ?? (newXp + newStars * 100);
+
+    // Compute the badge to show (null if not awarded) — set in the same
+    // synchronous batch as setStatus("saved") to avoid stale-render races.
+    const earnedBadge: AwardBadge | null =
+      (award.awarded && award.stars) ? { stars: award.stars, xp: award.xp ?? 0 } : null;
+
+    setOfficialStars(newStars);
+    setOfficialXp(newXp);
+    setLastAward(earnedBadge);   // always explicit: value or null
+    setStatus("saved");          // same batch → badge and status are always consistent
+
+    // Write public leaderboard entry (fire-and-forget)
+    void writeLeaderboardEntry(user.uid, {
+      displayName: user.displayName ?? trimmedName,
+      photoURL:    user.photoURL ?? null,
+      officialStars: newStars,
+      officialXp:    newXp,
+      rankScore:     newRankScore,
+      officialTeamCode:        updateTeam ? teamCode : (officialTeamCode ?? teamCode),
+      officialCardIdentityId:  identityId,
+      officialCardDisplayName: trimmedName,
+    });
   };
 
   const handleMakeOfficial = () => {
@@ -184,12 +235,10 @@ export function OfficialCardSection({
     );
   }
 
-  // ── SAVED / HAS OFFICIAL CARD ──
+  // ── MAIN STATE ──
   const hasExisting = officialCard !== null;
-  const currentIdentity = officialCard
-    ? FAN_TYPES[officialCard.identityId]
-    : null;
-  const currentTeamObj = officialCard ? getTeam(officialCard.teamCode) : null;
+  const currentIdentity = officialCard ? FAN_TYPES[officialCard.identityId] : null;
+  const currentTeamObj  = officialCard ? getTeam(officialCard.teamCode) : null;
 
   return (
     <div className={`rounded-2xl border p-4 ${
@@ -199,13 +248,21 @@ export function OfficialCardSection({
         ? "border-pink-300/30 bg-pink-400/10"
         : "border-white/10 bg-white/5"
     }`}>
-      <div className="flex items-center gap-2 text-[13px] font-bold text-white">
-        {status === "saved" || hasExisting ? (
-          <ShieldCheck className="h-4 w-4 text-emerald-400" />
-        ) : (
-          <Shield className="h-4 w-4 text-white/40" />
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-[13px] font-bold text-white">
+          {status === "saved" || hasExisting ? (
+            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+          ) : (
+            <Shield className="h-4 w-4 text-white/40" />
+          )}
+          Official Fan Card
+        </div>
+        {officialStars > 0 && (
+          <div className="flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-300">
+            <Star className="h-2.5 w-2.5 fill-amber-300" />
+            {officialStars} official stars
+          </div>
         )}
-        Official Fan Card
       </div>
 
       {hasExisting && status !== "saved" && (
@@ -223,9 +280,17 @@ export function OfficialCardSection({
       )}
 
       {status === "saved" && (
-        <p className="mt-2 text-[12px] text-emerald-300">
-          ✓ Official card saved successfully.
-        </p>
+        <div className="mt-2">
+          <p className="text-[12px] text-emerald-300">
+            ✓ Official card saved successfully.
+          </p>
+          {lastAward && (
+            <div className="mt-1.5 flex items-center gap-1.5 rounded-xl bg-amber-400/15 px-3 py-1.5 text-[12px] font-bold text-amber-300">
+              <Star className="h-3 w-3 fill-amber-300" />
+              +{lastAward.stars} official star{lastAward.stars !== 1 ? "s" : ""} · +{lastAward.xp} XP earned
+            </div>
+          )}
+        </div>
       )}
 
       {status === "error" && errorMsg && (
@@ -266,7 +331,7 @@ export function OfficialCardSection({
 
       {!hasExisting && status === "idle" && (
         <p className="mt-2 text-center text-[11px] text-white/40">
-          One official card per account · used for rankings
+          One official card per account · earns official stars for the ranking
         </p>
       )}
     </div>

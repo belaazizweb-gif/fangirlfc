@@ -33,6 +33,10 @@ export interface UserProfileFull {
   officialTeamCode?: string | null;
   officialCard?: OfficialCardData | null;
   officialCardUpdatedAt?: unknown;
+  officialStars?: number;
+  officialXp?: number;
+  rankScore?: number;
+  officialStarActions?: Record<string, number>;
 }
 
 // ---------- Validation ----------

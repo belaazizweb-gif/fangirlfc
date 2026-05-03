@@ -1,0 +1,297 @@
+You are a senior full-stack engineer.
+
+Implement **Phase 2: Official Stars + Individual Ranking**.
+
+⚠️ STRICT RULES:
+
+* Do NOT modify the free card generation flow.
+* Do NOT remove localStorage stars.
+* Do NOT implement team ranking yet.
+* Do NOT implement Cloud Functions yet.
+* Do NOT refactor unrelated code.
+* Keep Phase 1 official card/team behavior fully intact.
+
+---
+
+# CONTEXT
+
+Phase 1 is complete.
+
+Current official fields in `users/{uid}`:
+
+```ts
+officialTeamCode?: string | null
+officialCard?: {
+  identityId: FanIdentityId
+  teamCode: string
+  displayName: string
+  templateId: string
+  officialSince: any
+  sourceCardId?: string
+} | null
+officialCardUpdatedAt?: any
+```
+
+Now we need a basic but clean official progression layer.
+
+---
+
+# PRODUCT GOAL
+
+Each signed-in user has official stars stored in Firestore.
+
+These stars will power:
+
+* individual ranking
+* future team ranking
+* future challenges
+
+For now, implement a simple MVP.
+
+---
+
+# PHASE 2 REQUIREMENTS
+
+## 1. Extend UserProfile
+
+Add:
+
+```ts
+officialStars: number
+officialXp: number
+rankScore: number
+officialStarActions?: Record<string, boolean>
+```
+
+Default values:
+
+```ts
+officialStars: 0
+officialXp: 0
+rankScore: 0
+officialStarActions: {}
+```
+
+Do not remove existing `stars`.
+
+Important:
+
+* existing localStorage `stars` remains untouched
+* `officialStars` is the new source for competition
+
+---
+
+## 2. Official star actions
+
+Create a small controlled official star system.
+
+Allowed actions for MVP:
+
+```ts
+publish_official_card: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+
+replace_official_card: {
+  stars: 0.25,
+  xp: 25,
+  once: false
+}
+
+share_official_card: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+
+complete_profile: {
+  stars: 0.5,
+  xp: 50,
+  once: true
+}
+```
+
+Rules:
+
+* once actions can only be rewarded once per user
+* repeatable actions are allowed, but cap `replace_official_card` to max 3 rewards total
+* never allow frontend to send arbitrary star values
+* action names must be validated against the allowlist
+
+---
+
+## 3. Firestore write logic
+
+Create/update a utility like:
+
+```ts
+awardOfficialStars(uid, action)
+```
+
+Behavior:
+
+* read `users/{uid}`
+* validate action from allowlist
+* check if once action already rewarded
+* calculate new:
+
+  * officialStars
+  * officialXp
+  * rankScore
+  * officialStarActions
+* write with merge
+
+Rank score formula for MVP:
+
+```ts
+rankScore = officialXp + officialStars * 100
+```
+
+Use transaction if possible.
+If not, explain why and use safest available approach.
+
+---
+
+## 4. Integrate rewards
+
+Reward official actions only when signed in.
+
+Trigger points:
+
+### A. Make Official Card
+
+* first time user has no officialCard:
+
+  * award `publish_official_card`
+* if user already has an officialCard:
+
+  * award `replace_official_card`
+
+### B. Share Official Card
+
+Add a simple action/button where appropriate:
+
+* if current card is the user’s official card, allow “Reward official share”
+* or automatically reward when user uses existing share flow for official card
+
+Do not overcomplicate. MVP acceptable.
+
+### C. Complete Profile
+
+If the app already has enough profile info, reward once after login/sync if profile has:
+
+* displayName
+* email OR photoURL
+
+If uncertain, keep this utility ready but do not auto-trigger.
+
+---
+
+## 5. Individual Ranking page/section
+
+Create a simple leaderboard.
+
+Requirements:
+
+* Query `users`
+* order by `rankScore` descending
+* limit 50
+* display:
+
+  * rank number
+  * displayName
+  * officialStars
+  * officialXp
+  * officialTeamCode
+  * officialCard identity/title if exists
+
+States:
+
+* loading
+* empty
+* signed out allowed to view leaderboard if Firestore rules allow public reads
+* if Firestore rules block it, explain and create owner-only fallback message
+
+Preferred route:
+
+```txt
+/ranking
+```
+
+Add link only if the app has a navigation area. Do not break layout.
+
+---
+
+## 6. Firestore rules
+
+Current users rule likely allows only owner read/write.
+
+For ranking to work publicly, you may need to allow read of safe public leaderboard fields.
+
+Preferred safe approach:
+
+* Do NOT expose private email.
+* Either:
+
+  1. create public collection `leaderboard/{uid}` with safe fields only
+     OR
+  2. allow limited public read of users if current rules are already acceptable
+
+For MVP, prefer option 1 if simple:
+
+```ts
+leaderboard/{uid}
+```
+
+Fields:
+
+```ts
+uid
+displayName
+photoURL
+officialStars
+officialXp
+rankScore
+officialTeamCode
+officialCardIdentityId
+officialCardDisplayName
+updatedAt
+```
+
+When stars/profile/official card changes, update this doc client-side.
+
+Do NOT include email.
+
+---
+
+## 7. Deliverables
+
+After implementation, provide:
+
+1. Exact files changed
+2. New Firestore fields
+3. New Firestore collections if any
+4. New route/page if any
+5. Reward rules implemented
+6. Manual test checklist
+7. Any known limitations
+
+---
+
+# IMPORTANT
+
+Implement Phase 2 only.
+
+Do NOT implement:
+
+* team ranking
+* votes
+* real anti-cheat backend
+* Cloud Functions
+* challenge validation
+* payment
+* premium logic
+
+Start now.
