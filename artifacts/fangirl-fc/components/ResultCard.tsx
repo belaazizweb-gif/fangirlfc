@@ -13,7 +13,8 @@ import {
 import { unlockIdentity, getUnlocked, totalIdentities } from "@/lib/unlocks";
 import { trackEvent } from "@/lib/analytics";
 import { showToast } from "@/lib/toast";
-import { Sparkles, ArrowRight, RotateCcw } from "lucide-react";
+import { Sparkles, ArrowRight, RotateCcw, Megaphone } from "lucide-react";
+import type { FanIdentityId, ShareMode } from "@/types";
 import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
 import {
   getPrediction,
@@ -23,10 +24,38 @@ import {
 } from "@/lib/predictions";
 import { rarityHook } from "@/lib/rarity";
 
+const SHARE_HOOK: Record<FanIdentityId, string> = {
+  chaotic: "you're definitely the loudest one in the group",
+  loyal: "you never switch teams, ever",
+  soft: "you said you wouldn't care — and then you cried",
+  princess: "you came for the vibes and stayed for the chaos",
+  screamer: "stoppage time activates a different person in you",
+  tactical: "you knew the lineup before the manager did",
+};
+
+const SHARE_MODES: { id: ShareMode; label: string; emoji: string }[] = [
+  { id: "bestie", label: "Bestie", emoji: "💖" },
+  { id: "boyfriend", label: "Boyfriend", emoji: "😏" },
+  { id: "girls", label: "Girls Group", emoji: "👯" },
+  { id: "public", label: "Everyone", emoji: "🌍" },
+];
+
 interface Props {
   identity: FanIdentity;
   compareToId?: string;
   matchId?: string;
+}
+
+function buildCardHref(
+  identityId: FanIdentityId,
+  mode: ShareMode,
+  matchId?: string,
+  compareToId?: string,
+) {
+  const params = new URLSearchParams({ id: identityId, mode });
+  if (matchId) params.set("matchId", matchId);
+  if (compareToId) params.set("compareTo", compareToId);
+  return `/card?${params.toString()}`;
 }
 
 const IDENTITY_GLOW: Record<string, { backdrop: string; cardShadow: string; halo: string }> = {
@@ -274,6 +303,67 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Dynamic hook line */}
+      <div className="px-1 text-center">
+        <p className="text-lg font-black leading-snug text-white">
+          “{SHARE_HOOK[identity.id]}”
+        </p>
+      </div>
+
+      {/* Share push block */}
+      <div className="rounded-2xl border border-pink-300/40 bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-amber-300/15 p-4">
+        <div className="text-center text-[15px] font-extrabold text-white">
+          Send this to someone 👇
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {SHARE_MODES.map((m) => (
+            <Link
+              key={m.id}
+              href={buildCardHref(
+                identity.id,
+                m.id,
+                matchId,
+                compareToId,
+              )}
+              onClick={() =>
+                trackEvent("share_target_selected", {
+                  mode: m.id,
+                  source: "result_push",
+                  identityId: identity.id,
+                })
+              }
+              className="flex items-center justify-center gap-1.5 rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-sm font-bold text-white transition hover:bg-white/20"
+            >
+              <span className="text-lg leading-none">{m.emoji}</span>
+              <span>{m.label}</span>
+            </Link>
+          ))}
+        </div>
+        <p className="mt-3 text-center text-[11px] text-white/70">
+          they'll get their result and you can compare
+        </p>
+      </div>
+
+      {/* Instant Call-Out */}
+      <div className="rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-300/15 to-pink-400/10 p-4">
+        <div className="text-center text-[14px] font-extrabold text-white">
+          Or call someone out 👀
+        </div>
+        <Link
+          href={`/callout?identity=${identity.id}`}
+          onClick={() =>
+            trackEvent("callout_created", {
+              identityId: identity.id,
+              source: "result_push",
+            })
+          }
+          className="mt-2.5 flex items-center justify-center gap-2 rounded-full bg-white/95 px-5 py-2.5 text-sm font-bold text-black transition hover:bg-white"
+        >
+          <Megaphone className="h-4 w-4" />
+          Call out a friend
+        </Link>
       </div>
 
       <div className="glass rounded-2xl p-4">
