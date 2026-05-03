@@ -1,0 +1,243 @@
+You are a senior full-stack engineer.
+
+Your task is to implement **Phase 1: Official Fan Card + Official Team** safely.
+
+⚠️ STRICT RULES:
+
+* Do NOT refactor unrelated code.
+* Do NOT remove the existing localStorage card system.
+* Do NOT make login mandatory for normal card creation.
+* Do NOT change the quiz, card templates, share links, groups, or challenges.
+* Keep the current free card-generation flow working exactly as before.
+* Add the official layer on top of the existing system.
+
+---
+
+# PRODUCT GOAL
+
+Users can still create unlimited fun cards.
+
+But each signed-in user can have:
+
+1. **One official team**
+2. **One official fan card**
+
+The official card/team will later be used for:
+
+* stars
+* ranking
+* team competition
+* challenges
+
+For Phase 1, only implement the official card/team foundation.
+
+---
+
+# CURRENT CONTEXT
+
+The project already has:
+
+* Firebase Auth
+* Firestore user profiles at `users/{uid}`
+* localStorage cards at `fangirlfc.cards`
+* `SavedCard` objects with:
+
+  * `id`
+  * `identityId`
+  * `teamCode`
+  * `displayName`
+  * `templateId`
+  * `createdAt`
+
+Cards are currently local only. Keep that.
+
+---
+
+# PHASE 1 REQUIREMENTS
+
+## 1. Extend UserProfile model
+
+Add these fields to the Firestore user profile:
+
+```ts
+officialTeamCode?: string | null
+officialCard?: {
+  identityId: FanIdentityId
+  teamCode: string
+  displayName: string
+  templateId: string
+  officialSince: any
+  sourceCardId?: string
+} | null
+officialCardUpdatedAt?: any
+```
+
+Do not break existing fields:
+
+* uid
+* displayName
+* email
+* photoURL
+* stars
+* lastIdentity
+* unlockedIds
+* updatedAt
+
+---
+
+## 2. Official Team logic
+
+A signed-in user can select one official team.
+
+Rules:
+
+* If `officialTeamCode` is empty, user may set it.
+* If already set, do not overwrite silently.
+* For now, allow changing it only through explicit confirmation.
+* Do NOT implement cooldown yet.
+* The official card team should normally match the official team.
+* If user tries to make official a card with a different team, show a clear confirmation:
+  “This card uses a different team than your official team. Do you want to update your official team too?”
+
+---
+
+## 3. Official Card logic
+
+Add a clear action on card-related UI:
+
+Button label:
+`Make Official`
+
+Behavior:
+
+* Only signed-in users can make a card official.
+* If user is not signed in:
+
+  * show a clear message: “Sign in to set your official fan card.”
+  * do not block normal card creation.
+* When signed in:
+
+  * save the selected/generated card as `users/{uid}.officialCard`
+  * overwrite previous officialCard
+  * update `officialTeamCode` if needed and confirmed
+  * update `officialCardUpdatedAt`
+  * keep local card history unchanged
+
+Important:
+
+* There must be only ONE official card per user because it is stored directly inside `users/{uid}`.
+* Do not create a separate `cards` collection in Phase 1.
+
+---
+
+## 4. UI display
+
+Add a small section where appropriate:
+
+Title:
+`Official Fan Card`
+
+States:
+
+* Not signed in:
+
+  * “Sign in to publish your official fan card.”
+* Signed in but no official card:
+
+  * “No official fan card yet.”
+* Signed in with official card:
+
+  * display:
+
+    * displayName
+    * identity/persona title
+    * team
+    * template
+    * officialSince date if possible
+
+Do not overdesign. Keep UI consistent with existing style.
+
+---
+
+## 5. Firestore utilities
+
+Create or update functions cleanly, for example:
+
+```ts
+getUserProfile(uid)
+setOfficialTeam(uid, teamCode)
+setOfficialCard(uid, card, options)
+```
+
+Use existing Firebase initialization patterns.
+
+Use merge writes where appropriate.
+
+Do not duplicate Firebase initialization.
+
+---
+
+## 6. Data safety
+
+Before writing:
+
+* Validate `identityId`
+* Validate `teamCode`
+* Validate `templateId`
+* Sanitize/trim `displayName`
+* Prevent empty displayName
+
+If validation fails, show a user-friendly error.
+
+---
+
+## 7. Compatibility
+
+Existing app must still support:
+
+* quiz
+* result page
+* card creation
+* download card
+* share card
+* compare links
+* local card history
+* groups
+* challenges
+
+Do not break any route.
+
+---
+
+## 8. Deliverables
+
+After implementation, provide:
+
+1. Exact files changed
+2. Exact fields added
+3. Manual test checklist:
+
+   * signed out user creates normal card
+   * signed out user tries Make Official
+   * signed in user makes official card
+   * signed in user replaces official card
+   * signed in user uses card with different team
+   * reload page and official card persists
+4. Any Firestore rule changes needed, if any
+
+---
+
+# IMPORTANT
+
+Implement Phase 1 only.
+
+Do NOT implement:
+
+* stars ranking
+* leaderboard
+* team ranking
+* challenges validation
+* backend functions
+* migration of old local cards
+
+Start now.

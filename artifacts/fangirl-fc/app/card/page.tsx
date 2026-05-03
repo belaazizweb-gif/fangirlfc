@@ -17,6 +17,7 @@ import { SharePack } from "@/components/SharePack";
 import { StarProgress } from "@/components/StarProgress";
 import { RarityBadge } from "@/components/RarityBadge";
 import { StoryModeKit } from "@/components/StoryModeKit";
+import { OfficialCardSection } from "@/components/OfficialCardSection";
 import { trackEvent } from "@/lib/analytics";
 import {
   awardIdentityStar,
@@ -258,6 +259,13 @@ function Inner() {
           </div>
         </div>
       </div>
+
+      <OfficialCardSection
+        identityId={identity.id}
+        teamCode={teamCode}
+        displayName={displayName}
+        templateId={templateId}
+      />
 
       <ShareTargetSelector value={shareMode} onChange={handleModeChange} />
 

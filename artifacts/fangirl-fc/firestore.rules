@@ -10,10 +10,10 @@ service cloud.firestore {
                     && request.resource.data.keys().hasAll(['shareId', 'identityId', 'stars', 'teamCode', 'displayName', 'templateId', 'createdAt'])
                     && request.resource.data.shareId == shareId;
       allow update, delete: if request.auth != null
-                             && resource.data.userId == request.auth.uid;
+                             && request.auth.uid == resource.data.get('userId', '');
     }
 
-    // Per-user profile data (stars, unlocks, saved cards)
+    // Per-user profile data (stars, unlocks, official card, official team)
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }

@@ -18,6 +18,16 @@ export interface UserProfile {
   lastIdentity: FanIdentityId | null;
   unlockedIds: FanIdentityId[];
   updatedAt?: unknown;
+  officialTeamCode?: string | null;
+  officialCard?: {
+    identityId: FanIdentityId;
+    teamCode: string;
+    displayName: string;
+    templateId: string;
+    officialSince: unknown;
+    sourceCardId?: string;
+  } | null;
+  officialCardUpdatedAt?: unknown;
 }
 
 function localStars(): number {
