@@ -14,6 +14,7 @@ import { FirebaseError } from "firebase/app";
 import { getFirebaseDb } from "@/lib/firebase";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { getTeam } from "@/lib/teams";
+import { fetchRecentOfficialShares } from "@/lib/teamRank";
 import { useAuth } from "@/components/AuthProvider";
 import { TopNav } from "@/components/TopNav";
 import { Medal, Star, Loader2, Users, Lock } from "lucide-react";
@@ -89,8 +90,6 @@ function EntryRow({ entry, rank }: { entry: LeaderboardEntry; rank: number }) {
   );
 }
 
-// ─── Own-stats card (fallback when leaderboard rules not deployed) ─────────────
-
 function OwnStatsCard({ profile }: { profile: UserProfileFull }) {
   const identity = profile.officialCard
     ? FAN_TYPES[profile.officialCard.identityId]
@@ -151,16 +150,15 @@ function OwnStatsCard({ profile }: { profile: UserProfileFull }) {
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function RankingPage() {
   const { user, loading: authLoading } = useAuth();
 
-  const [entries, setEntries]         = useState<LeaderboardEntry[]>([]);
-  const [ownProfile, setOwnProfile]   = useState<UserProfileFull | null>(null);
-  const [loading, setLoading]         = useState(true);
+  const [entries, setEntries]           = useState<LeaderboardEntry[]>([]);
+  const [ownProfile, setOwnProfile]     = useState<UserProfileFull | null>(null);
+  const [shareCount, setShareCount]     = useState<number | null>(null);
+  const [loading, setLoading]           = useState(true);
   const [rulesBlocked, setRulesBlocked] = useState(false);
-  const [error, setError]             = useState<string | null>(null);
+  const [error, setError]               = useState<string | null>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -183,7 +181,6 @@ export default function RankingPage() {
           (err.code === "permission-denied" || err.code === "PERMISSION_DENIED")
         ) {
           setRulesBlocked(true);
-          // Try loading own profile as fallback
           if (user) {
             try {
               const snap = await getDoc(doc(db, "users", user.uid));
@@ -195,14 +192,25 @@ export default function RankingPage() {
         }
       })
       .finally(() => setLoading(false));
+
+    // Social proof count — silent fallback on error
+    fetchRecentOfficialShares(50).then((items) => setShareCount(items.length));
   }, [authLoading, user]);
 
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-white">
       <div className="mx-auto max-w-lg px-4 py-6">
-        <div className="flex items-center gap-2 text-2xl font-extrabold">
-          <Medal className="h-6 w-6 text-amber-400" />
-          Official Ranking
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-2xl font-extrabold">
+            <Medal className="h-6 w-6 text-amber-400" />
+            Official Ranking
+          </div>
+          {shareCount !== null && shareCount > 0 && (
+            <p className="text-[11px] text-white/30">+{shareCount} fans shared recently</p>
+          )}
+          {shareCount === 0 && (
+            <p className="text-[11px] text-white/25">Fans are actively sharing right now</p>
+          )}
         </div>
         <p className="mt-1 text-[13px] text-white/50">
           Top {LIMIT} fans by official stars · Updated on every save
@@ -211,8 +219,6 @@ export default function RankingPage() {
         <TopNav />
 
         <div className="mt-6 flex flex-col gap-4">
-
-          {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center gap-2 py-16 text-white/40">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -220,14 +226,12 @@ export default function RankingPage() {
             </div>
           )}
 
-          {/* Generic error */}
           {!loading && error && (
             <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-6 text-center text-[13px] text-red-300">
               {error}
             </div>
           )}
 
-          {/* Rules not deployed — show own stats + instructions */}
           {!loading && rulesBlocked && (
             <>
               {ownProfile && <OwnStatsCard profile={ownProfile} />}
@@ -259,7 +263,6 @@ export default function RankingPage() {
             </>
           )}
 
-          {/* Full leaderboard */}
           {!loading && !error && !rulesBlocked && entries.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <Users className="h-10 w-10 text-white/20" />

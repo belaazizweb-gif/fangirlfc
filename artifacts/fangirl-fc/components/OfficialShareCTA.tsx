@@ -6,6 +6,7 @@ import type { User } from "firebase/auth";
 import { awardOfficialStars } from "@/lib/officialStars";
 import { saveOfficialShareRecord } from "@/lib/officialShare";
 import { buildPayloadShareUrl, newShareId } from "@/lib/share";
+import { getTeam } from "@/lib/teams";
 import type { OfficialCardData } from "@/lib/officialCard";
 import type { FanIdentityId } from "@/types";
 
@@ -20,6 +21,7 @@ interface Props {
   teamCode: string;
   templateId: string;
   displayName: string;
+  teamRank?: number | null;
   disabled?: boolean;
 }
 
@@ -30,9 +32,10 @@ interface ShareOutcome {
   url: string;
   rewardKind: RewardKind;
   rewardMsg: string;
+  boostLine: string;
 }
 
-// ─── Match check ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isOfficialMatch(
   current: { identityId: string; teamCode: string; templateId: string; displayName: string },
@@ -46,6 +49,14 @@ function isOfficialMatch(
   );
 }
 
+function motivationText(rank: number | null | undefined, teamName: string): string {
+  if (!rank) return "Share and help your team rise";
+  if (rank === 1) return `Help ${teamName} secure the #1 spot`;
+  if (rank <= 3)  return "Only a few stars to reach #1";
+  if (rank <= 10) return `Help ${teamName} climb the rankings`;
+  return "Every share helps your country rise";
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function OfficialShareCTA({
@@ -57,6 +68,7 @@ export function OfficialShareCTA({
   teamCode,
   templateId,
   displayName,
+  teamRank,
   disabled = false,
 }: Props) {
   const [sharing, setSharing] = useState(false);
@@ -67,6 +79,9 @@ export function OfficialShareCTA({
     { identityId, teamCode, templateId, displayName },
     officialCard!,
   );
+
+  const team     = officialTeamCode ? getTeam(officialTeamCode) : null;
+  const teamName = team?.name ?? "your team";
 
   // ── No official card yet ──
   if (!hasOfficial) {
@@ -86,13 +101,13 @@ export function OfficialShareCTA({
     );
   }
 
-  // ── Already shared — show persistent result ──
+  // ── Share handler ──
   const handleShare = async () => {
     if (sharing || disabled) return;
     setSharing(true);
     setOutcome(null);
 
-    // 1 ── Build share link from official card data
+    // 1 — Build share link from official card data
     const shareId    = newShareId();
     const shareRecord = {
       shareId,
@@ -105,18 +120,16 @@ export function OfficialShareCTA({
     };
     const url = buildPayloadShareUrl(shareRecord, "public");
 
-    // 2 ── Copy to clipboard (best-effort)
+    // 2 — Copy to clipboard (best-effort)
     let copied = false;
     try {
       if (navigator.clipboard) {
         await navigator.clipboard.writeText(url);
         copied = true;
       }
-    } catch {
-      // clipboard not available — show URL inline
-    }
+    } catch { /* clipboard not available — show URL inline */ }
 
-    // 3 ── Analytics write (fire-and-forget, does NOT block reward)
+    // 3 — Analytics write (fire-and-forget)
     void saveOfficialShareRecord({
       shareId,
       uid:              user.uid,
@@ -127,24 +140,28 @@ export function OfficialShareCTA({
       shareUrl:         url,
     });
 
-    // 4 ── Call secure Cloud Function for reward
+    // 4 — Secure Cloud Function reward
     const award = await awardOfficialStars(user.uid, "share_official_card");
 
     let rewardKind: RewardKind;
     let rewardMsg: string;
+    let boostLine: string;
 
     if (!award.ok) {
       rewardKind = "not_deployed";
       rewardMsg  = `Reward unavailable: ${award.error ?? "Could not contact progression service."}`;
+      boostLine  = "Sharing still helps your team";
     } else if (!award.awarded) {
       rewardKind = "already";
       rewardMsg  = "Official share already rewarded.";
+      boostLine  = "Sharing still helps your team";
     } else {
       rewardKind = "awarded";
       rewardMsg  = `+${award.stars} ⭐ Official share reward.`;
+      boostLine  = `You just boosted ${teamName} 🚀`;
     }
 
-    setOutcome({ copied, url, rewardKind, rewardMsg });
+    setOutcome({ copied, url, rewardKind, rewardMsg, boostLine });
     setSharing(false);
   };
 
@@ -155,27 +172,34 @@ export function OfficialShareCTA({
     error:        "text-red-400",
   };
 
+  const motivation = motivationText(teamRank, teamName);
+
   return (
     <div className="mt-3 flex flex-col gap-2">
       {/* Button */}
       {!outcome && (
-        <button
-          onClick={() => void handleShare()}
-          disabled={sharing || disabled}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-pink-400/10 px-5 py-2.5 text-[13px] font-extrabold text-pink-100 transition hover:bg-pink-400/20 disabled:opacity-50"
-        >
-          {sharing ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Sharing…
-            </>
-          ) : (
-            <>
-              <Share2 className="h-4 w-4" />
-              Share Official Card
-            </>
+        <>
+          <button
+            onClick={() => void handleShare()}
+            disabled={sharing || disabled}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-pink-300/40 bg-pink-400/10 px-5 py-2.5 text-[13px] font-extrabold text-pink-100 transition hover:bg-pink-400/20 disabled:opacity-50"
+          >
+            {sharing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sharing…
+              </>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4" />
+                Share Official Card
+              </>
+            )}
+          </button>
+          {!sharing && (
+            <p className="text-center text-[11px] text-white/35">{motivation}</p>
           )}
-        </button>
+        </>
       )}
 
       {/* Outcome */}
@@ -189,9 +213,7 @@ export function OfficialShareCTA({
             </span>
             {!outcome.copied && (
               <button
-                onClick={() => {
-                  void navigator.clipboard?.writeText(outcome.url);
-                }}
+                onClick={() => { void navigator.clipboard?.writeText(outcome.url); }}
                 className="shrink-0 rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white hover:bg-white/20"
               >
                 Copy
@@ -200,23 +222,19 @@ export function OfficialShareCTA({
           </div>
 
           {/* Reward row */}
-          <div
-            className={`flex items-center gap-1.5 text-[12px] font-semibold ${
-              rewardColor[outcome.rewardKind]
-            }`}
-          >
+          <div className={`flex items-center gap-1.5 text-[12px] font-semibold ${rewardColor[outcome.rewardKind]}`}>
             {outcome.rewardKind === "awarded" && (
               <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
             )}
             {outcome.rewardMsg}
           </div>
 
-          {/* Share again button */}
+          {/* Boost reinforcement line */}
+          <p className="text-[11px] text-white/45">{outcome.boostLine}</p>
+
+          {/* Share again */}
           <button
-            onClick={() => {
-              setOutcome(null);
-              setSharing(false);
-            }}
+            onClick={() => { setOutcome(null); setSharing(false); }}
             className="mt-1 text-center text-[11px] text-white/30 hover:text-white/60"
           >
             Share again

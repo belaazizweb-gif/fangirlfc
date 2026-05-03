@@ -10,8 +10,10 @@ import {
 } from "firebase/firestore";
 import { FirebaseError } from "firebase/app";
 import { getFirebaseDb } from "@/lib/firebase";
+import { fetchRecentOfficialShares, type RecentShareItem } from "@/lib/teamRank";
+import { getTeam } from "@/lib/teams";
 import { TopNav } from "@/components/TopNav";
-import { Flag, Star, Loader2, Globe, Lock } from "lucide-react";
+import { Flag, Star, Loader2, Globe, Lock, Zap } from "lucide-react";
 import type { TeamRankingEntry } from "@/lib/officialStars";
 
 const LIMIT = 50;
@@ -36,7 +38,6 @@ function TeamRow({ entry, rank }: { entry: TeamRankingEntry; rank: number }) {
           : "border-white/8 bg-white/3"
       }`}
     >
-      {/* Rank */}
       <div
         className={`w-8 shrink-0 text-center font-extrabold ${
           rank <= 3 ? "text-base" : "text-[14px] text-white/40"
@@ -44,21 +45,15 @@ function TeamRow({ entry, rank }: { entry: TeamRankingEntry; rank: number }) {
       >
         {rankBadge(rank)}
       </div>
-
-      {/* Flag */}
       <div className="flex h-9 w-9 shrink-0 items-center justify-center text-2xl">
         {entry.flag || "🏳️"}
       </div>
-
-      {/* Info */}
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] font-bold text-white">{entry.teamName}</p>
         <p className="mt-0.5 text-[11px] text-white/40">
           {entry.memberCount} fan{entry.memberCount !== 1 ? "s" : ""}
         </p>
       </div>
-
-      {/* Stars / XP */}
       <div className="shrink-0 text-right">
         <div className="flex items-center justify-end gap-1 text-[12px] font-extrabold text-amber-300">
           <Star className="h-3 w-3 fill-amber-300" />
@@ -70,11 +65,42 @@ function TeamRow({ entry, rank }: { entry: TeamRankingEntry; rank: number }) {
   );
 }
 
+// ─── Social proof + recent activity ──────────────────────────────────────────
+
+function RecentActivityFeed({ items }: { items: RecentShareItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div className="mt-6 rounded-2xl border border-white/8 bg-white/3 p-4">
+      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-white/30">
+        <Zap className="h-3 w-3" />
+        Recent activity
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {items.map((item) => {
+          const team = item.officialTeamCode ? getTeam(item.officialTeamCode) : null;
+          return (
+            <p key={item.shareId} className="text-[12px] text-white/50">
+              <span className="font-semibold text-white/75">{item.displayName}</span>
+              {team
+                ? ` just shared for ${team.flag} ${team.name}`
+                : " just shared their card"}
+            </p>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
 export default function TeamRankingPage() {
-  const [entries, setEntries]           = useState<TeamRankingEntry[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [rulesBlocked, setRulesBlocked] = useState(false);
-  const [error, setError]               = useState<string | null>(null);
+  const [entries, setEntries]             = useState<TeamRankingEntry[]>([]);
+  const [recentShares, setRecentShares]   = useState<RecentShareItem[]>([]);
+  const [shareCount, setShareCount]       = useState<number | null>(null);
+  const [loading, setLoading]             = useState(true);
+  const [rulesBlocked, setRulesBlocked]   = useState(false);
+  const [error, setError]                 = useState<string | null>(null);
 
   useEffect(() => {
     const db = getFirebaseDb();
@@ -101,14 +127,32 @@ export default function TeamRankingPage() {
         }
       })
       .finally(() => setLoading(false));
+
+    // Social proof — fire-and-forget, silent on error
+    fetchRecentOfficialShares(5).then((items) => {
+      setRecentShares(items);
+    });
+    fetchRecentOfficialShares(50).then((items) => {
+      setShareCount(items.length);
+    });
   }, []);
 
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-white">
       <div className="mx-auto max-w-lg px-4 py-6">
-        <div className="flex items-center gap-2 text-2xl font-extrabold">
-          <Flag className="h-6 w-6 text-pink-400" />
-          Team Ranking
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-2xl font-extrabold">
+            <Flag className="h-6 w-6 text-pink-400" />
+            Team Ranking
+          </div>
+          {shareCount !== null && shareCount > 0 && (
+            <p className="text-[11px] text-white/30">
+              +{shareCount} fans shared recently
+            </p>
+          )}
+          {shareCount === 0 && (
+            <p className="text-[11px] text-white/25">Fans are actively sharing right now</p>
+          )}
         </div>
         <p className="mt-1 text-[13px] text-white/50">
           Top {LIMIT} countries · Stars earned by official fans
@@ -117,7 +161,6 @@ export default function TeamRankingPage() {
         <TopNav />
 
         <div className="mt-6 flex flex-col gap-3">
-          {/* Loading */}
           {loading && (
             <div className="flex items-center justify-center gap-2 py-16 text-white/40">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -125,14 +168,12 @@ export default function TeamRankingPage() {
             </div>
           )}
 
-          {/* Generic error */}
           {!loading && error && (
             <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-6 text-center text-[13px] text-red-300">
               {error}
             </div>
           )}
 
-          {/* Rules not deployed */}
           {!loading && rulesBlocked && (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <div className="flex items-center gap-2 text-[13px] font-bold text-white/60">
@@ -151,7 +192,6 @@ export default function TeamRankingPage() {
             </div>
           )}
 
-          {/* Empty */}
           {!loading && !error && !rulesBlocked && entries.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <Globe className="h-10 w-10 text-white/20" />
@@ -162,7 +202,6 @@ export default function TeamRankingPage() {
             </div>
           )}
 
-          {/* Full leaderboard */}
           {!loading && !error && !rulesBlocked && entries.length > 0 &&
             entries.map((entry, idx) => (
               <TeamRow key={entry.teamCode} entry={entry} rank={idx + 1} />
@@ -175,6 +214,9 @@ export default function TeamRankingPage() {
             Score = XP + stars × 100 · Top {LIMIT} teams shown
           </p>
         )}
+
+        {/* Recent activity feed */}
+        <RecentActivityFeed items={recentShares} />
       </div>
     </main>
   );

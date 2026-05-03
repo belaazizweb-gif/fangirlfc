@@ -1,0 +1,285 @@
+You are a senior full-stack Firebase + React engineer.
+
+Implement **Phase 6: Social Proof + Team Pressure (Viral Amplification Layer)**.
+
+⚠️ STRICT RULES:
+
+* Do NOT break Phases 1–5.
+* Do NOT modify Cloud Function logic.
+* Do NOT reintroduce client-side star writes.
+* Do NOT add new backend endpoints.
+* Do NOT add votes, comments, chat, or payments.
+* Keep changes UI-focused + data read-only + safe.
+
+---
+
+# GOAL
+
+Increase sharing and retention by adding:
+
+1. **Social proof (others are sharing, competing)**
+2. **Team pressure (your country depends on you)**
+3. **Clear motivation to share again**
+
+No new core mechanics — only amplification of existing ones.
+
+---
+
+# PRODUCT PRINCIPLES
+
+Users share more when:
+
+* They feel **behind others**
+* They feel **useful to a group**
+* They see **progress or urgency**
+
+We already have:
+
+* official card
+* stars
+* ranking
+* team ranking
+* share reward (once)
+
+Now we add pressure + visibility.
+
+---
+
+# FEATURES TO IMPLEMENT
+
+## 1. Team Rank Banner (CRITICAL)
+
+Add a banner in `OfficialCardSection` (top or near stars):
+
+Display:
+
+```txt
+🇲🇦 Morocco is #3 worldwide
+```
+
+If user has official team:
+
+* fetch from `teams` collection (top 50)
+* find user's team rank
+* show:
+
+Case A (top 3):
+
+```txt
+🔥 Morocco is #2 — almost #1
+```
+
+Case B (mid):
+
+```txt
+Morocco is #8 — help it climb
+```
+
+Case C (low):
+
+```txt
+Morocco is #22 — needs your help
+```
+
+If no official team:
+
+* show:
+
+```txt
+Join a team to compete globally
+```
+
+---
+
+## 2. Personal Impact Indicator
+
+Below banner, show:
+
+```txt
+You contributed +X ⭐ to Morocco
+```
+
+Where X = user’s `officialStars`
+
+Keep simple — no breakdown.
+
+---
+
+## 3. Share Motivation Message
+
+Enhance `OfficialShareCTA`:
+
+Below button, add dynamic text:
+
+Case 1 (top team):
+
+```txt
+Help Morocco secure the #1 spot
+```
+
+Case 2 (close gap):
+
+```txt
+Only a few stars to reach #2
+```
+
+Case 3 (low rank):
+
+```txt
+Every share helps your country rise
+```
+
+This is UI-only logic based on team rank.
+
+---
+
+## 4. Share After Reward Reinforcement
+
+After successful share reward:
+
+Add second line:
+
+```txt
+You just boosted Morocco 🚀
+```
+
+If already rewarded:
+
+```txt
+Sharing still helps your team
+```
+
+Important:
+
+* reward is once
+* but sharing still psychologically valuable
+
+---
+
+## 5. Lightweight Social Proof (safe)
+
+On `/ranking` or `/team-ranking`:
+
+Add small text:
+
+```txt
++120 fans shared their official card today
+```
+
+Implementation:
+
+* optional: count documents in `official_shares` (last 24h)
+* OR simulate with:
+
+  * last 50 docs → display count
+
+No aggregation function required.
+
+If not possible → fallback static:
+
+```txt
+Fans are actively sharing right now
+```
+
+---
+
+## 6. Recent Activity Feed (minimal)
+
+On `/team-ranking`:
+
+Show 3–5 recent entries:
+
+```txt
+Ali just shared for Morocco
+Sara boosted France
+```
+
+Source:
+
+* last documents in `official_shares`
+* display:
+
+  * displayName
+  * team
+
+No realtime needed.
+
+---
+
+## 7. Navigation
+
+Ensure:
+
+* `/ranking` exists
+* `/team-ranking` exists
+* both linked in `TopNav`
+
+Do not change structure heavily.
+
+---
+
+# DATA USAGE RULES
+
+* DO NOT write new backend data
+
+* ONLY read:
+
+  * `teams`
+  * `leaderboard`
+  * `official_shares`
+
+* DO NOT trust `official_shares` for rewards (analytics only)
+
+---
+
+# UI RULES
+
+* Minimal design changes
+* Use existing components/styles
+* No heavy animations
+* No redesign
+
+---
+
+# TESTS
+
+Run and report:
+
+1. Typecheck clean
+2. Official card page still works
+3. Banner shows correct team rank
+4. Personal stars displayed
+5. Share CTA shows dynamic motivation text
+6. Share reward message enhanced
+7. Ranking page still loads
+8. Team ranking page shows recent activity
+9. No regressions in card generation
+10. Works signed out (graceful fallback)
+
+---
+
+# DELIVERABLES
+
+After implementation, provide:
+
+1. Files changed
+2. UI elements added
+3. Data sources used
+4. Test results
+5. Any fallback logic used
+
+---
+
+# IMPORTANT
+
+Do NOT implement:
+
+* new rewards
+* new backend
+* notifications
+* push system
+* chat or social network features
+
+Focus only on **psychological amplification of existing system**.
+
+Start now.

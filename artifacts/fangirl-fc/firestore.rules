@@ -19,9 +19,10 @@ service cloud.firestore {
 
     // ── Official share analytics ──────────────────────────────────────────────
     // Analytics/debug collection — NOT reward authority.
-    // Auth user can create their own record; no public read; no update/delete.
+    // Authenticated users can read (for social proof feed + recent activity).
+    // Auth user can create their own record; no update/delete.
     match /official_shares/{shareId} {
-      allow read: if false;
+      allow read: if request.auth != null;
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid
                     && request.resource.data.shareId == shareId
@@ -34,8 +35,7 @@ service cloud.firestore {
     }
 
     // ── Per-user profile ──────────────────────────────────────────────────────
-    // Owner read/write — but officialStars, officialXp, rankScore, and
-    // officialStarActions may ONLY be written by the Cloud Function (admin SDK).
+    // Owner read/write — progression fields only writable by Cloud Function.
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
 
@@ -52,16 +52,12 @@ service cloud.firestore {
     }
 
     // ── Public individual leaderboard ─────────────────────────────────────────
-    // Public read. Scores written exclusively by Cloud Function (admin SDK).
-    // Client may merge non-score display fields; merge semantics preserve scores.
     match /leaderboard/{userId} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
     // ── Team ranking aggregate ────────────────────────────────────────────────
-    // Public read. Score fields written exclusively by Cloud Function.
-    // Client may update memberCount + identity fields for team-change flow.
     match /teams/{teamCode} {
       allow read: if true;
 

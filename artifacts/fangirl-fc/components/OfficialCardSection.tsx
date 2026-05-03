@@ -16,6 +16,7 @@ import {
 import { getTeam } from "@/lib/teams";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { OfficialShareCTA } from "@/components/OfficialShareCTA";
+import { TeamRankBanner } from "@/components/TeamRankBanner";
 import type { FanIdentityId } from "@/types";
 
 interface Props {
@@ -48,6 +49,7 @@ export function OfficialCardSection({
   const [errorMsg, setErrorMsg]                 = useState<string | null>(null);
   const [showTeamConfirm, setShowTeamConfirm]   = useState(false);
   const [lastAward, setLastAward]               = useState<AwardBadge | null>(null);
+  const [teamRank, setTeamRank]                 = useState<number | null>(null);
   const loadedUid = useRef<string | null>(null);
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export function OfficialCardSection({
       setOfficialTeamCode(null);
       setOfficialStars(0);
       setOfficialXp(0);
+      setTeamRank(null);
       loadedUid.current = null;
       return;
     }
@@ -339,6 +342,13 @@ export function OfficialCardSection({
         </p>
       )}
 
+      {/* Team rank banner + personal impact */}
+      <TeamRankBanner
+        officialTeamCode={officialTeamCode}
+        officialStars={officialStars}
+        onRankLoaded={setTeamRank}
+      />
+
       {/* Official Share CTA — shown whenever user is signed in */}
       <OfficialShareCTA
         user={user}
@@ -349,6 +359,7 @@ export function OfficialCardSection({
         teamCode={teamCode}
         templateId={templateId}
         displayName={displayName}
+        teamRank={teamRank}
         disabled={status === "saving"}
       />
     </div>
