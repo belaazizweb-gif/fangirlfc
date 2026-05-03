@@ -1,0 +1,167 @@
+You are a senior full-stack engineer.
+
+Your task is NOT to modify anything.
+Your task is to perform a COMPLETE AUDIT of the current project.
+
+⚠️ STRICT RULES:
+
+* Do NOT write or modify any code
+* Do NOT refactor anything
+* Do NOT install packages
+* Only READ and ANALYZE the existing codebase
+* Your output must be structured, clear, and exhaustive
+
+---
+
+## 🎯 CONTEXT
+
+This is a social fan app (Fangirl FC concept) where users can generate visual cards.
+
+Before implementing gamification (official card, stars, ranking, teams), we need a precise state of the current system.
+
+---
+
+## 🔍 YOUR MISSION
+
+Analyze the entire project and produce a FULL TECHNICAL AUDIT with the following sections:
+
+---
+
+## 1. AUTHENTICATION SYSTEM
+
+* How are users authenticated? (anonymous, email, OAuth, etc.)
+* Where is the user identity stored?
+* Is there a persistent `userId` or `uid`?
+* Where is the user profile stored (if any)?
+* What fields exist in the user profile?
+
+---
+
+## 2. DATA MODELS (CRITICAL)
+
+List ALL existing data structures (DB, local storage, API responses, etc.):
+
+For each entity (example: user, card, etc.), provide:
+
+* Exact structure (fields + types)
+* Where it is stored (Firestore / local / API / state)
+* How it is created
+* How it is updated
+
+Focus especially on:
+
+* Users
+* Cards
+* Any notion of profiles/personas
+* Any notion of teams/groups (if exists)
+* Any notion of score, stars, votes, likes
+
+---
+
+## 3. CARD SYSTEM (CORE FEATURE)
+
+Explain precisely:
+
+* How a card is created (flow)
+* Where the card is stored
+* What fields a card contains
+* How many cards a user can create
+* Whether cards are linked to a userId
+* Whether there is ANY distinction between cards (types, status, etc.)
+
+---
+
+## 4. STATE MANAGEMENT
+
+* How is state handled? (React state, context, Redux, etc.)
+* Where is the current user stored in frontend?
+* How are cards loaded and displayed?
+
+---
+
+## 5. EXISTING GAMIFICATION (IF ANY)
+
+Check if ANY of the following already exists:
+
+* stars
+* score
+* ranking
+* likes / votes
+* sharing tracking
+
+If yes:
+
+* where is it stored?
+* is it real data or just UI?
+* how is it calculated?
+
+---
+
+## 6. TEAM / GROUP LOGIC
+
+* Is there any concept of team, country, or group?
+* Is the user linked to a category/persona/team?
+* Where is this stored?
+
+---
+
+## 7. LIMITATIONS / RISKS
+
+Identify technical risks:
+
+* Can users spam card creation?
+* Is there any backend validation?
+* Is everything frontend-only?
+* Any security issues (no user isolation, no ownership, etc.)
+
+---
+
+## 8. READINESS FOR GAMIFICATION
+
+Based on your analysis, answer clearly:
+
+* Can we support:
+
+  * 1 official card per user?
+  * 1 team per user?
+  * stars system?
+  * ranking system?
+
+For each:
+
+* YES / NO
+* If NO → what is missing?
+
+---
+
+## 9. FINAL SUMMARY (IMPORTANT)
+
+Give a concise summary:
+
+* Current architecture type (frontend-only / full-stack / hybrid)
+* What is already solid
+* What is missing to implement:
+
+  * official card
+  * stars
+  * ranking
+  * teams
+
+---
+
+## OUTPUT FORMAT
+
+Your answer MUST be:
+
+* Structured with clear sections
+* Technical and precise
+* No vague statements
+* No assumptions without evidence from code
+
+---
+
+Do NOT write code.
+Do NOT suggest implementation yet.
+Only perform a deep, accurate audit.
+
+Start now.
