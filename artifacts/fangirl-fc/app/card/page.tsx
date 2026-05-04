@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import { TEAMS, getTeam } from "@/lib/teams";
 import { TEMPLATES, getTemplate, IDENTITY_DEFAULT_TEMPLATE } from "@/lib/templates";
+import { PERSONALITY_PRESETS, getPreset } from "@/lib/personalityPresets";
 import { FanCard } from "@/components/FanCard";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import { TeamSelector } from "@/components/TeamSelector";
@@ -50,6 +51,7 @@ function Inner() {
   const [displayName, setDisplayName] = useState(initialName.slice(0, 24));
   const [teamCode, setTeamCode] = useState<string>(initialTeam);
   const [templateId, setTemplateId] = useState<string>(initialTemplate);
+  const [presetId, setPresetId] = useState<string | null>(null);
   const [selfie, setSelfie] = useState<string | null>(null);
   const [selfieFit, setSelfieFit] = useState<SelfieFit>("portrait");
   const [zoom, setZoom] = useState<number>(1);
@@ -86,6 +88,27 @@ function Inner() {
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
   const template = getTemplate(templateId);
+
+  // Overlay selected personality preset on top of the base identity.
+  // OfficialCardSection still uses the original identity.id from the URL.
+  const selectedPreset = presetId ? getPreset(presetId) : null;
+  const activeIdentity = selectedPreset
+    ? {
+        ...identity,
+        title: selectedPreset.typeName,
+        emoji: selectedPreset.emoji,
+        vibes: selectedPreset.bullets,
+        slogan: selectedPreset.quote,
+        shareTrigger: selectedPreset.cta,
+      }
+    : identity;
+
+  const handlePresetChange = (id: string) => {
+    const preset = getPreset(id);
+    if (!preset) return;
+    setPresetId(id);
+    setTemplateId(preset.templateId);
+  };
 
   const persistCard = () => {
     saveCard({
@@ -174,7 +197,7 @@ function Inner() {
 
   const primaryCaption = fillCaption(
     getShareMode(shareMode).captions[0] ?? "which fan are you?",
-    identity.title,
+    activeIdentity.title,
   );
 
   return (
@@ -198,7 +221,7 @@ function Inner() {
         >
           <FanCard
             ref={cardRef}
-            identity={identity}
+            identity={activeIdentity}
             team={team}
             template={template}
             displayName={displayName}
@@ -216,6 +239,44 @@ function Inner() {
       </div>
 
       <div className="glass flex flex-col gap-4 rounded-2xl p-4">
+        {/* ── Personality preset selector ── */}
+        <div>
+          <label className="text-[11px] font-bold uppercase tracking-wider text-white/60">
+            Choose your fangirl type
+          </label>
+          <div className="-mx-1 mt-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex gap-2 px-1" style={{ width: "max-content" }}>
+              {PERSONALITY_PRESETS.map((p) => {
+                const active = presetId === p.id;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => handlePresetChange(p.id)}
+                    className={`flex shrink-0 flex-col items-center gap-1 rounded-2xl border px-3 py-2 text-center transition active:scale-95 ${
+                      active
+                        ? "border-pink-400/60 bg-pink-400/20 text-white"
+                        : "border-white/10 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10"
+                    }`}
+                  >
+                    <span className="text-[18px] leading-none">{p.emoji}</span>
+                    <span className="text-[10px] font-extrabold uppercase leading-tight tracking-wide" style={{ maxWidth: 72 }}>
+                      {p.typeName}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {presetId && (
+            <button
+              onClick={() => setPresetId(null)}
+              className="mt-1.5 text-[11px] text-white/35 hover:text-white/60"
+            >
+              ✕ Reset to default ({identity.title})
+            </button>
+          )}
+        </div>
+
         <div>
           <label className="text-[11px] font-bold uppercase tracking-wider text-white/60">
             Display name
