@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Sparkles, Heart, Share2, Camera } from "lucide-react";
+import { ArrowRight, Sparkles, Heart, Camera } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
 import { TEMPLATES, getTemplate } from "@/lib/templates";
 import { FanCard } from "./FanCard";
@@ -108,17 +108,24 @@ export function LandingHero() {
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-white/10 px-3.5 py-1 text-[10px] font-bold uppercase tracking-[0.28em] text-white/90 backdrop-blur">
             <Sparkles className="h-3 w-3" /> World Cup 2026 · for the girls
           </span>
-          <h1 className="mt-5 text-[40px] font-black leading-[0.95] tracking-tight">
+          <h1 className="mt-5 text-[38px] font-black leading-[0.95] tracking-tight">
             Find your{" "}
-            <span className="gradient-text">World Cup fan personality</span>
+            <span className="gradient-text">Fangirl Type</span>
+            <br />
+            in 60 seconds 💖
           </h1>
           <p className="mt-3 px-4 text-[15px] leading-snug text-white/85">
-            Take the quiz. Get your Fangirl Card. Send it to your bestie.
+            Take the quiz. Get your card. Send it to your bestie.
           </p>
         </div>
 
+        {/* Card preview label */}
+        <p className="mt-6 text-center text-[11px] font-semibold text-white/40 uppercase tracking-[0.22em]">
+          Your result will look like this 👇
+        </p>
+
         {/* Real big card previews — fanned */}
-        <div className="relative mt-8 flex h-[300px] items-center justify-center">
+        <div className="relative mt-3 flex h-[300px] items-center justify-center">
           <div
             aria-hidden
             className="absolute inset-x-0 top-2 -z-10 mx-auto h-[260px] w-[80%] rounded-[40px] bg-gradient-to-br from-pink-400/40 via-fuchsia-400/20 to-amber-300/30 blur-3xl"
@@ -138,6 +145,7 @@ export function LandingHero() {
 
         {/* CTAs */}
         <div className="mt-6 flex flex-col gap-2.5">
+          {/* Primary CTA */}
           <Link
             href="/quiz"
             className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
@@ -145,14 +153,19 @@ export function LandingHero() {
             Find my fan type
             <ArrowRight className="h-4 w-4" />
           </Link>
+
+          {/* Secondary CTA — visually smaller */}
           <Link
             href="/card?id=princess"
-            className="flex items-center justify-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-[12px] font-semibold text-white/55 backdrop-blur transition hover:bg-white/10 hover:text-white/80"
           >
-            <Camera className="h-4 w-4" /> Make my card
+            <Camera className="h-3.5 w-3.5" />
+            Already have a result? Make my card
           </Link>
-          <p className="mt-1 text-center text-[11px] text-white/60">
-            5 questions · 60 seconds · no signup
+
+          {/* Trust / friction line */}
+          <p className="mt-0.5 text-center text-[11px] text-white/45">
+            No signup &nbsp;·&nbsp; 5 questions &nbsp;·&nbsp; Just for fun
           </p>
         </div>
       </section>
@@ -172,62 +185,14 @@ export function LandingHero() {
         </p>
       </section>
 
-      {/* ---------------- HOW IT WORKS ---------------- */}
-      <section>
-        <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
-          How it works
-        </div>
-        <div className="flex flex-col gap-2.5">
-          {[
-            {
-              n: "1",
-              title: "Answer 5 questions",
-              copy: "Tell us how you really watch football.",
-              tint: "from-pink-400/30 to-rose-400/10",
-            },
-            {
-              n: "2",
-              title: "Unlock your fan identity",
-              copy: "Get your card with vibes, slogan, and a rare drop.",
-              tint: "from-fuchsia-400/30 to-violet-400/10",
-            },
-            {
-              n: "3",
-              title: "Share & compare with your bestie",
-              copy: "Send your card. See if you're a power duo.",
-              tint: "from-amber-300/30 to-pink-300/10",
-            },
-          ].map((s) => (
-            <div
-              key={s.n}
-              className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
-                  {s.n}
-                </div>
-                <div>
-                  <div className="text-[15px] font-bold text-white">
-                    {s.title}
-                  </div>
-                  <div className="text-[12.5px] leading-snug text-white/70">
-                    {s.copy}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ---------------- IDENTITY PREVIEW ---------------- */}
+      {/* ---------------- IDENTITY PREVIEW — moved above How It Works ---------------- */}
       <section>
         <div className="mb-3 text-center">
           <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
-            6 fan identities
+            {FAN_TYPE_LIST.length} fan identities
           </div>
           <div className="mt-1 text-[18px] font-black tracking-tight">
-            Which one are you?
+            Which fangirl type are you?
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -260,9 +225,7 @@ export function LandingHero() {
                   {f.emoji}
                 </div>
                 <div className="relative">
-                  <div
-                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 text-2xl shadow-[0_10px_24px_-8px_rgba(0,0,0,0.45)]"
-                  >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 text-2xl shadow-[0_10px_24px_-8px_rgba(0,0,0,0.45)]">
                     {f.emoji}
                   </div>
                   <div
@@ -282,19 +245,76 @@ export function LandingHero() {
             );
           })}
         </div>
+        {/* Quiz nudge below the grid */}
+        <Link
+          href="/quiz"
+          className="mt-4 flex items-center justify-center gap-2 rounded-full border border-pink-300/30 bg-pink-400/10 px-5 py-2.5 text-[13px] font-bold text-pink-100 transition hover:bg-pink-400/20"
+        >
+          Take the quiz to find yours <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
       </section>
 
-      {/* Unlocked identities (only shows if user has any) */}
-      <UnlockedIdentities />
+      {/* ---------------- HOW IT WORKS ---------------- */}
+      <section>
+        <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+          How it works
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {[
+            {
+              n: "1",
+              title: "Answer 5 questions",
+              copy: "Tell us how you really watch football.",
+              tint: "from-pink-400/30 to-rose-400/10",
+            },
+            {
+              n: "2",
+              title: "Get your Fangirl Card",
+              copy: "Your type, vibe, score, and team mood.",
+              tint: "from-fuchsia-400/30 to-violet-400/10",
+            },
+            {
+              n: "3",
+              title: "Send it to your bestie",
+              copy: "Compare results and start the group chat drama.",
+              tint: "from-amber-300/30 to-pink-300/10",
+            },
+          ].map((s) => (
+            <div
+              key={s.n}
+              className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
+                  {s.n}
+                </div>
+                <div>
+                  <div className="text-[15px] font-bold text-white">
+                    {s.title}
+                  </div>
+                  <div className="text-[12.5px] leading-snug text-white/70">
+                    {s.copy}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------- UNLOCKED IDENTITIES — lower, with context ---------------- */}
+      <section>
+        <p className="mb-2 text-center text-[11px] text-white/35">
+          Unlock more types after your first result.
+        </p>
+        <UnlockedIdentities />
+      </section>
 
       {/* ---------------- REVIEWS ---------------- */}
       <section>
         <div className="mb-4 text-center">
-          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
-            What fans say
-          </div>
           <div className="mt-1 text-[18px] font-black tracking-tight">
-            The girls loved it 💖
+            What girls are saying 💬
           </div>
         </div>
         {/* Horizontal scroll — bleed to screen edges */}
@@ -318,7 +338,7 @@ export function LandingHero() {
                 photo: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face&auto=format",
                 stars: 5,
                 text: "The quiz is too accurate. I answered honestly and got Soft Girl and yeah... I do watch matches just to cry during the anthem.",
-                identity: "Soft Girl",
+                identity: "Soft Fan",
                 grad: "from-rose-500/30 to-amber-300/10",
               },
               {
@@ -384,14 +404,13 @@ export function LandingHero() {
                   &ldquo;{r.text}&rdquo;
                 </p>
                 {/* Identity badge */}
-                <div className="mt-3 inline-flex items-center rounded-full border border-white/15 bg-white/8 px-2 py-0.5 text-[10px] font-bold text-white/50">
+                <div className="mt-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-white/50">
                   {r.identity}
                 </div>
               </div>
             ))}
           </div>
         </div>
-        {/* Scroll hint */}
         <p className="mt-1.5 text-center text-[10px] text-white/25">swipe to see more →</p>
       </section>
 

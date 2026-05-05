@@ -1,0 +1,241 @@
+We need to optimize the Fangirl FC landing page for clarity, conversion, and TikTok traffic.
+
+Context:
+The current landing page has a strong visual style: dark background, pink/purple gradients, bold typography, glassmorphism cards, and playful World Cup fangirl energy.
+Do NOT redesign the whole visual identity.
+Keep the existing color palette, typography direction, spacing style, rounded cards, gradients, and overall aesthetic.
+
+Current problem:
+The landing page looks good, but the user flow is not clear enough.
+A TikTok user should understand within 3 seconds:
+1. what this is
+2. what they get
+3. what button to click
+
+Main goal:
+Make the landing page immediately clear and action-driven:
+“Take a quick quiz → get your Fangirl Card → send it to your bestie.”
+
+Important:
+Do not modify the quiz logic.
+Do not modify the card generator.
+Do not modify FanCard.
+Do not modify authentication.
+Do not modify download/export.
+Do not change routes unless absolutely necessary.
+This is a landing page UX/content/layout optimization only.
+
+---
+
+## Required landing page structure
+
+### 1. Hero section — make it clearer
+
+Current headline is:
+“Find your World Cup fan personality”
+
+Replace with a clearer, more TikTok-friendly headline:
+
+“Find your Fangirl Type in 60 seconds 💖”
+
+Subtitle:
+“Take the quiz. Get your card. Send it to your bestie.”
+
+Add a small trust/friction line under the CTA:
+“No signup • 5 questions • Just for fun”
+
+The hero must make the flow obvious immediately.
+
+---
+
+### 2. CTA hierarchy — one primary action
+
+Current issue:
+There are two competing CTAs:
+- “Find my fan type”
+- “Make my card”
+
+This creates confusion.
+
+Required fix:
+Keep ONE dominant primary CTA above the fold:
+
+Primary button:
+“Find my fan type →”
+
+Secondary action:
+If “Make my card” is still needed, make it visually secondary and smaller, below the main CTA:
+“Already have a result? Make my card”
+
+Do not make both buttons look equally important.
+
+---
+
+### 3. Above-the-fold layout
+
+On first screen, user should see:
+- Logo / brand
+- Clear headline
+- Short subtitle
+- One main CTA
+- Small “No signup • 5 questions • 60 sec” reassurance
+- A preview of the cards
+
+Add a small label above the card mockup:
+“Your result will look like this 👇”
+
+The card preview should support the CTA, not just be decorative.
+
+---
+
+### 4. Move identity examples higher
+
+The “Which one are you?” identity section is useful.
+Move it higher, directly after the hero/card preview.
+
+Purpose:
+Users should instantly understand that results are personality types.
+
+Improve the section title:
+“Which fangirl type are you?”
+
+If the app currently has 10 personality presets, do not hardcode “6 fan identities”.
+Use the correct dynamic count from the existing data source if possible.
+If there are still only 6 quiz identities, keep it consistent everywhere.
+Avoid mismatches like “6 identities” in one place and 10 presets elsewhere.
+
+---
+
+### 5. Simplify “How it works”
+
+Keep the section, but make it shorter and more direct.
+
+Use exactly this flow:
+
+1. Answer 5 questions  
+   “Tell us how you really watch football.”
+
+2. Get your Fangirl Card  
+   “Your type, vibe, score, and team mood.”
+
+3. Send it to your bestie  
+   “Compare results and start the group chat drama.”
+
+Keep the design consistent with existing cards.
+
+---
+
+### 6. Reduce confusing locked section prominence
+
+The “Unlocked Identities” section currently appears too early and may confuse new users.
+
+Required:
+- Move it lower on the page OR visually reduce its importance.
+- It should not distract from the main CTA.
+- If shown before the quiz, explain it better:
+  “Unlock more types after your first result.”
+
+Do not let “0/6 unlocked” be a confusing first impression.
+
+---
+
+### 7. Testimonials section
+
+Keep testimonials, but make them supporting proof, not the main flow.
+
+Improve heading:
+“What girls are saying 💬”
+
+Keep cards horizontally scrollable if already implemented.
+Make sure no testimonial card is cut off awkwardly on desktop or mobile.
+
+---
+
+### 8. Navigation
+
+The current top nav has many pills.
+For mobile and small screens:
+- Keep it horizontally scrollable if needed.
+- But do not let it dominate the hero.
+- The primary CTA “Take Quiz” must remain clear.
+
+Do not add more nav items.
+
+---
+
+### 9. Copy style rules
+
+Use short, TikTok-native copy.
+Avoid long explanations.
+
+Tone:
+- fun
+- direct
+- girly
+- shareable
+- not corporate
+
+Good examples:
+- “Find your Fangirl Type”
+- “Send it to your bestie”
+- “Which one are you?”
+- “No signup • 5 questions • 60 sec”
+
+Avoid:
+- long paragraphs
+- overly generic marketing text
+- too many competing CTAs
+
+---
+
+### 10. Legal/brand wording safety
+
+Avoid adding new official FIFA branding.
+If possible, prefer generic copy like:
+- “World Cup 2026”
+- “Fan World Cup 2026”
+- “World Cup fangirl energy”
+
+Do not add official logos, official marks, or language that implies affiliation.
+
+---
+
+## Implementation constraints
+
+- Minimal surgical changes.
+- Keep the existing visual identity.
+- Do not refactor unrelated components.
+- Do not change quiz/card generation logic.
+- Do not break mobile layout.
+- Do not break existing tests.
+- Keep the landing page fast and simple.
+
+---
+
+## Verification checklist
+
+After implementation, verify:
+
+1. Landing page loads correctly.
+2. Above the fold clearly shows:
+   - headline
+   - subtitle
+   - main CTA
+   - card preview
+   - no-signup reassurance
+
+3. Primary CTA routes correctly to quiz.
+4. Secondary “Make my card” route still works if kept.
+5. No horizontal overflow on mobile.
+6. Identity section displays the correct number of identities.
+7. Locked identities section is not confusing.
+8. Testimonials display cleanly.
+9. Existing quiz/card/export functionality remains unchanged.
+10. Run existing e2e tests.
+
+Before coding, briefly report:
+- which files you will modify
+- whether identity count is currently hardcoded
+- where the landing sections are defined
+
+Then implement the minimal landing page optimization.
