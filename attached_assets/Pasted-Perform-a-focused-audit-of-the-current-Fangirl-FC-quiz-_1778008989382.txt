@@ -1,0 +1,68 @@
+Perform a focused audit of the current Fangirl FC quiz system before making changes.
+
+Do NOT implement yet.
+
+Goal:
+We want to evolve the quiz from a simple personality quiz into a richer football + girls culture quiz.
+
+The quiz should cover:
+- football watching behavior
+- matchday vibe
+- team loyalty
+- rules/learning curiosity
+- group chat/social behavior
+- football gossip/culture
+- predictions/challenges
+
+Current product direction:
+Fangirl FC should not be only an aesthetic card generator. The cards attract attention, but the quiz and progression should make this a women + football social app.
+
+Please audit:
+
+1. Quiz structure
+- Which file contains the questions?
+- How many questions currently exist?
+- What does each question measure?
+- How are answers represented?
+- How is the result calculated?
+
+2. Identity model
+- Where are FAN_TYPES defined?
+- How many quiz identities exist now?
+- Are they the same as the 10 card presets?
+- Which components assume exactly 6 identities?
+
+3. Scoring logic
+- Does each answer map to one identity or multiple identities?
+- Is scoring weighted?
+- How are ties handled?
+- Is there any result randomness?
+
+4. Result flow
+- Where is result.identityId created?
+- How is /result?id=... generated?
+- How does /card?id=... receive the identity?
+- Are stars/unlocks tied to the result identity?
+
+5. Risk of expanding quiz
+If we expand from 6 identities to 10:
+- which files/components break?
+- does UnlockedIdentities need changes?
+- does landing identity grid need changes?
+- does card flow need changes?
+- does stars/progression need changes?
+
+6. Recommended plan
+Provide a safe plan to improve the quiz in phases:
+Phase 1: improve questions while keeping 6 identities
+Phase 2: expand to 10 identities
+Phase 3: add football knowledge/challenge scoring
+
+Expected output:
+- current architecture summary
+- exact files involved
+- current quiz questions and what they measure
+- safe implementation plan
+- risks and recommended minimal next step
+
+Do not implement until I confirm.
