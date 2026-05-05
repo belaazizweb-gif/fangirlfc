@@ -1,0 +1,97 @@
+Implement Phase 1 only of the quiz improvement.
+
+Do not expand to 10 identities yet.
+Do not modify types/index.ts.
+Do not modify lib/fanTypes.ts.
+Do not modify ResultCard.
+Do not modify stars, unlocks, official card, card presets, or Firestore.
+Only update lib/quizQuestions.ts.
+
+Goal:
+Rewrite the existing 5 quiz questions to make the quiz more football-specific, more behavioral, more social, and more relevant to women entering football culture.
+
+The quiz should cover:
+1. watching behavior
+2. group chat behavior
+3. rules / learning curiosity
+4. football gossip / culture
+5. match pressure / prediction instinct
+
+Keep:
+- exactly 5 questions
+- same scoring structure
+- same 6 identities:
+  chaotic
+  loyal
+  soft
+  princess
+  screamer
+  tactical
+- weighted scoring via weights: Partial<Record<FanIdentityId, number>>
+- existing scoreQuiz API
+
+Important scoring requirement:
+Fix the current coverage gap where screamer and princess are harder to reach.
+Each identity should have fair scoring paths across the 5 questions.
+Every identity should receive strong primary weights in at least 2 different questions.
+Avoid one identity dominating due to tie order.
+Avoid question 5 being only direct self-identification.
+Make all questions behavioral, not direct “which type are you?”
+
+Recommended question themes:
+
+Q1 — How do you watch a big match?
+Example answers should map to:
+- tactical: watching lineups and tactics
+- princess: outfit/story/vibe
+- loyal: watching with team loyalty
+- chaotic: live-reacting loudly
+- soft: emotional support
+- screamer: stress and last-minute panic
+
+Q2 — What happens in your group chat during the match?
+Map to:
+- chaotic: spam reactions/memes
+- tactical: analysis and corrections
+- princess: selfies/outfit/vibes
+- loyal: defending the team
+- soft: emotional check-ins
+- screamer: panic messages
+
+Q3 — When you don’t understand a football rule, you:
+Map to:
+- tactical: learns seriously
+- princess: asks for a cute/simple explanation
+- chaotic: makes a joke
+- loyal: trusts the team anyway
+- soft: asks a friend gently
+- screamer: panics/confused during the moment
+
+Q4 — What pulls you deeper into football?
+Map to:
+- tactical: tactics, lineups, stats
+- princess: matchday aesthetics, stadium looks
+- loyal: club/country story and belonging
+- chaotic: rivalries and drama
+- soft: emotional edits and player stories
+- screamer: intense comeback moments
+
+Q5 — Last-minute penalty for your team. You:
+Map to:
+- screamer: screams/panics
+- loyal: believes no matter what
+- tactical: calculates pressure and odds
+- chaotic: cannot sit still
+- soft: nearly cries
+- princess: records the moment for story
+
+Write final production-ready question copy in English, TikTok-native but clear.
+No offensive content.
+No excessive slang that would age badly.
+Keep answers short.
+
+After implementation:
+- report the final 5 questions
+- report scoring balance: which identities get strong primary weights and where
+- run existing tests
+- confirm no files except lib/quizQuestions.ts were changed
