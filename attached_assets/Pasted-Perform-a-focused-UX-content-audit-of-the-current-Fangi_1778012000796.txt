@@ -1,0 +1,61 @@
+Perform a focused UX/content audit of the current Fangirl FC flow after the quiz update.
+
+Do NOT implement yet.
+
+Goal:
+Make sure the app clearly feels like a women + football social app, not only an aesthetic card generator.
+
+Current product direction:
+The card is the viral entry point, but the real product is:
+- football personality
+- matchday behavior
+- learning football socially
+- stars/progression
+- unlockable fan identities
+- eventually challenges and matchday content
+
+Audit the current app copy and flow for consistency.
+
+Check the following:
+
+1. Landing page
+- Does it communicate only “make a pretty card”, or does it clearly communicate “football fan personality”?
+- Does the hero mention quiz/card/share clearly?
+- Is there enough football language without making it boring?
+
+2. Quiz page
+- Does the quiz intro explain that this is about how she watches football?
+- Do question labels/copy feel football + women/social enough?
+- Is the quiz too generic or properly football-specific?
+
+3. Result page
+- Does the result explain the user’s football fan personality?
+- Does it include a meaningful football interpretation?
+- Or does it only show an identity/card CTA?
+
+4. Card page
+- Does the distinction between:
+  - official quiz identity
+  - editable card vibe
+  remain clear?
+- Does the card content feel football-related enough?
+- Does the card CTA push sharing without losing football context?
+
+5. Stars/progression/unlocks
+- Are stars explained as football progress?
+- Are unlocked identities explained as progression, not random collectibles?
+- Does the user understand why she should return?
+
+6. Contradictions
+Identify any copy or UX element that makes the product feel like:
+- only a card generator
+- only an aesthetic toy
+- not enough about football
+- too confusing between card vibe and official identity
+
+Expected output:
+- files/components to modify later
+- current copy weaknesses
+- recommended copy improvements
+- minimal implementation plan
+- do not code yet
