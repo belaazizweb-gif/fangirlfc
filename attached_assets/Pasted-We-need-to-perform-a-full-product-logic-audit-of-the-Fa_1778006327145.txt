@@ -1,0 +1,108 @@
+We need to perform a full product logic audit of the Fangirl FC card flow before making changes.
+
+Do NOT implement yet.
+Do NOT refactor.
+Do NOT modify UI yet.
+
+Goal:
+Verify that the card flow, quiz result, normal card generation, official card logic, challenges, stars/progression, unlocked identities, and share/export behavior are consistent.
+
+Current product concern:
+The user can take the quiz and receive a quiz identity. But on the card page, there is also a personality preset selector that can change the displayed card identity.
+This may be fine for fun/social card generation, but it must not break the official identity logic used for progression, challenges, stars, unlocked identities, and official card status.
+
+We need to clearly separate:
+
+1. baseQuizIdentity
+- the identity calculated from the quiz
+- should be used for official result, progression, stars, challenges, leaderboard, unlocked identities
+- should not be casually overwritten by card customization
+
+2. activeCardIdentity
+- the identity currently displayed on the visual card
+- can be customized for fun card generation
+- used for normal card preview/export/share
+- should be treated as a visual/card variation, not necessarily the official quiz identity
+
+Please audit the current architecture and report exactly how it works.
+
+Audit areas:
+
+1. Landing → Quiz → Result → Card flow
+- What route does the user follow after clicking “Find my fan type”?
+- Where is the quiz result calculated?
+- Where is the quiz identity stored?
+- How is the user sent to the card page?
+- Does the card page require a quiz result, or can it be opened directly?
+
+2. Card page identity sources
+- What identity object is used when the card page first loads?
+- Is it coming from URL params, local state, localStorage, Firestore, or quiz result?
+- What happens if the user opens /card directly?
+- What happens if the user selects a personality preset?
+- Does the preset overwrite the quiz identity, or only create an overlay?
+
+3. Normal card generation
+- Which identity is used for the visible FanCard?
+- Which identity is used for download/export?
+- Which identity is used for share captions and story mode?
+- Can the user generate unlimited card variations?
+- Is this behavior intentional and safe?
+
+4. Official Card logic
+- What does “Make Official” currently do?
+- What data is saved to Firestore?
+- Does it save identityId, presetId, teamCode, displayName, templateId, score, stars, or other fields?
+- Is the official identity based on the original quiz result or the selected preset?
+- Can the user change the official identity after selecting another preset?
+- Is there any contradiction between displayed card and saved official card?
+
+5. Challenges / progression / stars
+- Where are stars or levels calculated/stored?
+- Which identity do they belong to?
+- Are they tied to quiz result, official card, or visual card preset?
+- Could changing the card preset break progression?
+- Are challenges tied to official identity or any selected preset?
+
+6. Unlocked identities
+- How are identities unlocked?
+- Are they based on quiz completion, official card creation, or preset selection?
+- If the user selects a preset manually, does it unlock that identity?
+- Is that intended?
+
+7. Terminology / UX risk
+- Does the UI currently say “Choose your fangirl type”?
+- If yes, this may confuse users into thinking they are changing their official quiz identity.
+- Consider whether this should be renamed to something like:
+  “Customize card vibe”
+  or
+  “Try another card style”
+  while keeping the official quiz result separate.
+
+8. Contradictions to identify
+Please explicitly list any contradictions such as:
+- quiz gives one identity but card shows another
+- official card saves base identity while export shows preset identity
+- unlocked identities conflict with preset selector
+- stars/progression tied to editable preset instead of quiz identity
+- direct card creation bypasses quiz in a way that breaks official logic
+
+Expected output:
+Before coding, provide:
+
+1. Current architecture summary
+2. Exact files/components involved
+3. Current data model for identity, official card, unlocked identities, stars/progression
+4. Whether the current flow supports:
+   - unlimited normal card generation
+   - locked official quiz identity
+   - challenges/progression based on official identity
+5. List of bugs or contradictions
+6. Recommended minimal fix plan
+7. Recommended product rules going forward
+
+Important product rule to evaluate:
+Normal Card = editable/fun/shareable
+Official Card = locked to quiz result and used for progression/challenges/stars
+
+Do not implement until I confirm the plan.
