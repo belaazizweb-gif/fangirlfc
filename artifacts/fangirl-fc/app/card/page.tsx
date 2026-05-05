@@ -338,12 +338,12 @@ function Inner() {
       />
 
       <StoryModeKit
-        identity={identity}
+        identity={activeIdentity}
         onDownload={handleDownload}
         busy={busy}
       />
 
-      <ShareCaptions identity={identity} mode={shareMode} />
+      <ShareCaptions identity={activeIdentity} mode={shareMode} />
 
       <SharePack shareUrl={shareUrl} primaryCaption={primaryCaption} />
 
