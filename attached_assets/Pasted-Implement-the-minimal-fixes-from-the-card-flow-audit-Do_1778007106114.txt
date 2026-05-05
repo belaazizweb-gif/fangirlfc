@@ -1,0 +1,85 @@
+Implement the minimal fixes from the card flow audit.
+
+Do not refactor unrelated code.
+Do not modify FanCard.
+Do not change quiz scoring.
+Do not change Firestore schema.
+Do not change stars, unlocks, progression, or official card data model.
+This is a surgical consistency fix only.
+
+Product rule to preserve:
+Normal Card = editable/fun/shareable/unlimited.
+Official Card = locked to the base quiz identity and used for progression/challenges/stars.
+
+Current issues:
+1. The preset selector label says “Choose your fangirl type”, which makes users think they are changing their official quiz identity.
+2. handlePresetChange currently calls setTemplateId(preset.templateId), which leaks the visual preset template into the official card save flow.
+3. When a preset is active, users may see a visual card with one title but “Make Official” still saves the base quiz identity. This separation is intentional, but it needs a small clarification.
+
+Required changes:
+
+1. Rename preset selector label:
+From:
+“Choose your fangirl type”
+
+To:
+“Customize card vibe”
+
+Reason:
+Preset selection is a visual/social card customization, not a change to the official quiz result.
+
+2. Separate visual preset template from official template state.
+
+Current problem:
+handlePresetChange sets templateId to preset.templateId.
+This mutates shared state used by both FanCard and OfficialCardSection.
+
+Required:
+- Remove setTemplateId(preset.templateId) from handlePresetChange.
+- Keep templateId as the user-selected official/base template state.
+- Create a derived value, for example:
+
+const effectiveTemplateId = selectedPreset?.templateId ?? templateId;
+
+- Use effectiveTemplateId for the visual FanCard preview/export when a preset is active.
+- Keep passing the original templateId to OfficialCardSection, so official card saving does not accidentally save the preset template.
+- If TemplateSelector currently needs to reflect the visual card preview, verify carefully whether it should receive templateId or effectiveTemplateId. Do not create a contradiction.
+
+3. Add a small note near the Make Official area only when a preset is active.
+
+Text:
+“Your official card will be saved as your quiz result: {identity.title}.”
+
+Purpose:
+Make it clear that the current visual card vibe is editable, but official identity stays tied to the quiz result.
+
+4. Keep normal card generation unchanged:
+- visible FanCard can still use activeIdentity
+- download/export can still use activeIdentity
+- story captions and share captions should still use activeIdentity
+- user can still generate unlimited fun/social card variations
+
+5. Keep official card logic unchanged:
+- OfficialCardSection saves base identity.id
+- official stars/progression/unlocks remain tied to base identity
+- preset must not change official identityId
+
+Verification:
+After implementation, test:
+
+A. Start from /card?id=princess
+B. Select “Chaotic Fan” preset
+C. Confirm visible FanCard shows Chaotic Fan content
+D. Confirm download/export still shows Chaotic Fan content
+E. Confirm Make Official note says official card will be saved as Matchday Princess / base quiz identity
+F. Confirm Firestore official save still uses identityId = princess
+G. Confirm templateId saved to official card is not accidentally changed to chaotic-neon unless the user explicitly selected that template separately
+H. Confirm reset returns to base identity and removes the note
+I. Run existing tests
+
+Before final response, report:
+- exact files changed
+- whether setTemplateId(preset.templateId) was removed
+- where effectiveTemplateId is used
+- whether OfficialCardSection still receives base identity and base templateId
+- test results

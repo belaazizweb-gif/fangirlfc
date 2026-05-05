@@ -87,7 +87,6 @@ function Inner() {
   }, [match]);
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
-  const template = getTemplate(templateId);
 
   // Overlay selected personality preset on top of the base identity.
   // OfficialCardSection still uses the original identity.id from the URL.
@@ -103,11 +102,16 @@ function Inner() {
       }
     : identity;
 
+  // effectiveTemplateId: preset drives the visual card theme only.
+  // templateId (user-chosen) is always what gets sent to OfficialCardSection.
+  const effectiveTemplateId = selectedPreset?.templateId ?? templateId;
+  const template = getTemplate(effectiveTemplateId);
+
   const handlePresetChange = (id: string) => {
     const preset = getPreset(id);
     if (!preset) return;
     setPresetId(id);
-    setTemplateId(preset.templateId);
+    // Do NOT call setTemplateId here — preset template is visual-only.
   };
 
   const persistCard = () => {
@@ -242,7 +246,7 @@ function Inner() {
         {/* ── Personality preset selector ── */}
         <div>
           <label className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-            Choose your fangirl type
+            Customize card vibe
           </label>
           <div className="-mx-1 mt-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex gap-2 px-1" style={{ width: "max-content" }}>
@@ -320,6 +324,13 @@ function Inner() {
           </div>
         </div>
       </div>
+
+      {presetId && (
+        <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-[11px] text-white/50">
+          Your official card will be saved as your quiz result:{" "}
+          <span className="font-bold text-white/75">{identity.title}</span>.
+        </p>
+      )}
 
       <OfficialCardSection
         identityId={identity.id}
