@@ -101,15 +101,15 @@ export function resetStars() {
 
 export function getNextHint(stars: number, actions: StarAction[]): string {
   if (!actions.includes("quiz_completed"))
-    return "Take the quiz to unlock your fan identity";
+    return "Take the quiz to discover your football fan identity";
   if (!actions.includes("card_generated"))
-    return "Next level: generate your fan card";
+    return "Next level: turn your result into your Fangirl Card";
   if (!actions.includes("card_shared"))
-    return "Next level: share your card";
+    return "Next level: show the group chat your football fan type";
   if (!actions.includes("compare_friend"))
-    return "Next level: a friend takes the compare quiz";
-  if (stars >= MAX_STARS) return "Max stars unlocked, you certified fan";
-  return "Keep sharing to unlock more";
+    return "Next level: compare your football type with a friend";
+  if (stars >= MAX_STARS) return "Max stars unlocked — you certified fan";
+  return "Keep sharing to earn more matchday stars";
 }
 
 export function snapshot(): { stars: number; actions: StarAction[] } {

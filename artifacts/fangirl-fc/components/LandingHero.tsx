@@ -115,7 +115,7 @@ export function LandingHero() {
             in 60 seconds 💖
           </h1>
           <p className="mt-3 px-4 text-[15px] leading-snug text-white/85">
-            Take the quiz. Get your card. Send it to your bestie.
+            Discover how you really watch football — your matchday vibe, team instinct, and fan personality.
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export function LandingHero() {
 
           {/* Trust / friction line */}
           <p className="mt-0.5 text-center text-[11px] text-white/45">
-            No signup &nbsp;·&nbsp; 5 questions &nbsp;·&nbsp; Just for fun
+            No signup &nbsp;·&nbsp; 5 football questions &nbsp;·&nbsp; Just for fun
           </p>
         </div>
       </section>
@@ -179,8 +179,8 @@ export function LandingHero() {
           ⚽
         </div>
         <p className="relative text-[16px] font-bold leading-snug text-white/95">
-          Made for girls who watch football for the{" "}
-          <span className="gradient-text">vibes, the drama,</span> and the
+          Made for girls turning football into{" "}
+          <span className="gradient-text">vibes, drama, predictions,</span> and
           memories.
         </p>
       </section>
@@ -210,7 +210,7 @@ export function LandingHero() {
             return (
               <Link
                 key={f.id}
-                href={`/card?id=${f.id}`}
+                href="/quiz"
                 className="group relative overflow-hidden rounded-2xl border border-white/15 p-3.5 transition active:scale-[0.98]"
                 style={{ background: t.background }}
               >
@@ -263,20 +263,20 @@ export function LandingHero() {
           {[
             {
               n: "1",
-              title: "Answer 5 questions",
-              copy: "Tell us how you really watch football.",
+              title: "Answer 5 football questions",
+              copy: "Tell us how you watch, react, learn, and support.",
               tint: "from-pink-400/30 to-rose-400/10",
             },
             {
               n: "2",
-              title: "Get your Fangirl Card",
-              copy: "Your type, vibe, score, and team mood.",
+              title: "Get your fan identity",
+              copy: "Your matchday vibe, team instinct, and football personality.",
               tint: "from-fuchsia-400/30 to-violet-400/10",
             },
             {
               n: "3",
-              title: "Send it to your bestie",
-              copy: "Compare results and start the group chat drama.",
+              title: "Make your Fangirl Card",
+              copy: "Turn your result into a card and send it to your bestie.",
               tint: "from-amber-300/30 to-pink-300/10",
             },
           ].map((s) => (
@@ -305,7 +305,7 @@ export function LandingHero() {
       {/* ---------------- UNLOCKED IDENTITIES — lower, with context ---------------- */}
       <section>
         <p className="mb-2 text-center text-[11px] text-white/35">
-          Unlock more types after your first result.
+          Take the quiz to start unlocking fan identities.
         </p>
         <UnlockedIdentities />
       </section>

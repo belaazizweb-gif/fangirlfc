@@ -23,10 +23,10 @@ export function UnlockedIdentities() {
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-bold text-white/90">
-            Unlocked Identities
+            Fan Identity Collection
           </div>
           <div className="text-[11px] text-white/55">
-            {unlocked.length}/{total} identities unlocked
+            {unlocked.length}/{total} football fan types unlocked
           </div>
         </div>
         <Link
@@ -36,6 +36,9 @@ export function UnlockedIdentities() {
           Unlock more
         </Link>
       </div>
+      <p className="mt-2 text-[11px] text-white/35">
+        Unlock more fan identities as you play, predict, and learn football.
+      </p>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {FAN_TYPE_LIST.map((f) => {
           const isUnlocked = unlocked.includes(f.id);

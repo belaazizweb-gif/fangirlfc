@@ -48,13 +48,18 @@ function QuizInner() {
     <div className="flex flex-col gap-5">
       <div>
         <h1 className="text-2xl font-black">
-          {match ? "Matchday Quiz" : "The Fangirl Quiz"}
+          {match ? "Matchday Quiz" : "The Football Fangirl Quiz"}
         </h1>
         <p className="mt-1 text-sm text-white/60">
           {match
             ? matchHeadline(match)
-            : "Pick the option that's most you. No wrong answers, only chaos."}
+            : "Find out how you really watch football — your matchday energy, team loyalty, rules instinct, and group chat vibe."}
         </p>
+        {!match && (
+          <p className="mt-1 text-[11px] text-white/40">
+            5 questions · no signup · just your football era
+          </p>
+        )}
       </div>
       <Quiz compareTo={compareTo} matchId={match?.id} />
     </div>

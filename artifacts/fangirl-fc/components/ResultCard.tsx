@@ -225,6 +225,13 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
         </div>
       )}
 
+      {/* ── Football fan personality heading ── */}
+      <div className="px-1 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/45">
+          Your football fan personality
+        </p>
+      </div>
+
       {/* Identity card with aura */}
       <div className="relative">
         <div
@@ -385,7 +392,7 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
             </div>
             <div className="text-[11px] text-white/65">
               {remaining > 0
-                ? `${remaining} left to discover · try different answers`
+                ? `${remaining} more football personalities to discover`
                 : "You've unlocked them all. Iconic."}
             </div>
           </div>
@@ -408,7 +415,7 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
           href={cardHref}
           className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
         >
-          Make my Fangirl Card
+          Turn this into my Fangirl Card
           <ArrowRight className="h-4 w-4" />
         </Link>
         {remaining > 0 && (

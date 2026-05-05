@@ -1,0 +1,174 @@
+Implement the minimal UX/content improvements from the Fangirl FC audit.
+
+Do not change quiz scoring.
+Do not change card generation logic.
+Do not modify FanCard.
+Do not modify stars/unlocks data model.
+Do not modify Firestore schema.
+Do not add new features.
+This is copy + flow clarity only.
+
+Product direction:
+Fangirl FC must feel like a women + football social app, not only an aesthetic card generator.
+
+Core product rule:
+Quiz = official football fan identity.
+Card = fun/shareable reward.
+Stars/unlocks = football-era progression.
+
+Required changes:
+
+1. Landing page copy
+
+Current issue:
+The landing page says quiz → card → share, but does not clearly communicate football enough.
+
+Update hero subtitle from:
+“Take the quiz. Get your card. Send it to your bestie.”
+
+To:
+“Discover how you really watch football — your matchday vibe, team instinct, and fan personality.”
+
+Keep the headline:
+“Find your Fangirl Type in 60 seconds 💖”
+
+Keep the primary CTA:
+“Find my fan type →”
+
+Update trust line if needed:
+“No signup · 5 football questions · Just for fun”
+
+Update tagline section from:
+“Made for girls who watch football for the vibes, the drama, and the memories.”
+
+To:
+“Made for girls turning football into vibes, drama, predictions, and memories.”
+
+2. Landing identity grid behavior
+
+Current issue:
+Identity grid cards link directly to /card?id=..., which lets users bypass the quiz and create an identity without answering.
+
+Required fix:
+The identity grid should be treated as preview/examples, not direct identity selection.
+
+Change behavior:
+- Do not link identity tiles directly to /card?id=...
+- Either make them non-clickable preview cards OR route clicks to /quiz.
+- Preferred: clicking any identity tile routes to /quiz with a clear CTA feel.
+
+Update grid helper text:
+“Take the quiz to find your real matchday type →”
+
+Do not remove the grid.
+It is useful as social proof, but it must not short-circuit the official quiz flow.
+
+3. How It Works copy
+
+Update the three steps to better communicate football progression:
+
+Step 1:
+Title: “Answer 5 football questions”
+Text: “Tell us how you watch, react, learn, and support.”
+
+Step 2:
+Title: “Get your fan identity”
+Text: “Your matchday vibe, team instinct, and football personality.”
+
+Step 3:
+Title: “Make your Fangirl Card”
+Text: “Turn your result into a card and send it to your bestie.”
+
+4. Quiz page intro
+
+Current title:
+“The Fangirl Quiz”
+
+Update to:
+“The Football Fangirl Quiz”
+
+Current subtitle:
+“Pick the option that's most you. No wrong answers, only chaos.”
+
+Update to:
+“Find out how you really watch football — your matchday energy, team loyalty, rules instinct, and group chat vibe.”
+
+Add or update small helper text if the layout supports it:
+“5 questions · no signup · just your football era”
+
+Do not change the quiz questions or scoring.
+
+5. Result page copy
+
+Current issue:
+The result page pushes quickly toward “Make my Fangirl Card” before fully explaining the football meaning of the result.
+
+Required:
+Add or update a small section/headline near the top of the result:
+
+“Your football fan personality”
+
+Then make the identity description more prominent if possible.
+The existing fanTypes descriptions are strong and football-specific; do not hide them too low.
+
+Update primary CTA from:
+“Make my Fangirl Card”
+
+To:
+“Make my Football Fan Card”
+
+or:
+“Turn this into my Fangirl Card”
+
+Preferred:
+“Turn this into my Fangirl Card”
+
+Reason:
+This keeps the card fun, while making it clear the card comes after the football result.
+
+6. Stars / unlocks explanation
+
+Where StarProgress or unlock progress appears, update helper copy to explain progression.
+
+Suggested copy:
+“Earn stars as you take quizzes, make cards, and join matchday challenges.”
+
+For unlocked identities:
+“Unlock more fan identities as you play, predict, and learn football.”
+
+Do not change the underlying logic.
+Copy only.
+
+7. Card page terminology
+
+Keep:
+“Customize card vibe”
+
+Do not revert it to:
+“Choose your fangirl type”
+
+Reason:
+Official quiz identity and visual card vibe must stay clearly separated.
+
+8. Verification checklist
+
+After implementation, verify:
+
+- Landing page still loads.
+- Hero clearly mentions football.
+- Primary CTA routes to /quiz.
+- Identity grid no longer routes directly to /card?id=...
+- Quiz title/subtitle are updated.
+- Quiz scoring still works unchanged.
+- Result page still receives /result?id=...
+- Result page copy explains football fan personality more clearly.
+- Card CTA still works.
+- Card generation/download still works.
+- Stars/unlocks still work.
+- No tests broken.
+
+Before final response, report:
+- exact files changed
+- whether identity grid direct-to-card links were removed
+- whether quiz logic was untouched
+- test results
