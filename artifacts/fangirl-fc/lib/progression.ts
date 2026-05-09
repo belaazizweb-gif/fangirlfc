@@ -13,6 +13,11 @@ export const MAX_STAR_FRAGMENTS = 20;
 export const VISUAL_STARS = 5;
 export const FRAGMENTS_PER_STAR = MAX_STAR_FRAGMENTS / VISUAL_STARS;
 
+// First N penalty sessions per day earn full XP; beyond that, reduced.
+const FULL_XP_SESSIONS_PER_DAY = 3;
+const REDUCED_XP_MULTIPLIER = 0.5;
+const DAILY_XP_HARD_CAP = 500;
+
 export interface PenaltySkillLevels {
   accuracy: number;
   powerControl: number;
@@ -69,18 +74,14 @@ export interface ProgressionState {
   dailyCaps: DailyCaps;
 }
 
+// ---------- Pure helpers (no storage) ----------
+
 function todayString(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
 function defaultPenaltySkills(): PenaltySkillLevels {
-  return {
-    accuracy: 0,
-    powerControl: 0,
-    curve: 0,
-    nerves: 0,
-    clutch: 0,
-  };
+  return { accuracy: 0, powerControl: 0, curve: 0, nerves: 0, clutch: 0 };
 }
 
 export function defaultProgressionState(): ProgressionState {
@@ -116,31 +117,6 @@ export function defaultProgressionState(): ProgressionState {
       xpEarnedToday: 0,
     },
   };
-}
-
-export function readProgression(): ProgressionState {
-  if (typeof window === "undefined") return defaultProgressionState();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultProgressionState();
-    const parsed = JSON.parse(raw) as Partial<ProgressionState>;
-    if (!parsed || parsed.version !== 1) return defaultProgressionState();
-    const defaults = defaultProgressionState();
-    return {
-      ...defaults,
-      ...parsed,
-      penalty: { ...defaults.penalty, ...(parsed.penalty ?? {}) },
-      footballIQ: { ...defaults.footballIQ, ...(parsed.footballIQ ?? {}) },
-      dailyCaps: { ...defaults.dailyCaps, ...(parsed.dailyCaps ?? {}) },
-    } as ProgressionState;
-  } catch {
-    return defaultProgressionState();
-  }
-}
-
-export function writeProgression(state: ProgressionState): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
 export function xpToFragment(xp: number): number {
@@ -179,6 +155,35 @@ export function levelFromXp(xp: number): number {
   return Math.max(1, Math.floor(xp / 100) + 1);
 }
 
+// ---------- Storage ----------
+
+export function readProgression(): ProgressionState {
+  if (typeof window === "undefined") return defaultProgressionState();
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultProgressionState();
+    const parsed = JSON.parse(raw) as Partial<ProgressionState>;
+    if (!parsed || parsed.version !== 1) return defaultProgressionState();
+    const defaults = defaultProgressionState();
+    return {
+      ...defaults,
+      ...parsed,
+      penalty: { ...defaults.penalty, ...(parsed.penalty ?? {}) },
+      footballIQ: { ...defaults.footballIQ, ...(parsed.footballIQ ?? {}) },
+      dailyCaps: { ...defaults.dailyCaps, ...(parsed.dailyCaps ?? {}) },
+    } as ProgressionState;
+  } catch {
+    return defaultProgressionState();
+  }
+}
+
+export function writeProgression(state: ProgressionState): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ---------- Internal state mutators ----------
+
 function refreshDailyCaps(state: ProgressionState): ProgressionState {
   const today = todayString();
   if (state.dailyCaps.date !== today) {
@@ -206,67 +211,68 @@ function updateStreak(state: ProgressionState): ProgressionState {
   return { ...state, streak: newStreak, lastActiveDate: today };
 }
 
-export function awardXP(
-  xpAmount: number,
-  dailyCapXP = 500,
-): ProgressionState {
-  let state = readProgression();
-  state = refreshDailyCaps(state);
-  state = updateStreak(state);
-
-  const remaining = Math.max(0, dailyCapXP - state.dailyCaps.xpEarnedToday);
+// Apply XP to an already-refreshed state (does NOT read/write storage).
+// Returns the updated state. Hard cap enforced here.
+function applyXP(state: ProgressionState, xpAmount: number): ProgressionState {
+  const remaining = Math.max(0, DAILY_XP_HARD_CAP - state.dailyCaps.xpEarnedToday);
   const actualXP = Math.min(xpAmount, remaining);
-  if (actualXP <= 0) {
-    writeProgression(state);
-    return state;
-  }
+  if (actualXP <= 0) return state;
 
   const newXP = state.xp + actualXP;
   const newFragments = xpToFragment(newXP);
   const newLevel = levelFromXp(newXP);
+  const skillPointsGained = Math.max(0, newLevel - state.level);
 
-  const skillPointsGained = newLevel - state.level;
-
-  const next: ProgressionState = {
+  return {
     ...state,
     xp: newXP,
     starFragments: newFragments,
     level: newLevel,
-    skillPoints: state.skillPoints + Math.max(0, skillPointsGained),
+    skillPoints: state.skillPoints + skillPointsGained,
     dailyCaps: {
       ...state.dailyCaps,
       xpEarnedToday: state.dailyCaps.xpEarnedToday + actualXP,
     },
   };
-
-  writeProgression(next);
-  return next;
 }
 
-export function unlockBadge(badgeId: BadgeId): ProgressionState {
-  const state = readProgression();
-  if (state.badges.includes(badgeId)) return state;
-  const next: ProgressionState = {
-    ...state,
-    badges: [...state.badges, badgeId],
-  };
-  writeProgression(next);
-  return next;
-}
+// ---------- Public API ----------
 
-export function unlockBadges(badgeIds: BadgeId[]): ProgressionState {
+/**
+ * Award XP from any source (non-penalty). Applies the daily hard cap.
+ * Returns the updated ProgressionState (already persisted).
+ */
+export function awardXP(xpAmount: number): ProgressionState {
   let state = readProgression();
-  const newBadges = badgeIds.filter((id) => !state.badges.includes(id));
-  if (newBadges.length === 0) return state;
-  state = { ...state, badges: [...state.badges, ...newBadges] };
+  state = refreshDailyCaps(state);
+  state = updateStreak(state);
+  state = applyXP(state, xpAmount);
   writeProgression(state);
   return state;
 }
 
+/**
+ * Record a completed penalty session and award its XP in one atomic call.
+ *
+ * XP reduction rule:
+ *   - Sessions 1–3 today: session.xpEarned awarded at 100%
+ *   - Sessions 4+ today:  session.xpEarned awarded at 50%
+ *
+ * This is the single entry point from the penalty UI — do NOT call
+ * awardXP() separately after calling this function.
+ *
+ * Returns the updated ProgressionState (already persisted).
+ */
 export function recordPenaltySession(session: PenaltySession): ProgressionState {
   let state = readProgression();
   state = refreshDailyCaps(state);
   state = updateStreak(state);
+
+  const sessionsToday = state.dailyCaps.penaltySessionsToday;
+  const isFullXP = sessionsToday < FULL_XP_SESSIONS_PER_DAY;
+  const effectiveXP = isFullXP
+    ? session.xpEarned
+    : Math.floor(session.xpEarned * REDUCED_XP_MULTIPLIER);
 
   const prev = state.penalty;
   const updatedPenalty: PenaltyStats = {
@@ -279,17 +285,37 @@ export function recordPenaltySession(session: PenaltySession): ProgressionState 
     lastSession: session,
   };
 
-  const next: ProgressionState = {
+  state = {
     ...state,
     penalty: updatedPenalty,
     dailyCaps: {
       ...state.dailyCaps,
-      penaltySessionsToday: state.dailyCaps.penaltySessionsToday + 1,
+      penaltySessionsToday: sessionsToday + 1,
     },
   };
 
+  // Apply XP last — uses the now-incremented session count for future calls
+  // but the reduction was already decided above based on pre-increment count.
+  state = applyXP(state, effectiveXP);
+  writeProgression(state);
+  return state;
+}
+
+export function unlockBadge(badgeId: BadgeId): ProgressionState {
+  const state = readProgression();
+  if (state.badges.includes(badgeId)) return state;
+  const next: ProgressionState = { ...state, badges: [...state.badges, badgeId] };
   writeProgression(next);
   return next;
+}
+
+export function unlockBadges(badgeIds: BadgeId[]): ProgressionState {
+  let state = readProgression();
+  const newBadges = badgeIds.filter((id) => !state.badges.includes(id));
+  if (newBadges.length === 0) return state;
+  state = { ...state, badges: [...state.badges, ...newBadges] };
+  writeProgression(state);
+  return state;
 }
 
 export function getTopBadge(state: ProgressionState): BadgeId | null {
