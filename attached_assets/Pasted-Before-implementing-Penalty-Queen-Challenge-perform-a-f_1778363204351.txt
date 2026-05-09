@@ -1,0 +1,324 @@
+Before implementing Penalty Queen Challenge, perform a full technical and product audit of the current Fangirl FC app.
+
+DO NOT IMPLEMENT ANYTHING YET.
+DO NOT MODIFY FILES.
+DO NOT REFACTOR.
+DO NOT CHANGE UI.
+AUDIT ONLY.
+
+Context:
+We are planning to add:
+- Penalty Queen Challenge
+- Progression Engine
+- XP
+- 5 visual stars with 20 internal fragments
+- badges
+- latest penalty score
+- card progression display
+- future Daily Football IQ
+
+But before implementation, we need a complete state-of-the-app audit to avoid breaking existing flows.
+
+Current product positioning:
+Fangirl FC = World Cup 2026 social football game for girls.
+Existing core flow:
+Landing → Quiz → Result → GirlCard → Share
+
+Future core loop:
+Quiz
+→ Fan Type
+→ GirlCard
+→ Daily Football IQ
+→ Penalty Queen Challenge
+→ XP / badges / stars
+→ updated card
+→ share / challenge bestie or squad
+
+The card is the shareable proof object.
+
+Audit the current app in detail.
+
+---
+
+## 1. Current routes/pages
+
+List all current routes/pages, including:
+- landing page
+- quiz page
+- result page
+- card page
+- auth/sign in if any
+- challenge/unlocks/stars pages if any
+- any other routes
+
+For each route, explain:
+- what it does
+- which components it uses
+- what data it depends on
+- whether it is client-side or server-side
+- any localStorage/Firestore usage
+
+---
+
+## 2. Landing page audit
+
+Find exactly where the landing page is defined.
+
+Audit:
+- hero section
+- CTA buttons
+- identity grid
+- how it works
+- unlocked identities section
+- reviews/testimonials
+- navigation
+
+Report:
+- which files/components control these sections
+- where a future “Penalty Queen Challenge” CTA could be added
+- whether it should appear in hero, below quiz, or as a secondary challenge section
+- recommended placement without distracting from primary quiz CTA
+
+Important:
+Do not implement the CTA yet.
+Just recommend where it should go.
+
+---
+
+## 3. Quiz flow audit
+
+Audit the full quiz flow:
+
+- where quiz questions are stored
+- where scoring is calculated
+- how result identity is selected
+- how result route is generated
+- how /result?id=... works
+- how /card?id=... receives identity
+- whether the quiz result is persisted anywhere
+- whether direct route access can bypass quiz
+
+Report risks:
+- what must not be changed
+- which files are sensitive
+
+---
+
+## 4. Result page audit
+
+Audit the result page:
+
+- which component renders the identity result
+- where the CTA to card is defined
+- where stars/unlocks appear
+- what data it uses
+- whether progression can later be added here
+- whether Penalty Queen should be promoted from this page
+
+Recommendation:
+Should the user be sent to:
+A. Card first, then Penalty
+B. Penalty first, then Card
+C. Result → Card → Penalty as optional next step
+
+Do not implement yet.
+
+---
+
+## 5. Card page audit
+
+Audit the card page carefully.
+
+We need to know:
+- where FanCard is rendered
+- where activeIdentity is created
+- where card vibe/preset customization is applied
+- where official quiz identity is preserved
+- where download/export is handled
+- where share captions/story mode are handled
+- where OfficialCardSection is used
+- what localStorage/Firestore data card page reads/writes
+- what must not be touched
+
+Important:
+The card is the proof object.
+Future card should eventually show:
+- stars
+- top badge
+- latest penalty score
+- Football IQ level
+without cluttering the design.
+
+Report:
+- safest place to add progress display
+- whether to add inside FanCard or beside FanCard
+- whether export/download would include the progress display
+- risks to export/download
+
+---
+
+## 6. Current stars/unlocks audit
+
+Audit current stars/unlocks logic.
+
+Find:
+- lib/stars.ts or equivalent
+- unlocked identities logic
+- where stars are calculated
+- where they display
+- whether stars are cosmetic or persisted
+- whether localStorage is used
+- how unlocks are triggered
+
+Report:
+- whether current stars can coexist with new Progression Engine
+- whether we should keep current stars untouched
+- whether new progression should be separate first
+- migration risks
+
+Do not delete or replace existing stars logic.
+
+---
+
+## 7. Current data/storage audit
+
+Audit all current storage mechanisms:
+
+- localStorage keys
+- Firestore collections if any
+- auth state if any
+- URL params
+- hardcoded data files
+
+Report:
+- exact storage keys used
+- where they are read/written
+- collision risks with new progression keys
+- recommended new localStorage key name for Progression Engine
+
+Preferred new key:
+fangirl_progress_v1
+
+---
+
+## 8. Current components/files map
+
+Provide a file map:
+
+For each important file:
+- file path
+- purpose
+- sensitive or safe to modify
+- why
+
+Classify files as:
+- HIGH RISK: changing may break existing core flow
+- MEDIUM RISK: can modify with caution
+- LOW RISK: safe to add/change
+
+---
+
+## 9. Penalty Queen integration plan
+
+After auditing, propose the safest integration plan.
+
+Expected future files:
+- lib/progression.ts
+- lib/badges.ts
+- lib/penaltyEngine.ts
+- lib/cardProgressAdapter.ts
+- app/penalty/page.tsx
+- components/penalty/PenaltyIntro.tsx
+- components/penalty/PenaltyGame.tsx
+- components/penalty/PowerBar.tsx
+- components/penalty/ShotControls.tsx
+- components/penalty/GoalView.tsx
+- components/penalty/PenaltyResult.tsx
+
+But do not create them yet.
+
+Explain:
+- where /penalty should be linked from
+- whether it needs quiz identity
+- whether it should work without login
+- whether it should read current fan type
+- how it should update card progression later
+- how to avoid breaking export/download
+
+---
+
+## 10. Recommended implementation phases
+
+Recommend exact phases:
+
+Phase 1:
+Progression Engine only.
+
+Phase 2:
+Penalty game UI only.
+
+Phase 3:
+Rewards integration.
+
+Phase 4:
+Card progress display.
+
+Phase 5:
+Landing/result/card CTAs.
+
+For each phase, list:
+- exact files to create
+- exact files to modify
+- expected behavior
+- test checklist
+- rollback risk
+
+---
+
+## 11. Testing checklist
+
+Create a full regression test checklist for existing app:
+
+Before and after Penalty implementation, verify:
+
+- landing page loads
+- primary CTA routes to quiz
+- identity grid does not bypass quiz incorrectly
+- quiz works
+- result page receives identity
+- result CTA works
+- card page loads
+- card vibe selector works
+- official identity logic remains correct
+- card download/export works
+- share captions/story mode work
+- stars/unlocks still display
+- no console errors
+- typecheck passes
+- existing e2e tests pass
+
+---
+
+## 12. Final output required
+
+Do not code.
+
+Return only:
+
+1. Current architecture summary
+2. Routes/pages map
+3. Component/file map
+4. Storage/localStorage/Firestore audit
+5. Stars/unlocks audit
+6. Card flow audit
+7. Landing integration recommendation
+8. Penalty Queen integration recommendation
+9. Risk list
+10. Safe phased implementation plan
+11. Exact files that should be modified later
+12. Exact files that should NOT be modified unless necessary
+13. Testing checklist
+
+Again:
+AUDIT ONLY.
+NO IMPLEMENTATION.
