@@ -1,0 +1,120 @@
+Implement Phase 1 only of the Penalty Queen Challenge + Progression Engine.
+
+Do NOT build the Penalty UI yet.
+Do NOT create /penalty yet.
+Do NOT modify the landing page.
+Do NOT modify the quiz.
+Do NOT modify the result page.
+Do NOT modify the card page.
+Do NOT modify FanCard.
+Do NOT modify OfficialCardSection.
+Do NOT modify Firestore schema.
+Do NOT remove or replace lib/stars.ts.
+Do NOT refactor unrelated files.
+
+Context:
+We completed a full app audit. The app is local-first, client-side, and already has quiz/result/card/stars/unlocks flows.
+Penalty Queen must be added carefully in phases.
+The card is the proof object, but card integration comes later.
+
+Goal of Phase 1:
+Create the isolated Progression Engine files only.
+
+Create these new files:
+- lib/progression.ts
+- lib/badges.ts
+- lib/penaltyEngine.ts
+- lib/cardProgressAdapter.ts
+
+Use localStorage key:
+fangirl_progress_v1
+
+Progression requirements:
+- XP
+- starFragments from 0 to 20
+- 5 visual stars derived from 20 fragments
+- level
+- skillPoints
+- badges
+- streak
+- daily caps
+- penalty stats
+- footballIQ placeholder stats
+- latest penalty session placeholder
+
+Use these XP thresholds for 20 star fragments:
+[50,120,210,320,460,620,800,1000,1250,1530,1840,2180,2550,2950,3380,3840,4330,4850,5400,6000]
+
+Data model:
+ProgressionState should include:
+- version: 1
+- xp
+- starFragments
+- level
+- skillPoints
+- streak
+- badges
+- penalty stats
+- footballIQ stats
+- dailyCaps
+
+Penalty stats should include:
+- bestScore
+- totalSessions
+- totalGoals
+- totalAttempts
+- perfectShots
+- skillLevels: accuracy, powerControl, curve, nerves, clutch
+- lastSession
+
+Badges to define:
+Penalty badges:
+- penalty_queen
+- ice_cold_finisher
+- perfect_shot
+- pressure_proof
+- comeback_girl
+- no_miss_energy
+
+Football IQ badges:
+- rules_rookie
+- she_knows_ball
+- offside_survivor
+- var_girl
+- tactical_mind
+
+Social badges:
+- bestie_challenge
+- squad_energy
+- group_chat_icon
+- team_captain
+
+Penalty engine should define types only and pure helper functions:
+- ShotDirection
+- PowerZone
+- ShotStyle
+- PenaltyAttempt
+- PenaltySessionResult
+- calculatePenaltyResult()
+- calculatePenaltyRewards()
+- detectPenaltyBadges()
+
+Do not connect these helpers to UI yet.
+
+cardProgressAdapter.ts should expose a function that converts ProgressionState into:
+- starsDisplay
+- starFragments
+- topBadge
+- latestPenaltyScore
+- footballIQLevel
+- xp
+
+Acceptance criteria:
+- Only new files are added.
+- No existing flow is modified.
+- Existing quiz/result/card pages remain untouched.
+- Typecheck passes.
+- Existing tests pass.
+- Report exact files created.
+- Report all exported functions/types.
+- Confirm no existing files were modified.
