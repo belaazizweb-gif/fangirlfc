@@ -58,7 +58,8 @@ function BallSvg({ size }: { size: number }) {
 }
 
 // ── Premium goalkeeper SVG ──
-// viewBox="0 0 100 100": y=100 is the pitch/ground line. overflow="visible" for gloves.
+// viewBox="0 0 100 100": y=100 is the pitch/ground line. overflow="visible" for gloves+arms.
+// Drawing order: shadow → boots → socks → shorts → jersey → arms → head → gloves
 function KeeperSvg() {
   return (
     <svg
@@ -69,42 +70,41 @@ function KeeperSvg() {
       style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.6))" }}
     >
       {/* ── Ground shadow ── */}
-      <ellipse cx="50" cy="99" rx="30" ry="4.5" fill="rgba(0,0,0,0.38)" />
+      <ellipse cx="50" cy="99" rx="32" ry="5" fill="rgba(0,0,0,0.38)" />
 
-      {/* ── Boots ── */}
-      <rect x="52" y="91" width="23" height="10" rx="4" fill="#7c3aed" />
-      <rect x="50" y="96" width="28" height="5"  rx="2" fill="#6d28d9" />
-      <rect x="26" y="91" width="23" height="10" rx="4" fill="#7c3aed" />
-      <rect x="23" y="96" width="28" height="5"  rx="2" fill="#6d28d9" />
+      {/* ── Boots (tapered toe shape) ── */}
+      {/* Soles */}
+      <rect x="20" y="96" width="33" height="5" rx="2" fill="#6d28d9" />
+      <rect x="47" y="96" width="33" height="5" rx="2" fill="#6d28d9" />
+      {/* Upper boot */}
+      <path d="M24,92 L48,92 L51,100 L21,100 Z" fill="#7c3aed" />
+      <path d="M52,92 L76,92 L79,100 L49,100 Z" fill="#7c3aed" />
 
       {/* ── Socks ── */}
-      <rect x="54" y="78" width="18" height="17" rx="3" fill="#374151" />
-      <rect x="54" y="78" width="18" height="5"  rx="2" fill="#4b5563" />
-      <rect x="28" y="78" width="18" height="17" rx="3" fill="#374151" />
-      <rect x="28" y="78" width="18" height="5"  rx="2" fill="#4b5563" />
+      <rect x="28" y="81" width="20" height="14" rx="3" fill="#374151" />
+      <rect x="28" y="81" width="20" height="5"  rx="2" fill="#4b5563" />
+      <rect x="52" y="81" width="20" height="14" rx="3" fill="#374151" />
+      <rect x="52" y="81" width="20" height="5"  rx="2" fill="#4b5563" />
 
-      {/* ── Shorts ── */}
-      <ellipse cx="50" cy="78" rx="12" ry="7" fill="#14532d" />
-      <rect x="27" y="69" width="22" height="16" rx="6" fill="#14532d" />
-      <rect x="51" y="69" width="22" height="16" rx="6" fill="#14532d" />
+      {/* ── Shorts (visible below jersey hem) ── */}
+      <ellipse cx="50" cy="74" rx="14" ry="9" fill="#14532d" />
+      <rect x="25" y="64" width="25" height="22" rx="6" fill="#14532d" />
+      <rect x="50" y="64" width="25" height="22" rx="6" fill="#14532d" />
 
-      {/* ── Jersey body ── */}
-      {/* Main torso */}
-      <rect x="26" y="22" width="48" height="52" rx="10" fill="#166534" />
-      {/* Shoulder wings (wider silhouette) */}
-      <rect x="17" y="22" width="66" height="24" rx="10" fill="#1a7a40" />
-      {/* Central chest yoke */}
-      <rect x="30" y="28" width="40" height="20" rx="6" fill="#155e34" />
+      {/* ── Jersey (trapezoid — wide shoulders, ends at y=65 so shorts show) ── */}
+      {/* Shoulder trapezoid */}
+      <path d="M14,26 L86,26 L80,65 L20,65 Z" fill="#1a7a40" />
+      {/* Body centre (slightly darker) */}
+      <rect x="26" y="28" width="48" height="37" rx="8" fill="#166534" />
+      {/* Chest yoke */}
+      <rect x="30" y="28" width="40" height="18" rx="6" fill="#155e34" />
       {/* Lime accent stripe */}
-      <rect x="32" y="35" width="36" height="5" rx="2" fill="rgba(74,222,128,0.42)" />
-      {/* Side performance panels */}
-      <rect x="17" y="36" width="10" height="30" rx="4" fill="#15803d" />
-      <rect x="73" y="36" width="10" height="30" rx="4" fill="#15803d" />
+      <rect x="32" y="35" width="36" height="5" rx="2" fill="rgba(74,222,128,0.45)" />
       {/* Jersey number */}
       <text
-        x="50" y="65"
+        x="50" y="57"
         textAnchor="middle"
-        fontSize="17"
+        fontSize="15"
         fill="#bbf7d0"
         fontWeight="900"
         fontFamily="Arial, sans-serif"
@@ -113,45 +113,48 @@ function KeeperSvg() {
         1
       </text>
 
+      {/* ── Arms: WEDGE paths — narrow at jersey, flares wide at glove end ──
+           This makes the gloves look attached, not floating.
+           Left arm: jersey side at x=14, y=26–42 → glove side at x=−6, y=20–50 */}
+      <path d="M14,26 L14,42 L-6,50 L-6,20 Z" fill="#1a7a40" />
+      {/* Right arm mirror */}
+      <path d="M86,26 L86,42 L106,50 L106,20 Z" fill="#1a7a40" />
+
       {/* ── Head ── */}
       {/* Neck */}
-      <rect x="44" y="18" width="12" height="8" rx="5" fill="#d97706" />
-      {/* Head circle */}
+      <rect x="44" y="21" width="12" height="7" rx="5" fill="#d97706" />
+      {/* Head */}
       <circle cx="50" cy="11" r="12" fill="#d97706" />
-      {/* Keeper cap dome (covers top ~55% of head) */}
-      <ellipse cx="50" cy="8" rx="12.5" ry="8" fill="#15803d" />
-      {/* Cap brim shadow line */}
-      <rect x="36" y="13" width="28" height="4" rx="1.5" fill="#0f4b1e" />
-      {/* Minimal eye slits — determined expression, no cartoon */}
-      <rect x="42" y="15.5" width="5"  height="1.5" rx="0.75" fill="rgba(30,8,0,0.65)" />
-      <rect x="53" y="15.5" width="5"  height="1.5" rx="0.75" fill="rgba(30,8,0,0.65)" />
+      {/* Keeper cap dome */}
+      <ellipse cx="50" cy="7"  rx="12.5" ry="8" fill="#166534" />
+      {/* Cap brim */}
+      <rect x="37" y="13" width="26" height="4" rx="1.5" fill="#0f4b1e" />
+      {/* Eyebrows — determined look, no cartoon eyes */}
+      <path d="M40,16.5 L47,14.5" stroke="#5c3d00" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+      <path d="M53,14.5 L60,16.5" stroke="#5c3d00" strokeWidth="2.5" strokeLinecap="round" fill="none" />
 
-      {/* ── Left arm + glove ── */}
-      {/* Sleeve */}
-      <rect x="-14" y="26" width="44" height="14" rx="7" fill="#1a7a40" />
-      {/* Glove — large rectangular keeper glove */}
-      <rect x="-28" y="17" width="27" height="32" rx="6" fill="#f97316" />
-      {/* Palm ridge highlight */}
-      <rect x="-26" y="19" width="23" height="13" rx="4" fill="rgba(255,255,255,0.26)" />
-      {/* Finger zone (darker) */}
-      <rect x="-26" y="34" width="23" height="13" rx="4" fill="#c2410c" />
+      {/* ── Left glove (right edge at x=−6 = arm endpoint — seamless join) ── */}
+      <rect x="-31" y="17" width="25" height="36" rx="6" fill="#f97316" />
+      {/* Palm highlight */}
+      <rect x="-29" y="19" width="21" height="13" rx="4" fill="rgba(255,255,255,0.30)" />
+      {/* Finger zone */}
+      <rect x="-29" y="34" width="21" height="14" rx="3" fill="#c2410c" />
       {/* Finger dividers */}
-      <line x1="-18" y1="34" x2="-18" y2="47" stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" />
-      <line x1="-10" y1="34" x2="-10" y2="47" stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" />
+      <line x1="-22" y1="34" x2="-22" y2="48" stroke="rgba(0,0,0,0.24)" strokeWidth="1.2" />
+      <line x1="-14" y1="34" x2="-14" y2="48" stroke="rgba(0,0,0,0.24)" strokeWidth="1.2" />
       {/* Wrist strap */}
-      <rect x="-26" y="43" width="23" height="6"  rx="2.5" fill="#fde68a" />
+      <rect x="-29" y="47" width="21" height="6" rx="2.5" fill="#fde68a" />
       {/* Glove outline */}
-      <rect x="-28" y="17" width="27" height="32" rx="6" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
+      <rect x="-31" y="17" width="25" height="36" rx="6" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
 
-      {/* ── Right arm + glove ── */}
-      <rect x="70" y="26" width="44" height="14" rx="7" fill="#1a7a40" />
-      <rect x="101" y="17" width="27" height="32" rx="6" fill="#f97316" />
-      <rect x="103" y="19" width="23" height="13" rx="4" fill="rgba(255,255,255,0.26)" />
-      <rect x="103" y="34" width="23" height="13" rx="4" fill="#c2410c" />
-      <line x1="111" y1="34" x2="111" y2="47" stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" />
-      <line x1="119" y1="34" x2="119" y2="47" stroke="rgba(0,0,0,0.22)" strokeWidth="1.2" />
-      <rect x="103" y="43" width="23" height="6"  rx="2.5" fill="#fde68a" />
-      <rect x="101" y="17" width="27" height="32" rx="6" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
+      {/* ── Right glove (left edge at x=106 = arm endpoint — seamless join) ── */}
+      <rect x="106" y="17" width="25" height="36" rx="6" fill="#f97316" />
+      <rect x="108" y="19" width="21" height="13" rx="4" fill="rgba(255,255,255,0.30)" />
+      <rect x="108" y="34" width="21" height="14" rx="3" fill="#c2410c" />
+      <line x1="115" y1="34" x2="115" y2="48" stroke="rgba(0,0,0,0.24)" strokeWidth="1.2" />
+      <line x1="123" y1="34" x2="123" y2="48" stroke="rgba(0,0,0,0.24)" strokeWidth="1.2" />
+      <rect x="108" y="47" width="21" height="6" rx="2.5" fill="#fde68a" />
+      <rect x="106" y="17" width="25" height="36" rx="6" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="1.5" />
     </svg>
   );
 }
