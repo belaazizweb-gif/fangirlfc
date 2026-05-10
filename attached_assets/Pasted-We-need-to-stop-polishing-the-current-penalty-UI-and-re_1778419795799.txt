@@ -1,0 +1,113 @@
+We need to stop polishing the current penalty UI and replace the gameplay screen with a real interactive penalty mini-game.
+
+Do NOT work on card integration.
+Do NOT work on landing page.
+Do NOT work on result page outside the penalty module.
+Do NOT work on Firestore.
+Do NOT build new progression features.
+Do NOT change quiz/card/result flows.
+
+Problem:
+The current /penalty module is functional but it does not feel like a real penalty game. It is mostly abstract UI screens. We need a real mini-game where the user sees the ball, the goal, the goalkeeper, the shot animation, the keeper dive, and the result.
+
+Goal:
+Build a real mobile-first 2D/2.5D penalty mini-game, not just UI cards.
+
+Keep:
+- 3 penalties per session
+- Penalty Queen = 2/3
+- Ice Cold Finisher = 3/3
+- XP/badge/progression logic from Phase 1
+- recordPenaltySession as the single save/write point
+- current result flow after the 3 attempts
+
+Main implementation requirement:
+Create a real game scene component, preferably:
+- components/penalty/PenaltyGameScene.tsx
+or
+- components/penalty/PenaltyGameCanvas.tsx
+
+The game scene must include:
+- visible football goal/cage
+- visible net
+- visible goalkeeper
+- visible ball at penalty spot
+- pitch/penalty area context
+- stadium/light background
+- aim target inside the goal
+- ball trajectory animation
+- goalkeeper dive animation
+- goal/save/miss visual result
+
+Gameplay flow per attempt:
+1. User taps/selects a target inside the goal area.
+2. User locks power/timing.
+3. Ball animates from penalty spot toward the selected target.
+4. Goalkeeper dives left/center/right or toward the selected zone.
+5. Game determines:
+   - GOAL
+   - SAVED
+   - MISSED
+6. Show short feedback.
+7. Move to next penalty until 3 attempts are completed.
+
+Important:
+The user must feel she is taking a penalty, not filling a form.
+
+Controls:
+- Do not use only abstract direction buttons as the main experience.
+- The target should be selected visually inside the goal.
+- Power bar can remain, but it must be connected to the shot animation.
+- Safe Shot / Power Shot can remain as a simple toggle, but do not let it dominate the screen.
+
+Result logic:
+- If shot target is outside goal frame or power is too strong → MISSED
+- If keeper intersects the ball path/target → SAVED
+- Otherwise → GOAL
+- Perfect timing should make the shot harder to save.
+
+Visual requirements:
+- 2D/2.5D premium arcade style
+- mobile-first
+- smooth animation
+- sporty, credible football scene
+- Fangirl FC pink/purple/gold UI accents
+- not childish
+- not a full 3D simulator
+
+Recommended implementation:
+- Use React + CSS/SVG/Canvas.
+- No heavy 3D engine.
+- No external physics engine unless absolutely necessary.
+- Keep the code simple and stable.
+
+Files allowed:
+- components/penalty/PenaltyGame.tsx
+- components/penalty/GoalView.tsx
+- components/penalty/ShotControls.tsx
+- components/penalty/PowerBar.tsx
+- app/penalty/page.tsx
+- add new penalty-only visual components if needed
+
+Do not touch:
+- landing
+- quiz
+- result page outside penalty route
+- card page
+- FanCard
+- OfficialCardSection
+- Firestore
+- existing quiz scoring
+
+Acceptance criteria:
+- /penalty looks and feels like a real penalty mini-game
+- user sees goal, keeper, ball, pitch, and football environment
+- user selects target inside the goal
+- ball visibly travels toward target
+- keeper visibly dives
+- goal/save/miss is visually understandable
+- session remains 3 penalties
+- progression still saves correctly
+- no console errors
+- typecheck passes
+- report exact files changed
