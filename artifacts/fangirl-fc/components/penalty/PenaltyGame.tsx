@@ -17,69 +17,92 @@ const TOTAL_SHOTS = 3;
 const GL = 0.125;
 const GR = 0.875;
 
-// Map scene-normalized X to a shot direction
 function aimToDirection(normX: number): ShotDirection {
-  const frac = (normX - GL) / (GR - GL); // 0–1 within goal
+  const frac = (normX - GL) / (GR - GL);
   if (frac < 0.36) return "left";
   if (frac > 0.64) return "right";
   return "center";
 }
 
-// Decide which way the keeper dives based on result
 function pickKeeperSide(direction: ShotDirection, isGoal: boolean): KeeperSide {
   if (isGoal) {
-    // Keeper commits the wrong way
     const wrong = (["left", "center", "right"] as KeeperSide[]).filter(
       (s) => s !== direction,
     );
     return wrong[Math.floor(Math.random() * wrong.length)] ?? "center";
   }
-  // Keeper reads it correctly → save
   return direction;
 }
+
+function getResultReason(
+  attempt: PenaltyAttempt,
+  power: PowerZone,
+  direction: ShotDirection,
+): string {
+  if (!attempt.isGoal) {
+    if (power === "weak") return "Not enough power";
+    if (direction === "center") return "No angle — keeper central";
+    return "Keeper read it";
+  }
+  if (attempt.isPerfect) return "Unstoppable!";
+  return "Keeper went the wrong way";
+}
+
+const SHOT_OPTIONS = [
+  {
+    id: "safe" as const,
+    icon: "🛡️",
+    label: "Safe",
+    sub: "Controlled · lower risk",
+  },
+  {
+    id: "power" as const,
+    icon: "⚡",
+    label: "Power",
+    sub: "High risk · high reward",
+  },
+] as const;
 
 interface Props {
   onComplete: (attempts: PenaltyAttempt[]) => void;
 }
 
 export function PenaltyGame({ onComplete }: Props) {
-  const [scenePhase, setScenePhase] = useState<ScenePhase>("tap-to-aim");
-  const [aimPos, setAimPos] = useState<{ x: number; y: number } | null>(null);
-  const [shotStyle, setShotStyle] = useState<"safe" | "power">("safe");
-  const [keeperSide, setKeeperSide] = useState<KeeperSide>("center");
-  const [lastAttempt, setLastAttempt] = useState<PenaltyAttempt | null>(null);
-  const [attempts, setAttempts] = useState<PenaltyAttempt[]>([]);
+  const [scenePhase, setScenePhase]     = useState<ScenePhase>("tap-to-aim");
+  const [aimPos, setAimPos]             = useState<{ x: number; y: number } | null>(null);
+  const [shotStyle, setShotStyle]       = useState<"safe" | "power">("safe");
+  const [keeperSide, setKeeperSide]     = useState<KeeperSide>("center");
+  const [lastAttempt, setLastAttempt]   = useState<PenaltyAttempt | null>(null);
+  const [resultReason, setResultReason] = useState<string>("");
+  const [attempts, setAttempts]         = useState<PenaltyAttempt[]>([]);
 
-  const goals = attempts.filter((a) => a.isGoal).length;
-  const shotsDone = attempts.length;
+  const goals      = attempts.filter((a) => a.isGoal).length;
+  const shotsDone  = attempts.length;
+  const isFinalShot = shotsDone === TOTAL_SHOTS - 1;
 
-  // Called when user taps inside the goal scene
   const handleAim = (normX: number, normY: number) => {
     setAimPos({ x: normX, y: normY });
     setScenePhase("ready-to-shoot");
   };
 
-  // Called when user taps the power bar
   const handlePower = (zone: PowerZone) => {
     if (!aimPos || scenePhase !== "ready-to-shoot") return;
 
-    const direction = aimToDirection(aimPos.x);
+    const direction      = aimToDirection(aimPos.x);
     const style: ShotStyle = shotStyle === "power" ? "dipping" : "straight";
     const timedCorrectly = zone === "perfect" || zone === "strong";
 
     const attempt = calculatePenaltyResult(direction, zone, style, timedCorrectly);
-    const keeper = pickKeeperSide(direction, attempt.isGoal);
+    const keeper  = pickKeeperSide(direction, attempt.isGoal);
 
-    // Update visual state — React batches these in one render
     setKeeperSide(keeper);
     setLastAttempt(attempt);
+    setResultReason(getResultReason(attempt, zone, direction));
     setScenePhase("shooting");
 
-    // Show result overlay after ball animation
     setTimeout(() => {
       setScenePhase("result-flash");
 
-      // Advance to next attempt or finish
       setTimeout(() => {
         const newAttempts = [...attempts, attempt];
         setAttempts(newAttempts);
@@ -87,10 +110,10 @@ export function PenaltyGame({ onComplete }: Props) {
         if (newAttempts.length >= TOTAL_SHOTS) {
           onComplete(newAttempts);
         } else {
-          // Reset for next penalty
           setAimPos(null);
           setKeeperSide("center");
           setLastAttempt(null);
+          setResultReason("");
           setScenePhase("tap-to-aim");
         }
       }, 1300);
@@ -107,13 +130,33 @@ export function PenaltyGame({ onComplete }: Props) {
             Penalty {Math.min(shotsDone + 1, TOTAL_SHOTS)} of {TOTAL_SHOTS}
           </p>
         </div>
-        <div className="flex flex-col items-end rounded-xl bg-white/5 px-3 py-1.5">
-          <span className="text-sm font-black text-white leading-none">
-            {goals}<span className="text-white/40 font-normal">/3</span>
+
+        {/* Score pill */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.05)",
+            border: "1.5px solid rgba(255,255,255,0.10)",
+            borderRadius: 14,
+            padding: "7px 14px",
+            textAlign: "right",
+          }}
+        >
+          <span style={{ fontSize: 15, fontWeight: 900, color: "white", lineHeight: 1 }}>
+            {goals}
+            <span style={{ color: "rgba(255,255,255,0.32)", fontWeight: 400 }}>/3</span>
           </span>
-          <span className="text-[9px] font-semibold uppercase tracking-widest text-white/40 mt-0.5">
+          <div
+            style={{
+              fontSize: 8,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
+              color: "rgba(255,255,255,0.32)",
+              marginTop: 2,
+            }}
+          >
             Goals
-          </span>
+          </div>
         </div>
       </div>
 
@@ -124,53 +167,105 @@ export function PenaltyGame({ onComplete }: Props) {
           return (
             <div
               key={i}
-              className={`h-2 flex-1 rounded-full transition-colors ${
-                a
+              className="h-2 flex-1 rounded-full transition-colors"
+              style={{
+                background: a
                   ? a.isGoal
-                    ? "bg-emerald-400"
-                    : "bg-red-400/60"
+                    ? a.isPerfect
+                      ? "linear-gradient(90deg,#fbbf24,#f472b6)"
+                      : "#34d399"
+                    : "rgba(248,113,113,0.50)"
                   : i === shotsDone
-                  ? "bg-white/35"
-                  : "bg-white/10"
-              }`}
+                  ? "rgba(255,255,255,0.28)"
+                  : "rgba(255,255,255,0.08)",
+              }}
             />
           );
         })}
       </div>
 
-      {/* ── Game scene ── */}
-      <PenaltyGameScene
-        phase={scenePhase}
-        aimX={aimPos?.x ?? null}
-        aimY={aimPos?.y ?? null}
-        keeperSide={keeperSide}
-        isGoal={lastAttempt?.isGoal ?? false}
-        isPerfect={lastAttempt?.isPerfect ?? false}
-        onSceneTap={handleAim}
-      />
+      {/* ── Game scene (3rd shot → subtle pressure border) ── */}
+      <div
+        style={{
+          borderRadius: 16,
+          transition: "box-shadow 500ms",
+          boxShadow:
+            isFinalShot && scenePhase === "tap-to-aim"
+              ? "0 0 0 1.5px rgba(239,68,68,0.38), 0 0 28px rgba(239,68,68,0.12)"
+              : "none",
+        }}
+      >
+        <PenaltyGameScene
+          phase={scenePhase}
+          aimX={aimPos?.x ?? null}
+          aimY={aimPos?.y ?? null}
+          keeperSide={keeperSide}
+          isGoal={lastAttempt?.isGoal ?? false}
+          isPerfect={lastAttempt?.isPerfect ?? false}
+          resultReason={resultReason}
+          onSceneTap={handleAim}
+        />
+      </div>
 
       {/* ── Controls (visible only when ready to shoot) ── */}
       {scenePhase === "ready-to-shoot" && (
         <div className="flex flex-col gap-2.5">
           {/* Shot style toggle */}
           <div className="flex gap-2">
-            {(
-              [
-                { id: "safe", label: "Safe Shot", sub: "Accurate" },
-                { id: "power", label: "Power Shot", sub: "+% chance" },
-              ] as const
-            ).map((s) => (
+            {SHOT_OPTIONS.map((s) => (
               <button
                 key={s.id}
                 onClick={() => setShotStyle(s.id)}
-                className={`flex-1 rounded-xl border py-2.5 text-center transition ${
-                  shotStyle === s.id
-                    ? "border-pink-400/60 bg-pink-400/20 text-pink-100"
-                    : "border-white/10 bg-white/5 text-white/60 hover:bg-white/10"
-                }`}
+                style={{
+                  flex: 1,
+                  borderRadius: 14,
+                  border: `1.5px solid ${
+                    shotStyle === s.id
+                      ? s.id === "power"
+                        ? "rgba(245,158,11,0.65)"
+                        : "rgba(236,72,153,0.60)"
+                      : "rgba(255,255,255,0.08)"
+                  }`,
+                  background:
+                    shotStyle === s.id
+                      ? s.id === "power"
+                        ? "linear-gradient(135deg,rgba(245,158,11,0.18),rgba(239,68,68,0.14))"
+                        : "linear-gradient(135deg,rgba(147,51,234,0.18),rgba(236,72,153,0.14))"
+                      : "rgba(255,255,255,0.04)",
+                  padding: "10px 8px",
+                  textAlign: "center",
+                  cursor: "pointer",
+                  transition: "all 200ms",
+                  boxShadow:
+                    shotStyle === s.id
+                      ? s.id === "power"
+                        ? "0 0 18px rgba(245,158,11,0.16)"
+                        : "0 0 18px rgba(236,72,153,0.16)"
+                      : "none",
+                }}
               >
-                <div className="text-sm font-bold">{s.label}</div>
-                <div className="text-[10px] text-white/40">{s.sub}</div>
+                <div style={{ fontSize: 14, lineHeight: 1, marginBottom: 3 }}>{s.icon}</div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: shotStyle === s.id ? "white" : "rgba(255,255,255,0.55)",
+                  }}
+                >
+                  {s.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 9,
+                    color:
+                      shotStyle === s.id
+                        ? "rgba(255,255,255,0.55)"
+                        : "rgba(255,255,255,0.28)",
+                    marginTop: 2,
+                  }}
+                >
+                  {s.sub}
+                </div>
               </button>
             ))}
           </div>
@@ -187,7 +282,9 @@ export function PenaltyGame({ onComplete }: Props) {
       {/* ── Contextual hint text ── */}
       {scenePhase === "tap-to-aim" && (
         <p className="text-center text-xs text-white/45">
-          Tap inside the goal to choose where to shoot
+          {isFinalShot
+            ? "Final shot — make it count"
+            : "Tap inside the goal to choose where to shoot"}
         </p>
       )}
       {scenePhase === "ready-to-shoot" && (
@@ -201,13 +298,27 @@ export function PenaltyGame({ onComplete }: Props) {
         {attempts.map((a, i) => (
           <div
             key={i}
-            className={`flex h-10 w-10 items-center justify-center rounded-full text-base ${
-              a.isPerfect
-                ? "bg-amber-400/30"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 16,
+              background: a.isPerfect
+                ? "linear-gradient(135deg,rgba(251,191,36,0.28),rgba(244,114,182,0.20))"
                 : a.isGoal
-                ? "bg-emerald-400/20"
-                : "bg-red-400/15"
-            }`}
+                ? "rgba(52,211,153,0.18)"
+                : "rgba(248,113,113,0.14)",
+              border: `1px solid ${
+                a.isPerfect
+                  ? "rgba(251,191,36,0.40)"
+                  : a.isGoal
+                  ? "rgba(52,211,153,0.30)"
+                  : "rgba(248,113,113,0.20)"
+              }`,
+            }}
             title={a.isPerfect ? "Perfect!" : a.isGoal ? "Goal" : "Saved"}
           >
             {a.isPerfect ? "⚡" : a.isGoal ? "⚽" : "🧤"}
@@ -216,7 +327,18 @@ export function PenaltyGame({ onComplete }: Props) {
         {Array.from({ length: TOTAL_SHOTS - attempts.length }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-white/25"
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 14,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.09)",
+              color: "rgba(255,255,255,0.22)",
+            }}
           >
             {shotsDone + i + 1}
           </div>

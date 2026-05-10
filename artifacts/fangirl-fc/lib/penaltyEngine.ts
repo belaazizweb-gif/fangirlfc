@@ -27,12 +27,12 @@ export interface PenaltySessionResult {
   timestamp: number;
 }
 
-// left/right are harder to save (side of goal).
-// center is easiest to save (keeper stays central).
+// left/right: rewarding to aim at corners, but still requires good power.
+// center: hard to score — keeper stays central and blocks easily.
 const GOAL_PROBABILITY: Record<ShotDirection, Record<PowerZone, number>> = {
-  left:   { weak: 0.55, normal: 0.72, strong: 0.80, perfect: 0.92 },
-  center: { weak: 0.60, normal: 0.65, strong: 0.62, perfect: 0.68 },
-  right:  { weak: 0.55, normal: 0.72, strong: 0.80, perfect: 0.92 },
+  left:   { weak: 0.38, normal: 0.55, strong: 0.68, perfect: 0.84 },
+  center: { weak: 0.28, normal: 0.42, strong: 0.48, perfect: 0.58 },
+  right:  { weak: 0.38, normal: 0.55, strong: 0.68, perfect: 0.84 },
 };
 
 // Perfect shot = side of goal + perfect power + timed correctly.
@@ -52,9 +52,12 @@ export function calculatePenaltyResult(
 ): PenaltyAttempt {
   const baseProbability = GOAL_PROBABILITY[direction][power];
   const timingBonus = timedCorrectly ? 0.08 : -0.05;
-  // straight = safe but no bonus; dipping (power) = +0.04; curve = +0.06 (locked for now)
+  // Power (dipping): rewards well-timed shots; penalises poor timing — genuinely risky
+  // Safe (straight): consistent baseline — no bonus, no extra risk
   const curveBonus =
-    style === "straight" ? 0 : style === "dipping" ? 0.04 : 0.06;
+    style === "straight" ? 0 :
+    style === "dipping"  ? (timedCorrectly ? 0.10 : -0.08) :
+    0.06;
 
   const finalProbability = Math.min(
     0.97,

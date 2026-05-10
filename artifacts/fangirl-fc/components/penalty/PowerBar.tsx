@@ -13,42 +13,49 @@ interface Zone {
   label: string;
   min: number;
   max: number;
-  color: string;
+  colorClass?: string;
+  gradient?: string;
   textColor: string;
 }
 
+// Perfect zone: 91–100 (9 units) — tighter window makes it more rewarding
 const ZONES: Zone[] = [
-  { id: "weak",    label: "Weak",    min: 0,  max: 30, color: "bg-white/15",        textColor: "text-white/40" },
-  { id: "normal",  label: "Good",    min: 30, max: 66, color: "bg-emerald-500/40",   textColor: "text-emerald-300" },
-  { id: "strong",  label: "Power",   min: 66, max: 85, color: "bg-orange-400/50",    textColor: "text-orange-300" },
-  { id: "perfect", label: "Perfect", min: 85, max: 100, color: "bg-amber-400/70",   textColor: "text-amber-200" },
+  { id: "weak",    label: "Weak",    min: 0,  max: 30,  colorClass: "bg-white/10",       textColor: "text-white/28" },
+  { id: "normal",  label: "Good",    min: 30, max: 68,  colorClass: "bg-emerald-600/50", textColor: "text-emerald-300" },
+  { id: "strong",  label: "Power",   min: 68, max: 91,  colorClass: "bg-amber-500/55",   textColor: "text-amber-300" },
+  {
+    id: "perfect", label: "PERFECT", min: 91, max: 100,
+    gradient: "linear-gradient(to right, #db277770, #f59e0bc0)",
+    textColor: "text-pink-100",
+  },
 ];
 
 function getZone(pos: number): PowerZone {
-  if (pos >= 85) return "perfect";
-  if (pos >= 66) return "strong";
+  if (pos >= 91) return "perfect";
+  if (pos >= 68) return "strong";
   if (pos >= 30) return "normal";
   return "weak";
 }
 
+// Shot 1 = 55 %/s · Shot 2 = 70 %/s · Shot 3 = 85 %/s (pressure builds)
 const BASE_SPEED = 55;
-const SPEED_INCREMENT = 12;
+const SPEED_INCREMENT = 15;
 
 export function PowerBar({ attemptIndex, onPower }: Props) {
-  const posRef = useRef(0);
-  const dirRef = useRef<1 | -1>(1);
-  const frozenRef = useRef(false);
+  const posRef      = useRef(0);
+  const dirRef      = useRef<1 | -1>(1);
+  const frozenRef   = useRef(false);
   const lastTimeRef = useRef<number>(0);
-  const rafRef = useRef<number>(0);
+  const rafRef      = useRef<number>(0);
   const [displayPos, setDisplayPos] = useState(0);
-  const [tapped, setTapped] = useState(false);
+  const [tapped, setTapped]         = useState(false);
 
   const speed = BASE_SPEED + attemptIndex * SPEED_INCREMENT;
 
   useEffect(() => {
-    posRef.current = 0;
-    dirRef.current = 1;
-    frozenRef.current = false;
+    posRef.current      = 0;
+    dirRef.current      = 1;
+    frozenRef.current   = false;
     lastTimeRef.current = 0;
     setDisplayPos(0);
     setTapped(false);
@@ -60,14 +67,8 @@ export function PowerBar({ attemptIndex, onPower }: Props) {
 
       if (!frozenRef.current) {
         posRef.current += dirRef.current * speed * delta;
-        if (posRef.current >= 100) {
-          posRef.current = 100;
-          dirRef.current = -1;
-        }
-        if (posRef.current <= 0) {
-          posRef.current = 0;
-          dirRef.current = 1;
-        }
+        if (posRef.current >= 100) { posRef.current = 100; dirRef.current = -1; }
+        if (posRef.current <= 0)   { posRef.current = 0;   dirRef.current =  1; }
         setDisplayPos(Math.round(posRef.current));
       }
 
@@ -86,7 +87,7 @@ export function PowerBar({ attemptIndex, onPower }: Props) {
     onPower(getZone(pos), pos);
   };
 
-  const zone = getZone(displayPos);
+  const zone           = getZone(displayPos);
   const currentZoneDef = ZONES.find((z) => z.id === zone)!;
 
   return (
@@ -101,12 +102,16 @@ export function PowerBar({ attemptIndex, onPower }: Props) {
         className="w-full focus:outline-none"
         aria-label="Tap to shoot"
       >
-        <div className="relative h-14 w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+        <div className="relative h-16 w-full overflow-hidden rounded-2xl border border-white/10 bg-white/5">
           {ZONES.map((z) => (
             <div
               key={z.id}
-              className={`absolute top-0 h-full ${z.color}`}
-              style={{ left: `${z.min}%`, width: `${z.max - z.min}%` }}
+              className={`absolute top-0 h-full ${z.colorClass ?? ""}`}
+              style={{
+                left: `${z.min}%`,
+                width: `${z.max - z.min}%`,
+                ...(z.gradient ? { background: z.gradient } : {}),
+              }}
             />
           ))}
 
@@ -122,9 +127,18 @@ export function PowerBar({ attemptIndex, onPower }: Props) {
             ))}
           </div>
 
+          {/* Cursor needle — warm white glow */}
           <div
-            className="absolute top-0 h-full w-1 rounded-full bg-white shadow-[0_0_12px_4px_rgba(255,255,255,0.6)] transition-none"
-            style={{ left: `calc(${displayPos}% - 2px)` }}
+            className="absolute top-0 h-full"
+            style={{
+              width: 3,
+              left: `calc(${displayPos}% - 1.5px)`,
+              background: "white",
+              borderRadius: 2,
+              boxShadow:
+                "0 0 12px 3px rgba(255,255,255,0.65), 0 0 22px 6px rgba(255,200,80,0.35)",
+              transition: "none",
+            }}
           />
         </div>
       </button>

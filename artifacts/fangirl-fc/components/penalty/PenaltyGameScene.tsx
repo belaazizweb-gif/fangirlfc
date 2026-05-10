@@ -29,6 +29,7 @@ interface Props {
   keeperSide: KeeperSide;
   isGoal: boolean;
   isPerfect: boolean;
+  resultReason?: string;
   onSceneTap: (normX: number, normY: number) => void;
 }
 
@@ -60,14 +61,19 @@ function BallSvg({ size }: { size: number }) {
 // ── Premium goalkeeper SVG ──
 // viewBox="0 0 100 100": y=100 is the pitch/ground line. overflow="visible" for gloves+arms.
 // Drawing order: shadow → boots → socks → shorts → jersey → arms → head → gloves
-function KeeperSvg() {
+function KeeperSvg({ glowing = false }: { glowing?: boolean }) {
   return (
     <svg
       viewBox="0 0 100 100"
       width="108"
       height="108"
       overflow="visible"
-      style={{ filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.6))" }}
+      style={{
+        filter: glowing
+          ? "drop-shadow(0 0 20px rgba(249,115,22,0.90)) drop-shadow(0 6px 14px rgba(0,0,0,0.6))"
+          : "drop-shadow(0 6px 14px rgba(0,0,0,0.6))",
+        transition: "filter 150ms ease-out",
+      }}
     >
       {/* ── Ground shadow ── */}
       <ellipse cx="50" cy="99" rx="32" ry="5" fill="rgba(0,0,0,0.38)" />
@@ -166,6 +172,7 @@ export function PenaltyGameScene({
   keeperSide,
   isGoal,
   isPerfect,
+  resultReason,
   onSceneTap,
 }: Props) {
   const sceneRef = useRef<HTMLDivElement>(null);
@@ -232,20 +239,32 @@ export function PenaltyGameScene({
         }}
       />
 
-      {/* Stadium floodlights — warm glow cones */}
-      {[{ l: "11%" }, { r: "11%" }].map((pos, i) => (
-        <div
-          key={i}
-          className="absolute pointer-events-none"
-          style={{
-            ...(pos.l ? { left: pos.l } : { right: pos.r }),
-            top: "-8%",
-            width: 130,
-            height: 130,
-            background:
-              "radial-gradient(circle, rgba(255,252,210,0.82) 0%, rgba(255,245,160,0.32) 38%, transparent 68%)",
-          }}
-        />
+      {/* Stadium floodlight masts */}
+      {([{ side: "left", x: "9.5%" }, { side: "right", x: "86.5%" }] as const).map((p) => (
+        <div key={p.side} className="absolute pointer-events-none" style={{ left: p.x, top: 0 }}>
+          {/* Mast pole */}
+          <div style={{ position: "absolute", left: 5, top: 0, width: 3, height: "20%", background: "rgba(180,170,140,0.45)" }} />
+          {/* Lamp head */}
+          <div style={{ position: "absolute", left: 0, top: "2%", width: 12, height: 6, borderRadius: 2, background: "rgba(255,252,200,0.9)" }} />
+          {/* Wide cone beam */}
+          <div
+            style={{
+              position: "absolute",
+              left: -50, top: "2%",
+              width: 160, height: 200,
+              background: "radial-gradient(ellipse at 50% 0%, rgba(255,252,200,0.52) 0%, rgba(255,240,160,0.16) 40%, transparent 72%)",
+            }}
+          />
+          {/* Narrow vertical beam column */}
+          <div
+            style={{
+              position: "absolute",
+              left: 2, top: "2%",
+              width: 10, height: "60%",
+              background: "linear-gradient(to bottom, rgba(255,252,200,0.22) 0%, transparent 100%)",
+            }}
+          />
+        </div>
       ))}
       {/* Lens-flare centre burst */}
       <div
@@ -254,10 +273,9 @@ export function PenaltyGameScene({
           left: "50%",
           top: "-2%",
           transform: "translateX(-50%)",
-          width: 200,
-          height: 60,
-          background:
-            "radial-gradient(ellipse, rgba(255,252,230,0.12) 0%, transparent 70%)",
+          width: 220,
+          height: 70,
+          background: "radial-gradient(ellipse, rgba(255,252,230,0.14) 0%, transparent 70%)",
         }}
       />
 
@@ -272,7 +290,7 @@ export function PenaltyGameScene({
             "repeating-linear-gradient(90deg, rgba(255,255,255,0.028) 0px, rgba(255,255,255,0.028) 3px, transparent 3px, transparent 10px)",
         }}
       />
-      {/* Crowd colour blobs */}
+      {/* Crowd colour blobs — pink/purple brand accent */}
       <div
         className="absolute pointer-events-none"
         style={{
@@ -280,7 +298,17 @@ export function PenaltyGameScene({
           top: "27%",
           height: "10%",
           background:
-            "repeating-linear-gradient(90deg, rgba(255,77,191,0.06) 0px, rgba(255,77,191,0.06) 18px, rgba(183,148,255,0.05) 18px, rgba(183,148,255,0.05) 36px, transparent 36px, transparent 54px)",
+            "repeating-linear-gradient(90deg, rgba(236,72,153,0.10) 0px, rgba(236,72,153,0.10) 18px, rgba(167,139,250,0.08) 18px, rgba(167,139,250,0.08) 38px, rgba(251,191,36,0.05) 38px, rgba(251,191,36,0.05) 55px, transparent 55px, transparent 72px)",
+        }}
+      />
+      {/* Subtle pink haze over crowd zone */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          left: 0, right: 0,
+          top: "24%",
+          height: "16%",
+          background: "linear-gradient(to bottom, transparent 0%, rgba(216,72,153,0.05) 50%, transparent 100%)",
         }}
       />
 
@@ -375,6 +403,8 @@ export function PenaltyGameScene({
           top: `${GT * 100}%`,
           width: `${(GR - GL) * 100}%`,
           height: `${(GB - GT) * 100}%`,
+          filter: showResult && isGoal ? "brightness(1.9) saturate(1.5)" : undefined,
+          transition: "filter 220ms ease-out",
         }}
       >
         {/* Net — slightly bluish-dark, with depth vignette */}
@@ -385,8 +415,8 @@ export function PenaltyGameScene({
               "linear-gradient(to bottom, rgba(4,0,18,0.85) 0%, rgba(6,2,22,0.72) 100%)",
             backgroundImage: `
               linear-gradient(to bottom, rgba(4,0,18,0.85), rgba(6,2,22,0.72)),
-              repeating-linear-gradient(0deg,   rgba(255,255,255,0.14) 0px, rgba(255,255,255,0.14) 1px, transparent 1px, transparent 16px),
-              repeating-linear-gradient(90deg,  rgba(255,255,255,0.14) 0px, rgba(255,255,255,0.14) 1px, transparent 1px, transparent 16px)
+              repeating-linear-gradient(0deg,   rgba(255,255,255,0.16) 0px, rgba(255,255,255,0.16) 1px, transparent 1px, transparent 10px),
+              repeating-linear-gradient(90deg,  rgba(255,255,255,0.16) 0px, rgba(255,255,255,0.16) 1px, transparent 1px, transparent 10px)
             `,
           }}
         />
@@ -398,6 +428,19 @@ export function PenaltyGameScene({
               "radial-gradient(ellipse at 50% 10%, transparent 40%, rgba(0,0,0,0.45) 100%)",
           }}
         />
+        {/* Perspective depth lines — converge to vanishing point at centre-top */}
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.09, pointerEvents: "none" }}
+        >
+          <line x1="0"   y1="0"   x2="50" y2="22" stroke="white" strokeWidth="0.8" />
+          <line x1="100" y1="0"   x2="50" y2="22" stroke="white" strokeWidth="0.8" />
+          <line x1="0"   y1="100" x2="50" y2="22" stroke="white" strokeWidth="0.8" />
+          <line x1="100" y1="100" x2="50" y2="22" stroke="white" strokeWidth="0.8" />
+          <line x1="33"  y1="0"   x2="50" y2="22" stroke="white" strokeWidth="0.5" />
+          <line x1="67"  y1="0"   x2="50" y2="22" stroke="white" strokeWidth="0.5" />
+        </svg>
         {/* Zone labels L / C / R */}
         <div className="absolute inset-0 flex" style={{ zIndex: 1 }}>
           {["L", "C", "R"].map((lbl, i) => (
@@ -441,7 +484,7 @@ export function PenaltyGameScene({
             transition: isShooting ? "transform 300ms ease-out 120ms" : "none",
           }}
         >
-          <KeeperSvg />
+          <KeeperSvg glowing={showResult && !isGoal} />
         </div>
       </div>
 
@@ -606,44 +649,89 @@ export function PenaltyGameScene({
         <div
           className="absolute inset-0 flex items-center justify-center"
           style={{
-            background: isGoal ? "rgba(0,140,60,0.10)" : "rgba(180,20,30,0.10)",
+            background: isPerfect
+              ? "rgba(30,10,5,0.12)"
+              : isGoal
+              ? "rgba(0,80,40,0.10)"
+              : "rgba(100,10,15,0.10)",
             zIndex: 30,
-            backdropFilter: "blur(2px)",
+            backdropFilter: "blur(3px)",
           }}
         >
           <div
             style={{
-              background: "rgba(3,0,12,0.92)",
-              border: `2px solid ${isGoal ? "rgba(74,222,128,0.72)" : "rgba(248,113,113,0.62)"}`,
-              borderRadius: 20,
-              padding: "12px 30px",
+              background: "rgba(4,0,14,0.90)",
+              border: `1.5px solid ${
+                isPerfect
+                  ? "rgba(251,191,36,0.80)"
+                  : isGoal
+                  ? "rgba(74,222,128,0.62)"
+                  : "rgba(248,113,113,0.42)"
+              }`,
+              borderRadius: 22,
+              padding: "14px 34px",
               textAlign: "center",
-              backdropFilter: "blur(16px)",
-              boxShadow: isGoal
-                ? "0 0 52px rgba(74,222,128,0.24)"
-                : "0 0 52px rgba(248,113,113,0.2)",
+              backdropFilter: "blur(20px)",
+              boxShadow: isPerfect
+                ? "0 0 60px rgba(251,191,36,0.28), 0 0 24px rgba(236,72,153,0.18)"
+                : isGoal
+                ? "0 0 52px rgba(74,222,128,0.20)"
+                : "0 0 40px rgba(248,113,113,0.14)",
             }}
           >
-            <div style={{ fontSize: 46 }}>
+            {/* Icon */}
+            <div style={{ fontSize: 44, lineHeight: 1 }}>
               {isPerfect ? "⚡" : isGoal ? "⚽" : "🧤"}
             </div>
+            {/* Main label */}
             <div
               style={{
-                fontSize: 28,
+                fontSize: isPerfect || isGoal ? 30 : 24,
                 fontWeight: 900,
                 letterSpacing: "0.07em",
-                color: isGoal ? "#4ade80" : "#f87171",
-                marginTop: 4,
-                textShadow: isGoal
-                  ? "0 0 30px rgba(74,222,128,0.65)"
-                  : "0 0 30px rgba(248,113,113,0.55)",
+                marginTop: 6,
+                color: isPerfect ? "#fbbf24" : isGoal ? "#4ade80" : "#f87171",
+                textShadow: isPerfect
+                  ? "0 0 28px rgba(251,191,36,0.70), 0 0 14px rgba(236,72,153,0.50)"
+                  : isGoal
+                  ? "0 0 28px rgba(74,222,128,0.65)"
+                  : "0 0 22px rgba(248,113,113,0.44)",
               }}
             >
-              {isPerfect ? "PERFECT!" : isGoal ? "GOAL!" : "SAVED!"}
+              {isPerfect ? "PERFECT!" : isGoal ? "GOAL!" : "SAVED"}
             </div>
+            {/* Result reason */}
+            {resultReason && (
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                  marginTop: 6,
+                  color: isPerfect
+                    ? "rgba(251,191,36,0.82)"
+                    : isGoal
+                    ? "rgba(74,222,128,0.68)"
+                    : "rgba(255,255,255,0.42)",
+                }}
+              >
+                {resultReason}
+              </div>
+            )}
+            {/* XP badge — perfect only */}
             {isPerfect && (
-              <div style={{ fontSize: 11, color: "#fbbf24", marginTop: 3, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                +30 XP
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  marginTop: 6,
+                  color: "#f472b6",
+                }}
+              >
+                +30 XP ✦
               </div>
             )}
           </div>
