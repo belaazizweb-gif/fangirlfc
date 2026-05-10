@@ -122,23 +122,17 @@ export function detectPenaltyBadges(
     earned.push("perfect_shot");
   }
 
-  // Ice Cold Finisher: 3 consecutive goals (only possible with 3/3).
-  let consecutiveGoals = 0;
-  let maxConsecutive = 0;
-  for (const a of attempts) {
-    if (a.isGoal) {
-      consecutiveGoals++;
-      maxConsecutive = Math.max(maxConsecutive, consecutiveGoals);
-    } else {
-      consecutiveGoals = 0;
-    }
-  }
-  if (maxConsecutive >= 3) {
+  // Ice Cold Finisher: 3/3 goals AND every shot aimed at a corner (left or right, never center).
+  // Differentiates from No Miss Energy — requires deliberate, skilled corner play throughout.
+  const allCorners = attempts.every((a) => a.direction !== "center");
+  if (goals.length === total && total >= 3 && allCorners) {
     earned.push("ice_cold_finisher");
   }
 
-  // Pressure Proof: scored on the final shot (index 2, the 3rd penalty).
-  if (total >= 3 && attempts[2]?.isGoal) {
+  // Pressure Proof: was at exactly 1 goal after the first 2 shots (needed the final penalty),
+  // then scored it. Represents genuine pressure — one miss away from a poor session.
+  const goalsInFirst2 = attempts.slice(0, 2).filter((a) => a.isGoal).length;
+  if (total >= 3 && goalsInFirst2 === 1 && attempts[2]?.isGoal) {
     earned.push("pressure_proof");
   }
 

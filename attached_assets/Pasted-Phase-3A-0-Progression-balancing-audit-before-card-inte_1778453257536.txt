@@ -1,0 +1,147 @@
+Phase 3A-0 — Progression balancing audit before card integration.
+
+Do NOT modify card page.
+Do NOT modify FanCard.
+Do NOT modify landing.
+Do NOT modify quiz/result flows.
+Do NOT build new UI.
+Do NOT change penalty gameplay visuals.
+
+We need to verify that the Progression Engine is balanced for retention before we display it on the card.
+
+Context:
+The card will become the proof object for:
+- XP
+- 5 visual stars
+- 20 internal star fragments
+- badges
+- latest penalty score
+- future Football IQ
+
+This progression is critical for retention.
+Users must feel progress, but they must not complete 5 stars too quickly.
+
+Audit the current progression engine and report whether it is balanced.
+
+Check these files:
+- lib/progression.ts
+- lib/badges.ts
+- lib/penaltyEngine.ts
+- lib/cardProgressAdapter.ts
+- penalty result flow if needed
+
+Questions to answer:
+
+1. XP economy
+List all current XP sources:
+- penalty session
+- goals
+- perfect shots
+- daily bonus
+- share reward
+- football IQ placeholder if any
+
+Confirm whether XP can be farmed too quickly.
+
+2. Star fragments
+Current model:
+- 5 visual stars
+- 20 internal fragments
+- thresholds from 50 to 6000 XP
+
+Simulate how long it takes to reach:
+- 1 star
+- 2 stars
+- 3 stars
+- 4 stars
+- 5 stars
+
+For these user profiles:
+
+A. Casual user:
+- plays 1 penalty session/day
+- average score 1/3
+- does not always share
+- does Football IQ 3 times/week later
+
+B. Active user:
+- plays 3 penalty sessions/day
+- average score 2/3
+- shares once/day
+- does Daily Football IQ daily later
+
+C. Power user:
+- plays 10+ penalty sessions/day
+- average score 2/3 or 3/3
+- tries to farm XP
+
+3. Retention targets
+Check if the current system matches these targets:
+
+- 1 star should be reachable early enough to feel progress
+- 2 stars should require several sessions
+- 3 stars should feel like real progress
+- 4 stars should require sustained engagement
+- 5 stars should feel rare and should not be reachable in one week
+
+Recommended target:
+- casual user: 5 stars in 6–10 weeks
+- active user: 5 stars in 4–6 weeks
+- power user: cannot reach 5 stars in less than 3–4 weeks
+
+4. Daily caps
+Audit current daily caps:
+- penalty sessions/day
+- XP/day
+- share XP/day
+- future Football IQ XP/day
+
+Confirm whether:
+- first 3 penalty sessions/day = meaningful rewards
+- later sessions = reduced rewards
+- users can still play for fun without farming progression too fast
+
+5. Badge rarity
+Audit all badges and classify them:
+
+Common:
+- easy and early
+
+Rare:
+- requires some skill or repeat play
+
+Epic:
+- requires strong performance
+
+Legendary:
+- rare, long-term, or perfect performance
+
+Make sure:
+- Penalty Queen is achievable but not automatic
+- Ice Cold Finisher is harder
+- Perfect Shot is rewarding
+- badges do not all unlock in the first day
+
+6. Recommendation
+If the economy is too fast, recommend exact changes:
+- XP thresholds
+- XP rewards
+- daily cap
+- share reward cap
+- badge conditions
+
+If corrections are necessary, make only minimal changes inside:
+- lib/progression.ts
+- lib/badges.ts
+- lib/penaltyEngine.ts
+
+Do not modify UI.
+
+7. Output required
+Return:
+- XP source table
+- simulation table
+- current risk assessment
+- recommended economy adjustments
+- exact files modified if any
+- typecheck result

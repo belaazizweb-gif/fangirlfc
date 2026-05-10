@@ -33,14 +33,14 @@ export const BADGE_DEFS: Record<BadgeId, BadgeDef> = {
     id: "penalty_queen",
     name: "Penalty Queen",
     emoji: "👑",
-    description: "Score 5 penalties in a single session",
+    description: "Score 2 of 3 in a penalty session",
     category: "penalty",
   },
   ice_cold_finisher: {
     id: "ice_cold_finisher",
     name: "Ice Cold Finisher",
     emoji: "🧊",
-    description: "Score 3 penalties in a row without missing",
+    description: "Score 3 of 3, all aimed at the corners",
     category: "penalty",
   },
   perfect_shot: {
@@ -54,7 +54,7 @@ export const BADGE_DEFS: Record<BadgeId, BadgeDef> = {
     id: "pressure_proof",
     name: "Pressure Proof",
     emoji: "💪",
-    description: "Score in sudden death (5th attempt or later)",
+    description: "Score the deciding final penalty when you needed it",
     category: "penalty",
   },
   comeback_girl: {
