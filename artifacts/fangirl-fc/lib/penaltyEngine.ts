@@ -52,6 +52,7 @@ export function calculatePenaltyResult(
 ): PenaltyAttempt {
   const baseProbability = GOAL_PROBABILITY[direction][power];
   const timingBonus = timedCorrectly ? 0.08 : -0.05;
+  // straight = safe but no bonus; dipping (power) = +0.04; curve = +0.06 (locked for now)
   const curveBonus =
     style === "straight" ? 0 : style === "dipping" ? 0.04 : 0.06;
 
@@ -103,13 +104,13 @@ export function detectPenaltyBadges(
   const goals = attempts.filter((a) => a.isGoal);
   const perfects = attempts.filter((a) => a.isPerfect);
 
-  // No Miss Energy: scored every single attempt (minimum 5).
-  if (goals.length === total && total >= 5) {
+  // No Miss Energy: scored every single attempt in a full session (3/3).
+  if (goals.length === total && total >= 3) {
     earned.push("no_miss_energy");
   }
 
-  // Penalty Queen: scored 5 or more in a session.
-  if (goals.length >= 5) {
+  // Penalty Queen: scored 2 or more out of 3.
+  if (goals.length >= 2) {
     earned.push("penalty_queen");
   }
 
@@ -118,7 +119,7 @@ export function detectPenaltyBadges(
     earned.push("perfect_shot");
   }
 
-  // Ice Cold Finisher: 3 consecutive goals anywhere in the session.
+  // Ice Cold Finisher: 3 consecutive goals (only possible with 3/3).
   let consecutiveGoals = 0;
   let maxConsecutive = 0;
   for (const a of attempts) {
@@ -133,13 +134,12 @@ export function detectPenaltyBadges(
     earned.push("ice_cold_finisher");
   }
 
-  // Pressure Proof: scored on the 5th attempt or later (index 4+).
-  if (total >= 5) {
-    const hasLateGoal = attempts.slice(4).some((a) => a.isGoal);
-    if (hasLateGoal) earned.push("pressure_proof");
+  // Pressure Proof: scored on the final shot (index 2, the 3rd penalty).
+  if (total >= 3 && attempts[2]?.isGoal) {
+    earned.push("pressure_proof");
   }
 
-  // Comeback Girl: missed first two, then scored at least once.
+  // Comeback Girl: missed first two, then scored the third.
   const missed2 =
     attempts.length >= 2 &&
     !attempts[0]!.isGoal &&

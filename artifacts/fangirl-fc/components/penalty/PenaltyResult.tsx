@@ -28,11 +28,14 @@ function ScoreRing({ score }: { score: number }) {
   return (
     <div className="relative flex h-28 w-28 items-center justify-center">
       <svg className="absolute inset-0" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
         <circle
-          cx="50"
-          cy="50"
-          r={radius}
+          cx="50" cy="50" r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeWidth="8"
+        />
+        <circle
+          cx="50" cy="50" r={radius}
           fill="none"
           stroke={color}
           strokeWidth="8"
@@ -54,23 +57,18 @@ function ScoreRing({ score }: { score: number }) {
 export function PenaltyResult({ attempts, session, identity, onReplay }: Props) {
   const goals = attempts.filter((a) => a.isGoal).length;
   const perfects = attempts.filter((a) => a.isPerfect).length;
+  const total = attempts.length;
 
   const headline =
-    goals === 5
-      ? "Flawless. Absolute Penalty Queen. 👑"
-      : goals === 4
-      ? "Nearly perfect — 4 from 5! 🔥"
-      : goals === 3
-      ? "Solid! 3 goals under pressure 💪"
+    goals === 3
+      ? "Perfect. Ice Cold Finisher. 🧊"
       : goals === 2
-      ? "2 goals — the keeper got lucky 🧤"
+      ? "Penalty Queen unlocked! 👑 2 from 3."
       : goals === 1
-      ? "1 goal. Nerves got to you this time 😅"
-      : "Rough session — come back stronger 💗";
+      ? "1 goal. The keeper got lucky twice. 🧤"
+      : "Rough session — come back stronger. 💗";
 
-  const cardHref = identity
-    ? `/card?id=${identity.id}`
-    : "/quiz";
+  const cardHref = identity ? `/card?id=${identity.id}` : "/quiz";
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,24 +82,34 @@ export function PenaltyResult({ attempts, session, identity, onReplay }: Props) 
 
         <div className="grid w-full grid-cols-3 gap-3 text-center">
           <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xl font-black text-emerald-300">{goals}/5</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">Goals</p>
+            <p className="text-xl font-black text-emerald-300">
+              {goals}/{total}
+            </p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">
+              Goals
+            </p>
           </div>
           <div className="rounded-xl bg-white/5 p-3">
             <p className="text-xl font-black text-amber-300">{perfects}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">Perfect</p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">
+              Perfect
+            </p>
           </div>
           <div className="rounded-xl bg-white/5 p-3">
-            <p className="text-xl font-black text-pink-300">+{session.xpEarned}</p>
-            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">XP</p>
+            <p className="text-xl font-black text-pink-300">
+              +{session.xpEarned}
+            </p>
+            <p className="text-[10px] text-white/50 uppercase tracking-wider mt-0.5">
+              XP
+            </p>
           </div>
         </div>
 
-        <div className="flex gap-1.5 w-full">
+        <div className="flex gap-2 w-full">
           {attempts.map((a, i) => (
             <div
               key={i}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 ${
+              className={`flex flex-1 flex-col items-center gap-1.5 rounded-xl py-3 ${
                 a.isPerfect
                   ? "bg-amber-400/20"
                   : a.isGoal
@@ -109,7 +117,7 @@ export function PenaltyResult({ attempts, session, identity, onReplay }: Props) 
                   : "bg-red-400/10"
               }`}
             >
-              <span className="text-base">
+              <span className="text-xl">
                 {a.isPerfect ? "⚡" : a.isGoal ? "⚽" : "🧤"}
               </span>
               <span className="text-[9px] font-semibold capitalize text-white/40">

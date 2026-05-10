@@ -1,0 +1,91 @@
+Phase 2 correction pass before moving to Phase 3.
+
+Do not build Phase 3.
+Do not modify landing page.
+Do not modify result page.
+Do not modify card page.
+Do not modify FanCard.
+Do not modify Firestore.
+Do not add new features.
+
+We need to correct Phase 2 to match the locked PRD.
+
+Issues to fix:
+
+1. Penalty session length
+The MVP must be exactly 3 penalties per session, not 5.
+
+Update:
+- PenaltyGame loop
+- shot progress dots
+- score display
+- result screen
+- copy
+- XP/reward calculation inputs if needed
+
+The UI should show:
+Penalty 1/3
+Penalty 2/3
+Penalty 3/3
+
+2. Badge copy
+Current copy says:
+“Score 5/5 to unlock Penalty Queen”
+
+This is wrong.
+
+Correct rules:
+- Penalty Queen = score >= 2/3
+- Ice Cold Finisher = score 3/3
+
+Update all visible copy accordingly:
+“Score 2/3 to unlock Penalty Queen.”
+
+3. ShotStyle control
+Do not auto-derive ShotStyle from direction.
+
+Add an explicit shot style choice before the power bar:
+- Safe Shot
+- Power Shot
+
+Curve Shot should remain locked for later and can be shown as locked text only if it does not clutter the UI.
+
+Flow per attempt:
+- choose direction: Left / Center / Right
+- choose shot style: Safe / Power
+- tap power bar
+- show result
+
+4. Reward consistency
+Confirm after correction:
+- calculatePenaltyRewards works with 3 attempts
+- detectPenaltyBadges works with 3 attempts
+- recordPenaltySession remains the only write/save point for penalty session rewards
+- UI does not call awardXP directly
+- XP is not double-counted
+
+5. Result screen
+Update result screen to display:
+- goals/3
+- perfect shots
+- XP earned
+- badges unlocked
+- Play Again
+- Make my Fangirl Card
+- Home
+
+6. Regression
+Run typecheck.
+Confirm /penalty works:
+- intro
+- 3 attempts
+- result screen
+- progress saved
+- no console errors
+
+Report:
+- exact files modified
+- confirm 3-shot session
+- confirm Penalty Queen unlock copy is 2/3
+- confirm explicit Safe/Power shot selection
+- confirm no card/result/landing/FanCard changes

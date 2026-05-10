@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { PenaltyAttempt, ShotDirection, PowerZone, ShotStyle } from "@/lib/penaltyEngine";
+import type { PenaltyAttempt, ShotDirection, ShotStyle, PowerZone } from "@/lib/penaltyEngine";
 import { calculatePenaltyResult } from "@/lib/penaltyEngine";
 import { ShotControls } from "./ShotControls";
 import { GoalView } from "./GoalView";
 
-const TOTAL_SHOTS = 5;
+const TOTAL_SHOTS = 3;
 
 type ShotPhase = "aiming" | "reveal";
 
@@ -20,12 +20,6 @@ interface Props {
   onComplete: (attempts: PenaltyAttempt[]) => void;
 }
 
-function styleFromDirection(d: ShotDirection): ShotStyle {
-  if (d === "left") return "curve-right";
-  if (d === "right") return "curve-left";
-  return "straight";
-}
-
 export function PenaltyGame({ onComplete }: Props) {
   const [state, setState] = useState<GameState>({
     attempts: [],
@@ -37,18 +31,20 @@ export function PenaltyGame({ onComplete }: Props) {
   const goals = state.attempts.filter((a) => a.isGoal).length;
 
   const handleShot = useCallback(
-    (direction: ShotDirection, power: PowerZone, timedCorrectly: boolean) => {
-      const style = styleFromDirection(direction);
+    (
+      direction: ShotDirection,
+      style: ShotStyle,
+      power: PowerZone,
+      timedCorrectly: boolean,
+    ) => {
       const attempt = calculatePenaltyResult(direction, power, style, timedCorrectly);
+      const newAttempts = [...state.attempts, attempt];
 
-      setState((prev) => ({
-        ...prev,
+      setState({
+        attempts: newAttempts,
         phase: "reveal",
         latest: attempt,
-        attempts: [...prev.attempts, attempt],
-      }));
-
-      const newAttempts = [...state.attempts, attempt];
+      });
 
       setTimeout(() => {
         if (newAttempts.length >= TOTAL_SHOTS) {
@@ -66,7 +62,8 @@ export function PenaltyGame({ onComplete }: Props) {
   );
 
   const shotsDone = state.attempts.length;
-  const isLastShot = shotsDone === TOTAL_SHOTS;
+  const currentShotNumber =
+    state.phase === "reveal" ? shotsDone : shotsDone + 1;
 
   return (
     <div className="flex flex-col gap-5">
@@ -74,7 +71,7 @@ export function PenaltyGame({ onComplete }: Props) {
         <div>
           <h1 className="text-xl font-black">Penalty Queen</h1>
           <p className="text-xs text-white/50">
-            Shot {Math.min(shotsDone + (state.phase === "reveal" ? 0 : 1), TOTAL_SHOTS)} of {TOTAL_SHOTS}
+            Penalty {Math.min(currentShotNumber, TOTAL_SHOTS)} of {TOTAL_SHOTS}
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5">
@@ -86,13 +83,13 @@ export function PenaltyGame({ onComplete }: Props) {
         </div>
       </div>
 
-      <div className="flex gap-1.5">
+      <div className="flex gap-2">
         {Array.from({ length: TOTAL_SHOTS }).map((_, i) => {
           const done = state.attempts[i];
           return (
             <div
               key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
+              className={`h-2 flex-1 rounded-full transition-colors ${
                 done
                   ? done.isGoal
                     ? "bg-emerald-400"
@@ -106,8 +103,8 @@ export function PenaltyGame({ onComplete }: Props) {
         })}
       </div>
 
-      <div className="glass rounded-2xl p-5 min-h-[260px] flex flex-col justify-center">
-        {state.phase === "aiming" && !isLastShot && (
+      <div className="glass rounded-2xl p-5 min-h-[280px] flex flex-col justify-center">
+        {state.phase === "aiming" && (
           <ShotControls
             key={shotsDone}
             attemptIndex={shotsDone}
@@ -124,11 +121,11 @@ export function PenaltyGame({ onComplete }: Props) {
         )}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         {state.attempts.map((a, i) => (
           <div
             key={i}
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm ${
+            className={`flex h-10 w-10 items-center justify-center rounded-full text-base ${
               a.isPerfect
                 ? "bg-amber-400/30 text-amber-300"
                 : a.isGoal
@@ -143,9 +140,9 @@ export function PenaltyGame({ onComplete }: Props) {
         {Array.from({ length: TOTAL_SHOTS - state.attempts.length }).map((_, i) => (
           <div
             key={`empty-${i}`}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 text-sm text-white/20"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-white/20"
           >
-            ·
+            {shotsDone + i + 1}
           </div>
         ))}
       </div>

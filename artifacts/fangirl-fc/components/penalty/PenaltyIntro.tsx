@@ -8,9 +8,26 @@ interface Props {
 }
 
 const RULES = [
-  { emoji: "🎯", label: "Aim", desc: "Pick your direction — left, center, or right." },
-  { emoji: "⚡", label: "Power", desc: "Tap the bar at the right moment. Hit the golden zone for max power." },
-  { emoji: "⚽", label: "Score", desc: "5 shots. Score as many as you can. No pressure… okay, a lot of pressure." },
+  {
+    emoji: "🎯",
+    label: "Aim",
+    desc: "Pick your direction — left, center, or right.",
+  },
+  {
+    emoji: "🦵",
+    label: "Shot",
+    desc: "Choose Safe or Power. Curve Shot unlocks later.",
+  },
+  {
+    emoji: "⚡",
+    label: "Power",
+    desc: "Tap the bar at the right moment. Hit the golden zone for max power.",
+  },
+  {
+    emoji: "⚽",
+    label: "Score",
+    desc: "3 penalties. Score as many as you can. No pressure… okay, a lot of pressure.",
+  },
 ];
 
 export function PenaltyIntro({ identity, onStart }: Props) {
@@ -47,13 +64,17 @@ export function PenaltyIntro({ identity, onStart }: Props) {
         ))}
       </div>
 
-      <div className="glass rounded-2xl p-4 flex items-center gap-3">
-        <span className="text-2xl">👑</span>
-        <div>
-          <p className="text-sm font-bold text-white">Score 5/5 to unlock</p>
-          <p className="text-xs text-white/50">
-            Penalty Queen badge + bonus XP
-          </p>
+      <div className="glass rounded-2xl p-4 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">👑</span>
+          <div>
+            <p className="text-sm font-bold text-white">
+              Score 2/3 to unlock Penalty Queen
+            </p>
+            <p className="text-xs text-white/50">
+              Score 3/3 to unlock Ice Cold Finisher
+            </p>
+          </div>
         </div>
       </div>
 
@@ -65,7 +86,7 @@ export function PenaltyIntro({ identity, onStart }: Props) {
       </button>
 
       <p className="text-center text-[11px] text-white/30">
-        5 shots · results saved locally · no account needed
+        3 penalties · results saved locally · no account needed
       </p>
     </div>
   );
