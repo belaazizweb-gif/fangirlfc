@@ -107,11 +107,12 @@ export function PenaltyGame({ onComplete }: Props) {
             Penalty {Math.min(shotsDone + 1, TOTAL_SHOTS)} of {TOTAL_SHOTS}
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 py-1.5">
-          <span className="text-sm">⚽</span>
-          <span className="text-sm font-black text-white">
-            {goals}
-            <span className="font-normal text-white/40">/{shotsDone}</span>
+        <div className="flex flex-col items-end rounded-xl bg-white/5 px-3 py-1.5">
+          <span className="text-sm font-black text-white leading-none">
+            {goals}<span className="text-white/40 font-normal">/3</span>
+          </span>
+          <span className="text-[9px] font-semibold uppercase tracking-widest text-white/40 mt-0.5">
+            Goals
           </span>
         </div>
       </div>
