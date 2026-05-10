@@ -1,0 +1,79 @@
+Phase 2.7 — Premium penalty gameplay polish.
+
+Do NOT work on card integration.
+Do NOT work on landing page.
+Do NOT work on result page outside the penalty module.
+Do NOT work on quiz/card/result flows.
+Do NOT change progression logic.
+Do NOT change XP/badges.
+Do NOT change the 3-penalty session logic.
+Do NOT add new features.
+
+Current issue:
+The penalty scene is functionally better, but it still feels too prototype/cartoon.
+The goalkeeper looks like an emoji/cartoon character and does not feel like a real premium football game element.
+We need to upgrade the scene so it feels like a real premium 2D/2.5D penalty mini-game.
+
+Fix only penalty visual/gameplay files.
+
+Main goals:
+1. Replace the current cartoon/emoji-style goalkeeper with a more premium stylized goalkeeper.
+2. Make the goalkeeper visibly full-body and properly anchored in front of the goal.
+3. Improve the relationship between ball movement and goalkeeper movement.
+4. Improve the cinematic football feeling of the scene.
+
+Goalkeeper requirements:
+- Remove emoji/cartoon face style.
+- Use a clean SVG/CSS stylized goalkeeper silhouette.
+- Must clearly show:
+  - head
+  - torso
+  - arms
+  - gloves
+  - legs
+  - boots
+  - goalkeeper stance
+- Make the goalkeeper larger and more proportional to the goal.
+- Place the goalkeeper lower and anchored to the pitch/goal line, not floating.
+- Use a sporty premium style, not childish.
+- Colors can stay Fangirl-compatible, but the keeper must feel like a football game character.
+
+Keeper animation requirements:
+- When the shot starts, the goalkeeper should react after the ball starts moving, not before.
+- Keeper should dive left / center / right clearly.
+- If saved, the glove/body should visually meet the ball target area.
+- If goal, the keeper should dive the wrong way or fail to reach the ball.
+- Add a quick recovery/reset before the next shot.
+
+Ball animation requirements:
+- Ball should visibly start from the penalty spot.
+- Ball should travel toward the tapped target.
+- Add a subtle motion trail or shadow during the shot.
+- If goal, add a net/glow impact at target.
+- If saved, show a glove/save impact near the keeper.
+- If missed, show the ball passing outside/above with clear feedback.
+
+Scene polish requirements:
+- Improve goal/net depth.
+- Improve pitch perspective.
+- Add stronger ball shadow and keeper shadow.
+- Improve stadium light atmosphere.
+- Keep the UI readable and mobile-first.
+- Do not make it childish or toy-like.
+- Style direction: premium arcade football, feminine but sporty, pink/purple/gold accents only around UI and effects.
+
+Tooltip:
+- Keep “Tap inside the goal to aim”, but make it smaller/subtler.
+- It must not dominate the scene.
+
+Acceptance criteria:
+- /penalty still works.
+- 3 penalties remain.
+- User can tap inside the goal to aim.
+- Ball moves visibly toward target.
+- Keeper visibly dives in sync with the shot.
+- Goal/save/miss is visually clear.
+- Goalkeeper no longer looks like an emoji/cartoon prototype.
+- No console errors.
+- Typecheck passes.
+- Report exact files changed.
