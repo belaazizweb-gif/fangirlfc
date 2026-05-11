@@ -52,17 +52,17 @@ export function adaptProgressionForCard(
       ? state.penalty.lastSession.totalAttempts
       : null;
 
-  const totalAnswered = state.footballIQ.totalAnswered;
+  const totalCorrect = state.footballIQ.totalCorrect;
   const footballIQLevel =
-    totalAnswered === 0
+    totalCorrect === 0
       ? 0
-      : totalAnswered < 5
+      : totalCorrect < 5
       ? 1
-      : totalAnswered < 15
+      : totalCorrect < 10
       ? 2
-      : totalAnswered < 30
+      : totalCorrect < 20
       ? 3
-      : totalAnswered < 50
+      : totalCorrect < 40
       ? 4
       : 5;
 

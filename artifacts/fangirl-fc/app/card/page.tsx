@@ -258,6 +258,15 @@ function Inner() {
         <span className="text-[11px] text-white/50">Play 3 penalties, earn stars, unlock badges.</span>
       </Link>
 
+      {/* Football IQ CTA — outside cardRef, never exported */}
+      <Link
+        href="/football-iq"
+        className="flex flex-col items-center gap-1 rounded-2xl border border-indigo-300/30 bg-gradient-to-br from-indigo-400/10 via-purple-400/8 to-pink-400/8 px-5 py-3.5 text-center transition hover:from-indigo-400/18 hover:via-purple-400/14 hover:to-pink-400/14 active:scale-[0.98]"
+      >
+        <span className="text-sm font-bold text-indigo-100">🧠 Get World Cup Ready</span>
+        <span className="text-[11px] text-white/50">Answer 2 football questions and upgrade your IQ level.</span>
+      </Link>
+
       <div className="glass flex flex-col gap-4 rounded-2xl p-4">
         {/* ── Personality preset selector ── */}
         <div>

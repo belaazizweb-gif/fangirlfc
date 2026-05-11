@@ -13,12 +13,14 @@ import {
   Medal,
   Flag,
   Crosshair,
+  Brain,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
   { href: "/quiz",          label: "Quiz",       icon: HelpCircle   },
   { href: "/penalty",       label: "Penalty",    icon: Crosshair    },
+  { href: "/football-iq",   label: "IQ",         icon: Brain        },
   { href: "/matchday",      label: "Matchday",   icon: CalendarDays },
   { href: "/groups",        label: "Groups",     icon: Users        },
   { href: "/my-cards",      label: "Cards",      icon: Layers       },
