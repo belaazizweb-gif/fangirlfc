@@ -1,0 +1,338 @@
+Full MVP QA Diagnostic after Football IQ integration.
+
+DO NOT implement new features.
+DO NOT modify UI unless there is a confirmed bug.
+DO NOT refactor.
+DO NOT change progression economy.
+DO NOT change penalty gameplay.
+DO NOT change card design.
+DO NOT change landing copy.
+DIAGNOSTIC FIRST.
+
+Context:
+Fangirl FC is now a World Cup 2026 social football game for girls.
+
+Current MVP modules:
+- Landing
+- Fan Type Quiz
+- Result Page
+- Fangirl Card
+- Penalty Queen Challenge
+- Football IQ / World Cup Ready
+- XP / stars / badges
+- Card export/download
+- Ranking/team-ranking fallback states
+
+Goal:
+Verify that the complete MVP works end-to-end after Football IQ was added.
+
+---
+
+## 1. Route check
+
+Test these routes:
+
+- /
+- /quiz
+- /result?id=chaotic
+- /card?id=chaotic
+- /penalty
+- /football-iq
+- /matchday
+- /groups
+- /level
+- /challenges
+- /my-cards
+- /ranking
+- /team-ranking
+- /stickers
+- /callout
+
+For each route report:
+- loads or fails
+- console errors
+- broken UI
+- mobile layout issues
+- localStorage/data errors
+- navigation issues
+
+---
+
+## 2. Full funnel test
+
+Test the main user journey:
+
+1. Open landing page.
+2. Click primary CTA to quiz.
+3. Complete quiz.
+4. Confirm result page loads with identity.
+5. Click “Turn this into my Fangirl Card”.
+6. Confirm card page loads.
+7. Confirm central stars/progression display.
+8. Click “Get World Cup Ready”.
+9. Complete Football IQ.
+10. Confirm:
+   - 2 questions appear
+   - options are shuffled
+   - correct/incorrect state works
+   - explanations appear
+   - result screen appears
+   - XP is awarded once
+   - Football IQ stats persist
+11. Go back to card.
+12. Confirm Football IQ level is reflected if the card supports it.
+13. Click “Upgrade this card with Penalty Queen”.
+14. Play 3 penalties.
+15. Confirm:
+   - penalty game works
+   - XP is awarded
+   - badge unlocks if condition met
+   - latest penalty score persists
+16. Go back to card.
+17. Confirm:
+   - stars update
+   - badge appears
+   - penalty score appears
+   - Football IQ level remains correct
+18. Download/export card.
+19. Confirm exported image includes:
+   - identity
+   - progression stars
+   - penalty badge/score if available
+   - Football IQ level if displayed
+20. Confirm exported image excludes:
+   - page buttons
+   - penalty CTA
+   - IQ CTA
+   - nav
+
+Report any failure.
+
+---
+
+## 3. Football IQ specific QA
+
+Test /football-iq carefully.
+
+Check:
+- intro screen
+- “Start today’s IQ”
+- Q1 display
+- shuffled options
+- answer selection
+- explanation after answer
+- next button
+- Q2 display
+- result screen
+- XP calculation
+- badge unlocks
+- Football IQ level calculation
+- practice mode after first completed daily session
+- replay same day gives 0 XP
+- no duplicate XP on refresh/back navigation
+
+Important:
+Verify correct answer is NOT always displayed first.
+
+Check localStorage:
+- fangirl_progress_v1
+- footballIQ.totalAnswered
+- footballIQ.totalCorrect
+- footballIQ.level
+- footballIQ.lastPlayedDate
+- dailyCaps.footballIQRewarded or equivalent
+
+Report exact values after one full run.
+
+---
+
+## 4. Progression economy QA
+
+Verify XP/stars after:
+
+A. Empty state  
+B. After Football IQ 0/2  
+C. After Football IQ 1/2  
+D. After Football IQ 2/2  
+E. After one Penalty session 1/3  
+F. After one Penalty session 2/3  
+G. After one Penalty session 3/3  
+
+Check:
+- XP increases correctly
+- starFragments update correctly
+- starsDisplay updates correctly
+- badges do not unlock incorrectly
+- badges persist after refresh
+- no double XP
+- daily cap logic works
+- practice mode gives 0 XP
+
+---
+
+## 5. Card proof QA
+
+The Fangirl Card is the proof object.
+
+Check /card:
+
+- central stars use Progression Engine
+- no duplicate stars
+- badge/penalty pill appears under TEAM line after penalty
+- Football IQ level appears if designed to appear
+- footer stays clean
+- card vibe selector still works
+- display name still works
+- team selection still works
+- image/selfie upload still works if present
+- export/download works
+- exported image not cropped
+- exported image includes proof data
+- exported image excludes outside UI
+
+Test:
+- empty progress
+- after Football IQ only
+- after Penalty only
+- after Football IQ + Penalty
+
+---
+
+## 6. Penalty QA
+
+Confirm previous validated behavior still works:
+
+- intro
+- 3 penalties only
+- tap inside goal to aim
+- Safe Shot / Power Shot
+- power bar
+- ball animation
+- goalkeeper dive
+- goal/save/miss feedback
+- result screen
+- Play Again
+- Make my Fangirl Card
+- XP saved
+- badges saved
+- score saved
+- no gameplay regression after Football IQ integration
+
+---
+
+## 7. localStorage audit
+
+List all localStorage keys currently used.
+
+Especially verify:
+- fangirl_progress_v1
+- fangirlfc.stars
+- fangirlfc.lastIdentity
+- fangirlfc.unlocked
+- fangirlfc.actions
+- fangirlfc.identity_stars
+- fangirlfc.identity_actions
+- fangirlfc.cards
+- any football IQ related key if created
+
+Confirm:
+- no namespace collision
+- Football IQ uses fangirl_progress_v1, not a random new key
+- Penalty uses fangirl_progress_v1
+- card reads the same progression source
+
+---
+
+## 8. Mobile responsiveness
+
+Test widths:
+- 390px
+- 430px
+- 768px
+- desktop
+
+Check:
+- /football-iq layout
+- /penalty layout
+- /card layout
+- nav scroll
+- buttons tap size
+- no hidden important content
+- no horizontal overflow except nav if intentional
+
+---
+
+## 9. Console / build / typecheck
+
+Run:
+- tsc --noEmit
+- next build
+- lint if configured
+- existing tests if configured
+
+Also inspect browser console on:
+- /
+- /quiz
+- /result?id=chaotic
+- /card?id=chaotic
+- /penalty
+- /football-iq
+- /ranking
+- /team-ranking
+
+Report:
+- TypeScript errors
+- build errors
+- hydration errors
+- runtime errors
+- asset 404 errors
+- localStorage errors
+- export/download errors
+
+---
+
+## 10. Risk classification
+
+Return issues in 4 categories:
+
+A. Blocking bugs  
+Must fix before publish.
+
+B. Important but not blocking  
+Should fix before or shortly after publish.
+
+C. Polish only  
+Can wait.
+
+D. Scope creep  
+Do not fix now.
+
+---
+
+## 11. Final output required
+
+Return a structured report:
+
+1. Overall MVP status
+2. Main funnel status
+3. Football IQ status
+4. Penalty status
+5. Progression economy status
+6. Card proof/export status
+7. Route-by-route status
+8. Mobile responsiveness status
+9. Console/typecheck/build status
+10. localStorage audit
+11. Blocking bugs
+12. Recommended fixes before publish
+13. Files likely needing fixes
+14. Files that should not be touched
+15. Final recommendation:
+   - ready to publish
+   - ready after fixes
+   - not ready
+
+Again:
+DIAGNOSTIC FIRST.
+NO NEW FEATURES.
+NO REFACTOR.
