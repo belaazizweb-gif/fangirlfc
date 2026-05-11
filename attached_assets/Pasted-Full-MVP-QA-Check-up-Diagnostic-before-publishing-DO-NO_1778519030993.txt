@@ -1,0 +1,256 @@
+Full MVP QA Check-up / Diagnostic before publishing.
+
+DO NOT implement new features.
+DO NOT modify UI unless there is a confirmed bug.
+DO NOT refactor.
+DO NOT change progression economy.
+DO NOT change penalty gameplay.
+DO NOT change card design.
+DO NOT change landing copy.
+DIAGNOSTIC FIRST.
+
+Context:
+Fangirl FC is currently a World Cup 2026 social football game for girls.
+
+Current MVP loop:
+Landing
+→ Quiz
+→ Result
+→ Fangirl Card
+→ Penalty Queen Challenge
+→ XP / stars / badges
+→ Updated card
+→ Download/share
+
+We are still testing in Replit preview. The web app is not published yet.
+
+Goal:
+Perform a complete technical and product QA audit of the current app before deployment.
+
+---
+
+## 1. Routes/pages check
+
+Test all current important routes:
+
+- /
+- /quiz
+- /result?id=chaotic
+- /card?id=chaotic
+- /penalty
+- /matchday
+- /groups
+- /level
+- /challenges
+- /my-cards if present
+- any other route currently in navigation
+
+For each route, report:
+- loads or fails
+- console errors
+- broken UI
+- mobile responsiveness
+- navigation issues
+- localStorage / data dependency issues
+
+---
+
+## 2. Main funnel test
+
+Test the full user flow:
+
+1. Open landing page
+2. Click primary CTA to quiz
+3. Complete quiz
+4. Confirm result page loads with correct identity
+5. Click “Turn this into my Fangirl Card”
+6. Confirm card page loads
+7. Customize card if controls exist
+8. Click “Upgrade this card with Penalty Queen”
+9. Play 3 penalties
+10. Confirm XP / badge / stars save
+11. Click “Make my Fangirl Card”
+12. Confirm card updates with:
+   - central progression stars
+   - top badge if unlocked
+   - latest penalty score
+13. Download/export card
+14. Confirm exported image includes:
+   - card identity
+   - progression stars
+   - badge/penalty proof pill
+15. Confirm exported image does NOT include:
+   - page buttons
+   - upgrade CTA
+   - outside UI
+
+Report any failure.
+
+---
+
+## 3. Penalty Queen test
+
+Test /penalty carefully.
+
+Check:
+- intro screen
+- start challenge
+- 3-penalty flow
+- tap inside goal to aim
+- Safe Shot / Power Shot
+- power bar timing
+- ball animation
+- goalkeeper dive
+- goal/save/miss feedback
+- result screen
+- Play Again
+- Make my Fangirl Card
+- XP saved
+- badges saved
+- stars saved
+
+Run at least 5 penalty sessions and report:
+- average score
+- whether 3/3 is too easy
+- whether 0/3 is too common
+- whether the game feels fair
+- whether any attempt result feels random/unexplained
+
+Do not change difficulty yet. Just report.
+
+---
+
+## 4. Progression system check
+
+Inspect current progression storage.
+
+Check localStorage key:
+- fangirl_progress_v1
+
+Verify:
+- XP persists after refresh
+- starFragments persist after refresh
+- badge list persists after refresh
+- latest penalty score persists after refresh
+- cardProgressAdapter reads correct values
+- no collision with existing fangirlfc.* keys
+
+Report current localStorage keys used by the app.
+
+---
+
+## 5. Card export check
+
+The card is the shareable proof object.
+
+Check:
+- /card loads normally
+- central star row uses Progression Engine when progress exists
+- no duplicate star system appears
+- badge/penalty proof pill appears under TEAM line after penalty
+- footer stays clean
+- export/download works
+- exported image has correct dimensions
+- exported image is not cropped
+- exported image includes the proof pill
+- exported image does not include outside page CTA
+
+Test at least:
+- empty progress state
+- after 1/3 penalty
+- after 2/3 penalty
+- after 3/3 penalty
+
+---
+
+## 6. Mobile responsiveness
+
+Test responsive widths:
+
+- 390px mobile
+- 430px mobile
+- 768px tablet
+- desktop preview
+
+Check:
+- navigation horizontal overflow
+- card fits screen
+- penalty scene fits screen
+- buttons are tappable
+- no important content hidden
+- export still works
+
+Report all layout issues.
+
+---
+
+## 7. Console / Typecheck / Build
+
+Run:
+
+- typecheck
+- lint if configured
+- build if configured
+- existing tests if configured
+
+Also inspect browser console during:
+- landing
+- quiz
+- card
+- penalty
+- export
+
+Report:
+- TypeScript errors
+- build errors
+- hydration errors
+- runtime errors
+- asset loading errors
+- localStorage errors
+- export/download errors
+
+---
+
+## 8. Risk audit before publishing
+
+Report risks in these categories:
+
+A. Blocking bugs  
+Must fix before publish.
+
+B. Important but not blocking  
+Can fix before or shortly after publish.
+
+C. Polish only  
+Can wait.
+
+D. Scope creep  
+Should not be fixed now.
+
+---
+
+## 9. Final output required
+
+Return a structured diagnostic report:
+
+1. Overall MVP status
+2. Main funnel status
+3. Route-by-route status
+4. Penalty Queen status
+5. Progression/card status
+6. Export/download status
+7. Mobile responsiveness status
+8. Console/typecheck/build status
+9. Blocking bugs
+10. Recommended fixes before publishing
+11. Files likely needing fixes
+12. Files that should not be touched
+13. Final recommendation:
+   - ready to publish preview
+   - not ready
+   - ready after fixes
+
+Again:
+DIAGNOSTIC FIRST.
+NO NEW FEATURES.
+NO REFACTOR.
