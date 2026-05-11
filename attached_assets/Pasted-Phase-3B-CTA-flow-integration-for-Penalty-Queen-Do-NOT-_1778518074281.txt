@@ -1,0 +1,134 @@
+Phase 3B — CTA flow integration for Penalty Queen.
+
+Do NOT change penalty gameplay.
+Do NOT change penalty difficulty.
+Do NOT change progression economy.
+Do NOT change badges.
+Do NOT change FanCard design.
+Do NOT change card proof layout.
+Do NOT modify Firestore schema.
+Do NOT modify quiz scoring.
+Do NOT modify official identity logic.
+Do NOT modify landing page yet.
+
+Context:
+Penalty Queen gameplay is validated.
+Progression Engine is validated.
+Card proof integration is validated.
+The Fangirl Card now displays:
+- progression stars
+- top badge
+- latest penalty score
+
+Now we need to connect the user flow with clear CTAs.
+
+Goal:
+Create a smooth funnel:
+Quiz → Result → Card → Penalty → Updated Card
+
+---
+
+1. Result page CTA
+
+Find the result page/component:
+- app/result/page.tsx
+- components/ResultCard.tsx
+or equivalent
+
+Add a secondary CTA below the primary “Turn this into my Fangirl Card” button.
+
+Primary CTA must stay unchanged and remain the main action.
+
+Add secondary CTA:
+
+Text:
+“Play Penalty Queen”
+
+Subtext if there is room:
+“Score 2/3 to unlock your badge”
+
+Destination:
+`/penalty`
+
+Placement:
+- below the main card CTA
+- above “Try again” / retry CTA if present
+
+Design:
+- secondary style
+- premium but not overpowering
+- should not compete with the main card CTA
+
+Do not force users to play Penalty before making the card.
+
+---
+
+2. Card page CTA
+
+Find the card page:
+- app/card/page.tsx
+
+Add a secondary CTA outside the exported card area.
+
+Important:
+This CTA must NOT be inside cardRef.
+It should not appear in the downloaded/exported image.
+
+CTA text:
+“Upgrade this card with Penalty Queen”
+
+Secondary text:
+“Play 3 penalties, earn stars, unlock badges.”
+
+Destination:
+`/penalty`
+
+Placement:
+- near card controls
+- preferably after the card preview or near share/download actions
+- must not clutter the card itself
+
+Design:
+- consistent with Fangirl FC UI
+- secondary but visible
+- mobile-first
+
+---
+
+3. Preserve existing behavior
+
+Do not break:
+- card vibe selector
+- official identity logic
+- card download/export
+- share captions
+- story mode
+- quiz result flow
+- landing previews
+- TopNav
+
+---
+
+4. Optional small improvement
+
+If the user came from /card and clicks Penalty, no complex return logic is required yet.
+
+But after finishing penalty, the existing “Make my Fangirl Card” CTA should still take them back to /card.
+
+Do not build new route params unless necessary.
+
+---
+
+5. Acceptance criteria
+
+- /result still loads normally
+- primary “Turn this into my Fangirl Card” CTA still works
+- new secondary Penalty CTA appears on /result
+- /card still loads normally
+- new Penalty CTA appears outside the exported card
+- exported card does NOT include this CTA
+- /penalty route still works
+- after playing penalty, going back to /card shows updated badge/score
+- no console errors
+- typecheck passes
+- report exact files changed

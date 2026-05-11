@@ -418,6 +418,17 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
           Turn this into my Fangirl Card
           <ArrowRight className="h-4 w-4" />
         </Link>
+
+        {/* Secondary CTA — Penalty Queen */}
+        <Link
+          href="/penalty"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-full border border-amber-300/40 bg-amber-300/10 px-6 py-3 text-center transition hover:bg-amber-300/20 active:scale-95"
+          onClick={() => trackEvent("penalty_cta_clicked", { source: "result_page", identityId: identity.id })}
+        >
+          <span className="text-sm font-bold text-amber-100">⚽ Play Penalty Queen</span>
+          <span className="text-[11px] text-amber-200/65">Score 2/3 to unlock your badge</span>
+        </Link>
+
         {remaining > 0 && (
           <Link
             href={matchId ? `/quiz?matchId=${matchId}` : "/quiz"}

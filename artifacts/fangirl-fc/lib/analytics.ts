@@ -24,7 +24,8 @@ export type AnalyticsEvent =
   | "worldwide_battle_viewed"
   | "story_caption_copied"
   | "callout_created"
-  | "callout_exported";
+  | "callout_exported"
+  | "penalty_cta_clicked";
 
 export function trackEvent(
   name: AnalyticsEvent,
