@@ -14,6 +14,8 @@ export interface CardProgressDisplay {
   starFragments: number;
   topBadge: { id: BadgeId; name: string; emoji: string } | null;
   latestPenaltyScore: number | null;
+  latestPenaltyGoals: number | null;
+  latestPenaltyAttempts: number | null;
   footballIQLevel: number;
   xp: number;
 }
@@ -40,6 +42,16 @@ export function adaptProgressionForCard(
       ? state.penalty.lastSession.score
       : null;
 
+  const latestPenaltyGoals =
+    state.penalty.lastSession !== null
+      ? state.penalty.lastSession.totalGoals
+      : null;
+
+  const latestPenaltyAttempts =
+    state.penalty.lastSession !== null
+      ? state.penalty.lastSession.totalAttempts
+      : null;
+
   const totalAnswered = state.footballIQ.totalAnswered;
   const footballIQLevel =
     totalAnswered === 0
@@ -59,6 +71,8 @@ export function adaptProgressionForCard(
     starFragments: state.starFragments,
     topBadge,
     latestPenaltyScore,
+    latestPenaltyGoals,
+    latestPenaltyAttempts,
     footballIQLevel,
     xp: state.xp,
   };

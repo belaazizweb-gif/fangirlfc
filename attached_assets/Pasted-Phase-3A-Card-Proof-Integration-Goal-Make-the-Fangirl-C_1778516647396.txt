@@ -1,0 +1,94 @@
+Phase 3A — Card Proof Integration.
+
+Goal:
+Make the Fangirl Card become the shareable proof object for progression.
+
+The Progression Engine exists.
+cardProgressAdapter.ts exists and exposes:
+- CardProgressDisplay
+- adaptProgressionForCard(state)
+- getCardProgressDisplay()
+
+Penalty gameplay is validated.
+Progression economy is balanced.
+Badges are corrected.
+
+Do NOT modify penalty gameplay.
+Do NOT modify penalty difficulty.
+Do NOT modify progression economy.
+Do NOT modify badges.
+Do NOT modify quiz scoring.
+Do NOT modify official identity logic.
+Do NOT modify Firestore schema.
+Do NOT modify landing page yet.
+Do NOT refactor FanCard broadly.
+
+What to implement:
+Add a compact progression proof block to the Fangirl Card/export area.
+
+The progress proof must show:
+- 5-star visual display based on starFragments / 20
+- numeric star progress, for example “0.25/5” or “1.5/5”
+- top badge if available
+- latest penalty score if available, e.g. “Penalty: 2/3”
+- Football IQ level placeholder only if available or cleanly defaulted
+- XP only if it does not clutter the design
+
+Important:
+The progress proof must appear in the exported/downloaded card.
+Do not add it only beside the card.
+
+Preferred implementation:
+Create:
+- components/card/CardProgressProof.tsx
+
+Use:
+- getCardProgressDisplay() from lib/cardProgressAdapter.ts
+
+Then integrate it safely into the card export wrapper.
+
+Before modifying, inspect:
+- app/card/page.tsx
+- components/FanCard.tsx
+- any export/download wrapper
+- ShareActions / StoryModeKit if needed
+
+Choose the safest implementation:
+Option A:
+Add CardProgressProof inside FanCard as an optional prop/child area.
+
+Option B:
+Wrap FanCard + CardProgressProof inside the existing export ref, if this guarantees export includes the proof block.
+
+Use the safest option with minimal changes.
+
+Design requirements:
+- compact
+- premium
+- consistent with Fangirl FC
+- not cluttered
+- should feel like a proof strip / achievement area
+- mobile-first
+- should not break landing FanCard previews
+
+Empty state:
+If no progress exists, the proof block should still render gracefully:
+- show “0/5”
+- no badge or “No badge yet”
+- no penalty score or “Penalty: —”
+Keep it clean.
+
+Acceptance criteria:
+- /card loads normally
+- existing card vibe selector still works
+- official quiz identity remains unchanged
+- download/export still works
+- progress proof appears in exported/downloaded card
+- after playing /penalty, latest penalty score appears on card
+- top badge appears if unlocked
+- stars display from 0 to 5 using starFragments / 20
+- no console errors
+- typecheck passes
+- existing tests pass
+- report exact files changed
+- explain whether integration used Option A or Option B and why

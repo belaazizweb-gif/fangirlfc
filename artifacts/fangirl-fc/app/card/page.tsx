@@ -28,6 +28,7 @@ import {
 } from "@/lib/stars";
 import { exportNodeAsPng } from "@/lib/exportImage";
 import { buildPayloadShareUrl, newShareId, saveShare } from "@/lib/share";
+import { getCardProgressDisplay, type CardProgressDisplay } from "@/lib/cardProgressAdapter";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
 import { saveCard } from "@/lib/cardHistory";
 import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
@@ -62,6 +63,7 @@ function Inner() {
   const [hint, setHint] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progressProof, setProgressProof] = useState<CardProgressDisplay | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +76,10 @@ function Inner() {
     setStars(s);
     setHint(getNextHint(s, getIdentityActions(id)));
   }, [id]);
+
+  useEffect(() => {
+    setProgressProof(getCardProgressDisplay());
+  }, []);
 
   useEffect(() => {
     if (!match) {
@@ -234,6 +240,7 @@ function Inner() {
             selfieAdjust={{ fit: selfieFit, zoom }}
             matchContext={matchContext}
             prediction={predictionText}
+            progressProof={progressProof ?? undefined}
           />
         </div>
       </div>

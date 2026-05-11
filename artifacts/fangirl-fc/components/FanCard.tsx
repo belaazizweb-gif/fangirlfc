@@ -9,6 +9,8 @@ import type {
   Team,
   Template,
 } from "@/types";
+import type { CardProgressDisplay } from "@/lib/cardProgressAdapter";
+import { CardProgressProof } from "./card/CardProgressProof";
 
 const MAX_STARS = 5;
 
@@ -24,6 +26,8 @@ interface Props {
   matchContext?: string;
   /** Optional prediction line, e.g. "Brazil wins". */
   prediction?: string;
+  /** Optional progression proof block shown inside the card (and included in export). */
+  progressProof?: CardProgressDisplay;
 }
 
 const CARD_W = 360;
@@ -177,6 +181,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
     selfieAdjust = DEFAULT_ADJUST,
     matchContext,
     prediction,
+    progressProof,
   },
   ref,
 ) {
@@ -558,6 +563,14 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               style={{ color: theme.accent, fill: theme.accent }}
             />
           </div>
+          {progressProof && (
+            <CardProgressProof
+              data={progressProof}
+              accentDeep={theme.accentDeep}
+              frameInk={theme.frameInk}
+              frameInkSoft={theme.frameInkSoft}
+            />
+          )}
           <div
             className="mt-1.5 flex items-center justify-between text-[9px] font-extrabold uppercase tracking-[0.22em]"
             style={{ color: theme.textMuted }}
