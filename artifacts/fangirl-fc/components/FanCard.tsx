@@ -198,6 +198,19 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
   const proofFilledStars = Math.floor(proofStars);
   const proofHalfStar = proofStars - proofFilledStars >= 0.25;
   const titleSize = pickTitleSize(identity.title);
+
+  const pillParts: string[] = [];
+  if (progressProof?.topBadge) {
+    pillParts.push(`${progressProof.topBadge.emoji} ${progressProof.topBadge.name}`);
+  }
+  if (progressProof?.latestPenaltyGoals !== null && progressProof?.latestPenaltyGoals !== undefined) {
+    pillParts.push(`⚽ ${progressProof.latestPenaltyGoals}/${progressProof.latestPenaltyAttempts}`);
+  }
+  if (progressProof && progressProof.footballIQLevel > 0) {
+    pillParts.push(`🧠 IQ Lv.${progressProof.footballIQLevel}`);
+  }
+  const pillText = pillParts.join("  •  ");
+
   const handle = displayName
     ? `@${displayName.toLowerCase().replace(/\s+/g, "")}`
     : "@FANGIRL.FC";
@@ -500,8 +513,8 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
           <span className="text-[16px] leading-none">{team.flag}</span>
         </div>
 
-        {/* Progress proof pill — badge + penalty, one line, below team */}
-        {progressProof && (progressProof.topBadge !== null || progressProof.latestPenaltyGoals !== null) && (
+        {/* Progress proof pill — badge + penalty + IQ level, one line, below team */}
+        {pillText && (
           <div className="mt-1.5 flex items-center justify-center">
             <div
               className="rounded-full px-3 py-[3px] text-[9px] font-extrabold uppercase tracking-[0.22em] text-center"
@@ -515,9 +528,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
                 whiteSpace: "nowrap",
               }}
             >
-              {progressProof.topBadge
-                ? `${progressProof.topBadge.emoji} ${progressProof.topBadge.name}  •  ⚽ ${progressProof.latestPenaltyGoals ?? "—"}/${progressProof.latestPenaltyAttempts ?? "—"}`
-                : `⚽ Penalty: ${progressProof.latestPenaltyGoals !== null ? `${progressProof.latestPenaltyGoals}/${progressProof.latestPenaltyAttempts}` : "—"}`}
+              {pillText}
             </div>
           </div>
         )}

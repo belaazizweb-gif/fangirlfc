@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Brain } from "lucide-react";
 import { TopNav } from "@/components/TopNav";
 import { FootballIqIntro } from "@/components/football-iq/FootballIqIntro";
 import { FootballIqQuestion } from "@/components/football-iq/FootballIqQuestion";
@@ -105,14 +104,6 @@ export default function FootballIQPage() {
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-white">
       <div className="mx-auto max-w-lg px-4 py-6">
-        <div className="flex items-center gap-2 text-2xl font-extrabold">
-          <Brain className="h-6 w-6 text-indigo-400" />
-          Football IQ
-        </div>
-        <p className="mt-1 text-[13px] text-white/50">
-          World Cup 2026 · 2 questions a day
-        </p>
-
         <TopNav />
 
         <div className="mt-6">
