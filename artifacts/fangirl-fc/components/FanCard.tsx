@@ -10,7 +10,6 @@ import type {
   Template,
 } from "@/types";
 import type { CardProgressDisplay } from "@/lib/cardProgressAdapter";
-import { CardProgressProof } from "./card/CardProgressProof";
 
 const MAX_STARS = 5;
 
@@ -191,6 +190,13 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
   const rating = ratingFromStars(starsValue);
   const filledStars = Math.floor(starsValue);
   const halfStar = starsValue - filledStars >= 0.5;
+
+  // When progressProof is present, use progression engine stars as the single source of truth
+  const proofStars = progressProof
+    ? Math.max(0, Math.min(MAX_STARS, progressProof.starsDisplay))
+    : starsValue;
+  const proofFilledStars = Math.floor(proofStars);
+  const proofHalfStar = proofStars - proofFilledStars >= 0.25;
   const titleSize = pickTitleSize(identity.title);
   const handle = displayName
     ? `@${displayName.toLowerCase().replace(/\s+/g, "")}`
@@ -397,11 +403,11 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
           </span>
           <div
             className="flex items-end gap-[3px]"
-            aria-label={`${starsValue}/${MAX_STARS} stars earned`}
+            aria-label={`${proofStars}/${MAX_STARS} stars earned`}
           >
             {Array.from({ length: MAX_STARS }).map((_, i) => {
-              const isFilled = i < filledStars;
-              const isHalf = !isFilled && i === filledStars && halfStar;
+              const isFilled = i < proofFilledStars;
+              const isHalf = !isFilled && i === proofFilledStars && proofHalfStar;
               const active = isFilled || isHalf;
               return (
                 <div
@@ -447,7 +453,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
           className="mt-0.5 text-center text-[8.5px] font-extrabold uppercase tracking-[0.32em]"
           style={{ color: RATING_GOLD_DEEP }}
         >
-          {starsValue.toFixed(starsValue % 1 === 0 ? 0 : 1)} / {MAX_STARS} fangirl level
+          {proofStars.toFixed(proofStars % 1 === 0 ? 0 : 1)} / {MAX_STARS} fangirl level
         </div>
 
         {/* Crown + identity title */}
@@ -493,6 +499,28 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
           </span>
           <span className="text-[16px] leading-none">{team.flag}</span>
         </div>
+
+        {/* Progress proof pill — badge + penalty, one line, below team */}
+        {progressProof && (progressProof.topBadge !== null || progressProof.latestPenaltyGoals !== null) && (
+          <div className="mt-1.5 flex items-center justify-center">
+            <div
+              className="rounded-full px-3 py-[3px] text-[9px] font-extrabold uppercase tracking-[0.22em] text-center"
+              style={{
+                background: `${theme.accentDeep}14`,
+                color: theme.accentDeep,
+                border: `1px solid ${theme.accentDeep}2a`,
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {progressProof.topBadge
+                ? `${progressProof.topBadge.emoji} ${progressProof.topBadge.name}  •  ⚽ ${progressProof.latestPenaltyGoals ?? "—"}/${progressProof.latestPenaltyAttempts ?? "—"}`
+                : `⚽ Penalty: ${progressProof.latestPenaltyGoals !== null ? `${progressProof.latestPenaltyGoals}/${progressProof.latestPenaltyAttempts}` : "—"}`}
+            </div>
+          </div>
+        )}
 
         {/* Optional prediction line */}
         {prediction && (
@@ -563,14 +591,6 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               style={{ color: theme.accent, fill: theme.accent }}
             />
           </div>
-          {progressProof && (
-            <CardProgressProof
-              data={progressProof}
-              accentDeep={theme.accentDeep}
-              frameInk={theme.frameInk}
-              frameInkSoft={theme.frameInkSoft}
-            />
-          )}
           <div
             className="mt-1.5 flex items-center justify-between text-[9px] font-extrabold uppercase tracking-[0.22em]"
             style={{ color: theme.textMuted }}

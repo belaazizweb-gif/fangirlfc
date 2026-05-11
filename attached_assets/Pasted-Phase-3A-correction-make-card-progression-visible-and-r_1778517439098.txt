@@ -1,0 +1,85 @@
+Phase 3A correction — make card progression visible and remove duplicate/confusing progress display.
+
+Do NOT change penalty gameplay.
+Do NOT change progression economy.
+Do NOT change quiz scoring.
+Do NOT change official identity logic.
+Do NOT modify landing page.
+Do NOT modify Firestore.
+
+Current issue:
+The progress proof strip was added at the very bottom of the card. It is too small and not visible enough.
+Also, the card now shows stars twice:
+- existing main “FANGIRL LEVEL” stars in the middle
+- new progress stars in the bottom proof strip
+
+This is confusing.
+
+Product decision:
+The Fangirl Card is the shareable proof object.
+There must be ONE main star/progression system on the card.
+
+Required correction:
+
+1. Use Progression Engine stars as the main Fangirl Level display
+The central star area under the photo should use progressProof/starFragments from cardProgressAdapter.
+
+Replace or override the existing visual star display there with:
+- 5 visual stars
+- partial star support if possible
+- numeric display like “0.5 / 5 FANGIRL LEVEL”
+
+If no progression exists:
+- show “0 / 5 FANGIRL LEVEL”
+or keep existing fallback only if needed, but do not show two star systems.
+
+2. Move badge/penalty proof higher
+Do not place Penalty Queen / Penalty score in the footer.
+
+Add a compact premium proof pill below the TEAM line and above the bullet list.
+
+Example:
+“👑 PENALTY QUEEN  •  ⚽ 0/3”
+
+If no badge:
+“⚽ Penalty: —”
+
+If badge exists:
+show top badge clearly.
+
+3. Remove the bottom proof strip
+Remove CardProgressProof from the footer area between “Fangirl forever” and #WC2026/@handle.
+The footer must stay clean.
+
+4. Keep export working
+The progression must still appear in the downloaded/exported card because it is inside FanCard/cardRef.
+
+5. Preserve existing card layout
+Do not break:
+- photo
+- title
+- team
+- bullets
+- quote
+- CTA
+- footer
+- template/vibe styling
+- landing previews
+
+6. Empty state
+If no penalty was played:
+- central stars show current progression, usually 0/5
+- badge/penalty row can be hidden or show “⚽ Penalty: —”
+Keep it clean and premium.
+
+Acceptance criteria:
+- /card has only one star/progression display
+- main stars use Progression Engine starFragments
+- no duplicate stars at the bottom
+- badge/penalty appears visibly under TEAM line
+- exported card includes the visible progress
+- landing FanCard previews are not broken
+- card vibe selector still works
+- typecheck passes
+- no console errors
+- report exact files changed
