@@ -27,6 +27,10 @@ export const metadata: Metadata = {
   description:
     "Take the quiz, unlock your fan identity, and create your Fangirl FC card.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
   applicationName: "Fangirl FC",
   appleWebApp: {
     capable: true,

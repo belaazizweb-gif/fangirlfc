@@ -13,7 +13,7 @@ import { getFirebaseDb } from "@/lib/firebase";
 import { fetchRecentOfficialShares, type RecentShareItem } from "@/lib/teamRank";
 import { getTeam } from "@/lib/teams";
 import { TopNav } from "@/components/TopNav";
-import { Flag, Star, Loader2, Globe, Lock, Zap } from "lucide-react";
+import { Flag, Star, Loader2, Globe, Lock, Zap, RefreshCw } from "lucide-react";
 import type { TeamRankingEntry } from "@/lib/officialStars";
 
 const LIMIT = 50;
@@ -101,10 +101,20 @@ export default function TeamRankingPage() {
   const [loading, setLoading]             = useState(true);
   const [rulesBlocked, setRulesBlocked]   = useState(false);
   const [error, setError]                 = useState<string | null>(null);
+  const [retryKey, setRetryKey]           = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+    setRulesBlocked(false);
+    setEntries([]);
+
     const db = getFirebaseDb();
-    if (!db) { setError("Firebase not available."); setLoading(false); return; }
+    if (!db) {
+      setError("Couldn't load rankings right now. Check back soon or try again.");
+      setLoading(false);
+      return;
+    }
 
     const q = query(
       collection(db, "teams"),
@@ -112,7 +122,11 @@ export default function TeamRankingPage() {
       limit(LIMIT),
     );
 
-    getDocs(q)
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 8000),
+    );
+
+    Promise.race([getDocs(q), timeoutPromise])
       .then((snap) => {
         setEntries(snap.docs.map((d) => d.data() as TeamRankingEntry));
       })
@@ -123,7 +137,7 @@ export default function TeamRankingPage() {
         ) {
           setRulesBlocked(true);
         } else {
-          setError("Could not load team rankings. Try again later.");
+          setError("Couldn't load rankings right now. Check back soon or try again.");
         }
       })
       .finally(() => setLoading(false));
@@ -135,7 +149,7 @@ export default function TeamRankingPage() {
     fetchRecentOfficialShares(50).then((items) => {
       setShareCount(items.length);
     });
-  }, []);
+  }, [retryKey]);
 
   return (
     <main className="min-h-screen bg-[#0d0d1a] text-white">
@@ -169,8 +183,16 @@ export default function TeamRankingPage() {
           )}
 
           {!loading && error && (
-            <div className="rounded-2xl border border-red-400/30 bg-red-400/10 p-6 text-center text-[13px] text-red-300">
-              {error}
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+              <p className="text-[14px] font-bold text-white/60">Couldn't load rankings right now.</p>
+              <p className="text-[12px] text-white/40">Check back soon or try again.</p>
+              <button
+                onClick={() => setRetryKey((k) => k + 1)}
+                className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-bold text-white/80 transition hover:bg-white/20 active:scale-95"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Try again
+              </button>
             </div>
           )}
 
