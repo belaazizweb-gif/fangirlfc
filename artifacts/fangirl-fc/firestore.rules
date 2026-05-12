@@ -17,6 +17,29 @@ service cloud.firestore {
                              && request.auth.uid == resource.data.get('userId', '');
     }
 
+    // ── Public card share links (unauthenticated) ─────────────────────────────
+    // Anyone can create a share record (no auth required — app has no login gate).
+    // Anyone can read (the /share/[shareId] page is public).
+    // Records are immutable once created (no update/delete).
+    match /public_cards/{shareId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll([
+                         'shareId', 'identityId', 'displayName', 'teamCode',
+                         'templateId', 'stars', 'createdAt'
+                       ])
+                    && request.resource.data.shareId == shareId
+                    && request.resource.data.identityId is string
+                    && request.resource.data.displayName is string
+                    && request.resource.data.teamCode is string
+                    && request.resource.data.templateId is string
+                    && request.resource.data.stars is number
+                    && request.resource.data.createdAt is number
+                    && !request.resource.data.keys().hasAny([
+                         'selfieUrl', 'photo', 'image'
+                       ]);
+      allow update, delete: if false;
+    }
+
     // ── Official share analytics ──────────────────────────────────────────────
     // Analytics/debug collection — NOT reward authority.
     // Authenticated users can read (for social proof feed + recent activity).
@@ -67,8 +90,7 @@ service cloud.firestore {
                        ]);
 
       allow update: if request.auth != null
-                    && !request.resource.data.diff(resource.data).affectedKeys()
-                        .hasAny(['totalStars', 'totalXp', 'rankScore']);
+                    && !request.resource.data.diff(resource.data).hasAny(['totalStars', 'totalXp', 'rankScore']);
     }
 
     // ── Deny everything else ──────────────────────────────────────────────────
