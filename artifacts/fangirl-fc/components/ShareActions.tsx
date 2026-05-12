@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, Share2, Download } from "lucide-react";
+import { Copy, Check, Share2, ImageDown, Link2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 interface Props {
   shareUrl: string | null;
+  onShareImage: () => Promise<void>;
   onShareClick: () => Promise<void>;
-  onDownload: () => Promise<void>;
   busy?: boolean;
 }
 
 export function ShareActions({
   shareUrl,
+  onShareImage,
   onShareClick,
-  onDownload,
   busy,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -49,15 +49,27 @@ export function ShareActions({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Primary: share / save card image */}
       <button
-        onClick={onShareClick}
+        onClick={onShareImage}
         disabled={busy}
         className={cn(
           "shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base",
           "disabled:opacity-50",
         )}
       >
-        {shareUrl ? "Refresh share link" : busy ? "Saving…" : "Get share link"}
+        <ImageDown className="h-4 w-4" />
+        {busy ? "Generating…" : "Share / Save card"}
+      </button>
+
+      {/* Secondary: get share link */}
+      <button
+        onClick={onShareClick}
+        disabled={busy}
+        className="flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white/70 hover:bg-white/10 disabled:opacity-50"
+      >
+        <Link2 className="h-4 w-4" />
+        {shareUrl ? "Refresh share link" : "Get share link"}
       </button>
 
       {shareUrl && (
@@ -81,21 +93,12 @@ export function ShareActions({
           <button
             onClick={nativeShare}
             className="rounded-full bg-white/10 p-2 text-white/80 hover:bg-white/20"
-            aria-label="Share"
+            aria-label="Share link"
           >
             <Share2 className="h-4 w-4" />
           </button>
         </div>
       )}
-
-      <button
-        onClick={onDownload}
-        disabled={busy}
-        className="flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm text-white/80 hover:bg-white/10 disabled:opacity-50"
-      >
-        <Download className="h-4 w-4" />
-        Download card (PNG)
-      </button>
     </div>
   );
 }

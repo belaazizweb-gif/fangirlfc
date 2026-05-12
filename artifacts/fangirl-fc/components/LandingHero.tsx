@@ -81,6 +81,49 @@ function HeroCard({ preview }: { preview: (typeof HERO_PREVIEWS)[number] }) {
   );
 }
 
+const STEPS = [
+  {
+    n: "1",
+    emoji: "🎯",
+    title: "Take the quiz",
+    copy: "5 questions to find your football fan personality.",
+    tint: "from-pink-400/30 to-rose-400/10",
+    href: "/quiz",
+  },
+  {
+    n: "2",
+    emoji: "🃏",
+    title: "Create your Fangirl Card",
+    copy: "Turn your result into a card with your photo and team.",
+    tint: "from-fuchsia-400/30 to-violet-400/10",
+    href: null,
+  },
+  {
+    n: "3",
+    emoji: "🧠",
+    title: "Get World Cup Ready",
+    copy: "Answer 2 daily football questions and level up your IQ.",
+    tint: "from-indigo-400/30 to-purple-400/10",
+    href: "/football-iq",
+  },
+  {
+    n: "4",
+    emoji: "⚽",
+    title: "Play Penalty Queen",
+    copy: "Score penalties, unlock badges, and upgrade your card.",
+    tint: "from-amber-300/30 to-orange-400/10",
+    href: "/penalty",
+  },
+  {
+    n: "5",
+    emoji: "💌",
+    title: "Share your upgraded card",
+    copy: "Send your card to besties, the group chat, or post it.",
+    tint: "from-pink-300/30 to-rose-300/10",
+    href: null,
+  },
+];
+
 export function LandingHero() {
   return (
     <div className="flex flex-col gap-10">
@@ -254,32 +297,13 @@ export function LandingHero() {
         </Link>
       </section>
 
-      {/* ---------------- HOW IT WORKS ---------------- */}
+      {/* ---------------- HOW IT WORKS — 5-step flow ---------------- */}
       <section>
         <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
           How it works
         </div>
         <div className="flex flex-col gap-2.5">
-          {[
-            {
-              n: "1",
-              title: "Answer 5 football questions",
-              copy: "Tell us how you watch, react, learn, and support.",
-              tint: "from-pink-400/30 to-rose-400/10",
-            },
-            {
-              n: "2",
-              title: "Get your fan identity",
-              copy: "Your matchday vibe, team instinct, and football personality.",
-              tint: "from-fuchsia-400/30 to-violet-400/10",
-            },
-            {
-              n: "3",
-              title: "Make your Fangirl Card",
-              copy: "Turn your result into a card and send it to your bestie.",
-              tint: "from-amber-300/30 to-pink-300/10",
-            },
-          ].map((s) => (
+          {STEPS.map((s) => (
             <div
               key={s.n}
               className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
@@ -288,14 +312,23 @@ export function LandingHero() {
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
                   {s.n}
                 </div>
-                <div>
-                  <div className="text-[15px] font-bold text-white">
-                    {s.title}
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5 text-[15px] font-bold text-white">
+                    <span>{s.emoji}</span>
+                    <span>{s.title}</span>
                   </div>
                   <div className="text-[12.5px] leading-snug text-white/70">
                     {s.copy}
                   </div>
                 </div>
+                {s.href && (
+                  <Link
+                    href={s.href}
+                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Start →
+                  </Link>
+                )}
               </div>
             </div>
           ))}

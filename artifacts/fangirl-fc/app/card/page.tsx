@@ -26,14 +26,39 @@ import {
   getIdentityStars,
   getNextHint,
 } from "@/lib/stars";
-import { exportNodeAsPng } from "@/lib/exportImage";
-import { buildPayloadShareUrl, newShareId, saveShare } from "@/lib/share";
+import { exportNodeAsPng, shareOrDownloadCard } from "@/lib/exportImage";
+import { buildPayloadShareUrl, newShareId, saveShare, savePublicCard } from "@/lib/share";
 import { getCardProgressDisplay, type CardProgressDisplay } from "@/lib/cardProgressAdapter";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
 import { saveCard } from "@/lib/cardHistory";
 import { getMatch, matchHeadline, predictionLabel } from "@/lib/matches";
 import { getPrediction } from "@/lib/predictions";
 import type { FanIdentityId, SelfieFit, ShareMode } from "@/types";
+
+function FallbackModal({ dataUrl, onClose }: { dataUrl: string; onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/92 p-4"
+      onClick={onClose}
+    >
+      <p className="mb-4 text-center text-sm font-bold text-white">
+        Long press the image to save it to your photos 👇
+      </p>
+      <img
+        src={dataUrl}
+        alt="Fangirl FC Card"
+        className="max-h-[70vh] w-auto rounded-2xl shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+      <button
+        onClick={onClose}
+        className="mt-6 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm text-white/70"
+      >
+        Close
+      </button>
+    </div>
+  );
+}
 
 function Inner() {
   const params = useSearchParams();
@@ -64,6 +89,7 @@ function Inner() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [progressProof, setProgressProof] = useState<CardProgressDisplay | null>(null);
+  const [fallbackImageUrl, setFallbackImageUrl] = useState<string | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -94,8 +120,6 @@ function Inner() {
 
   const team = getTeam(teamCode) ?? TEAMS[0]!;
 
-  // Overlay selected personality preset on top of the base identity.
-  // OfficialCardSection still uses the original identity.id from the URL.
   const selectedPreset = presetId ? getPreset(presetId) : null;
   const activeIdentity = selectedPreset
     ? {
@@ -108,8 +132,6 @@ function Inner() {
       }
     : identity;
 
-  // effectiveTemplateId: preset drives the visual card theme only.
-  // templateId (user-chosen) is always what gets sent to OfficialCardSection.
   const effectiveTemplateId = selectedPreset?.templateId ?? templateId;
   const template = getTemplate(effectiveTemplateId);
 
@@ -117,7 +139,6 @@ function Inner() {
     const preset = getPreset(id);
     if (!preset) return;
     setPresetId(id);
-    // Do NOT call setTemplateId here — preset template is visual-only.
   };
 
   const persistCard = () => {
@@ -158,22 +179,26 @@ function Inner() {
     }
   };
 
-  const handleDownload = async () => {
+  // Primary: share or save the card as an image (mobile-friendly)
+  const handleShareImage = async () => {
     if (!cardRef.current) return;
     setBusy(true);
     try {
-      await exportNodeAsPng(cardRef.current, "fangirl-fc-card.png");
+      const result = await shareOrDownloadCard(cardRef.current, "fangirl-fc-card.png");
+      if (result.status === "fallback" && result.dataUrl) {
+        setFallbackImageUrl(result.dataUrl);
+      }
       const next = awardIdentityStar(identity.id, "card_generated");
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));
       persistCard();
-      trackEvent("card_exported", { identityId: identity.id, templateId, matchId });
-      trackEvent("card_generated", { identityId: identity.id, templateId });
+      trackEvent("card_exported", { identityId: identity.id, templateId, result: result.status });
     } finally {
       setBusy(false);
     }
   };
 
+  // Secondary: generate a share link (cross-device URL)
   const handleShare = async () => {
     setBusy(true);
     try {
@@ -187,19 +212,39 @@ function Inner() {
         templateId,
         createdAt: Date.now(),
       };
-      await saveShare(record);
-      const url = buildPayloadShareUrl(record, shareMode);
-      setShareUrl(url);
+
+      // Try to save to Firestore public_cards → gives a clean /share/[shareId] URL
+      const publicUrl = await savePublicCard(record);
+
+      if (publicUrl) {
+        setShareUrl(publicUrl);
+      } else {
+        // Firestore unavailable — fall back to payload URL (cross-device, no server)
+        await saveShare(record);
+        setShareUrl(buildPayloadShareUrl(record, shareMode));
+      }
+
       const next = awardIdentityStar(identity.id, "card_shared");
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));
       persistCard();
       trackEvent("compare_created", { shareId, identityId: identity.id });
-      trackEvent("compare_mode_created", {
-        shareId,
-        identityId: identity.id,
-        mode: shareMode,
-      });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  // Legacy download used by StoryModeKit
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    setBusy(true);
+    try {
+      await exportNodeAsPng(cardRef.current, "fangirl-fc-card.png");
+      const next = awardIdentityStar(identity.id, "card_generated");
+      setStars(next);
+      setHint(getNextHint(next, getIdentityActions(identity.id)));
+      persistCard();
+      trackEvent("card_generated", { identityId: identity.id, templateId });
     } finally {
       setBusy(false);
     }
@@ -212,12 +257,19 @@ function Inner() {
 
   return (
     <div className="flex flex-col gap-6">
+      {fallbackImageUrl && (
+        <FallbackModal
+          dataUrl={fallbackImageUrl}
+          onClose={() => setFallbackImageUrl(null)}
+        />
+      )}
+
       <div>
         <h1 className="text-2xl font-black">Your Fangirl Card</h1>
         <p className="mt-1 text-sm text-white/60">
           {match
             ? `Matchday card · ${matchHeadline(match)}`
-            : "Tweak it. Selfies stay on your device — never uploaded."}
+            : "Upgrade it with Football IQ and Penalty Queen, then share it."}
         </p>
         <div className="mt-2">
           <RarityBadge identity={identity} size="sm" showHook />
@@ -249,23 +301,23 @@ function Inner() {
         <StarProgress stars={stars} hint={hint || "Next level: share your card"} />
       </div>
 
-      {/* Penalty Queen upgrade CTA — outside cardRef, never exported */}
-      <Link
-        href="/penalty"
-        className="flex flex-col items-center gap-1 rounded-2xl border border-amber-300/35 bg-gradient-to-br from-amber-300/12 via-orange-400/8 to-pink-400/8 px-5 py-3.5 text-center transition hover:from-amber-300/20 hover:via-orange-400/14 hover:to-pink-400/14 active:scale-[0.98]"
-      >
-        <span className="text-sm font-bold text-amber-100">⚽ Upgrade this card with Penalty Queen</span>
-        <span className="text-[11px] text-white/50">Play 3 penalties, earn stars, unlock badges.</span>
-      </Link>
-
-      {/* Football IQ CTA — outside cardRef, never exported */}
-      <Link
-        href="/football-iq"
-        className="flex flex-col items-center gap-1 rounded-2xl border border-indigo-300/30 bg-gradient-to-br from-indigo-400/10 via-purple-400/8 to-pink-400/8 px-5 py-3.5 text-center transition hover:from-indigo-400/18 hover:via-purple-400/14 hover:to-pink-400/14 active:scale-[0.98]"
-      >
-        <span className="text-sm font-bold text-indigo-100">🧠 Get World Cup Ready</span>
-        <span className="text-[11px] text-white/50">Answer 2 football questions and upgrade your IQ level.</span>
-      </Link>
+      {/* Upgrade CTAs */}
+      <div className="grid grid-cols-2 gap-2">
+        <Link
+          href="/football-iq"
+          className="flex flex-col items-center gap-1 rounded-2xl border border-indigo-300/30 bg-gradient-to-br from-indigo-400/10 via-purple-400/8 to-pink-400/8 px-3 py-3.5 text-center transition hover:from-indigo-400/18 active:scale-[0.98]"
+        >
+          <span className="text-[13px] font-bold text-indigo-100">🧠 Get World Cup Ready</span>
+          <span className="text-[10px] text-white/45">Upgrade IQ level</span>
+        </Link>
+        <Link
+          href="/penalty"
+          className="flex flex-col items-center gap-1 rounded-2xl border border-amber-300/35 bg-gradient-to-br from-amber-300/12 via-orange-400/8 to-pink-400/8 px-3 py-3.5 text-center transition hover:from-amber-300/20 active:scale-[0.98]"
+        >
+          <span className="text-[13px] font-bold text-amber-100">⚽ Penalty Queen</span>
+          <span className="text-[10px] text-white/45">Earn badge + stars</span>
+        </Link>
+      </div>
 
       <div className="glass flex flex-col gap-4 rounded-2xl p-4">
         {/* ── Personality preset selector ── */}
@@ -319,7 +371,7 @@ function Inner() {
         </div>
         <div>
           <label className="text-[11px] font-bold uppercase tracking-wider text-white/60">
-            Selfie · close-up, outfit, or matchday photo
+            Photo · selfie, outfit, or matchday photo
           </label>
           <div className="mt-2" onPointerUp={handleZoomCommit}>
             <PhotoUpload
@@ -368,8 +420,8 @@ function Inner() {
 
       <ShareActions
         shareUrl={shareUrl}
+        onShareImage={handleShareImage}
         onShareClick={handleShare}
-        onDownload={handleDownload}
         busy={busy}
       />
 

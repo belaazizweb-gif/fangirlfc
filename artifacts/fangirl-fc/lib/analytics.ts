@@ -25,7 +25,10 @@ export type AnalyticsEvent =
   | "story_caption_copied"
   | "callout_created"
   | "callout_exported"
-  | "penalty_cta_clicked";
+  | "penalty_cta_clicked"
+  | "iq_cta_clicked"
+  | "share_card_viewed"
+  | "share_card_saved";
 
 export function trackEvent(
   name: AnalyticsEvent,

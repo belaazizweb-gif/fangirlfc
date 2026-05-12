@@ -315,7 +315,7 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
       {/* Dynamic hook line */}
       <div className="px-1 text-center">
         <p className="text-lg font-black leading-snug text-white">
-          “{SHARE_HOOK[identity.id]}”
+          "{SHARE_HOOK[identity.id]}"
         </p>
       </div>
 
@@ -411,15 +411,26 @@ export function ResultCard({ identity, compareToId, matchId }: Props) {
       </div>
 
       <div className="flex flex-col gap-3">
+        {/* Step 2: Create your card */}
         <Link
           href={cardHref}
           className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
         >
-          Turn this into my Fangirl Card
+          Create your Fangirl Card
           <ArrowRight className="h-4 w-4" />
         </Link>
 
-        {/* Secondary CTA — Penalty Queen */}
+        {/* Step 3: Get World Cup Ready */}
+        <Link
+          href="/football-iq"
+          className="flex flex-col items-center justify-center gap-0.5 rounded-full border border-indigo-300/40 bg-indigo-400/10 px-6 py-3 text-center transition hover:bg-indigo-400/20 active:scale-95"
+          onClick={() => trackEvent("iq_cta_clicked", { source: "result_page", identityId: identity.id })}
+        >
+          <span className="text-sm font-bold text-indigo-100">🧠 Get World Cup Ready</span>
+          <span className="text-[11px] text-indigo-200/65">2 football questions · upgrade your IQ level</span>
+        </Link>
+
+        {/* Step 4: Penalty Queen */}
         <Link
           href="/penalty"
           className="flex flex-col items-center justify-center gap-0.5 rounded-full border border-amber-300/40 bg-amber-300/10 px-6 py-3 text-center transition hover:bg-amber-300/20 active:scale-95"

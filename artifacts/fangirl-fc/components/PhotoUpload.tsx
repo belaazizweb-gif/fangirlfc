@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { Camera, X, Maximize2, User, Square } from "lucide-react";
+import { Camera, ImagePlus, X, Maximize2, User, Square } from "lucide-react";
 import type { SelfieFit } from "@/types";
 import { cn } from "@/lib/cn";
 
@@ -28,7 +28,8 @@ export function PhotoUpload({
   zoom,
   onZoomChange,
 }: Props) {
-  const ref = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File | undefined | null) => {
     if (!file) return;
@@ -43,14 +44,24 @@ export function PhotoUpload({
 
   return (
     <div className="flex flex-col gap-3">
+      {/* Selfie capture — front camera */}
       <input
-        ref={ref}
+        ref={cameraRef}
         type="file"
         accept="image/*"
         capture="user"
         className="hidden"
         onChange={(e) => handleFile(e.target.files?.[0])}
       />
+      {/* Gallery upload — no capture, lets user pick from library */}
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files?.[0])}
+      />
+
       {value ? (
         <div className="flex items-center gap-3">
           <img
@@ -62,7 +73,7 @@ export function PhotoUpload({
             Stored only on your device. Never uploaded.
           </div>
           <button
-            onClick={() => ref.current?.click()}
+            onClick={() => galleryRef.current?.click()}
             className="rounded-full bg-white/10 px-3 py-2 text-[11px] font-semibold text-white/80 hover:bg-white/20"
           >
             Change
@@ -76,13 +87,22 @@ export function PhotoUpload({
           </button>
         </div>
       ) : (
-        <button
-          onClick={() => ref.current?.click()}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-4 text-sm text-white/70 hover:bg-white/10"
-        >
-          <Camera className="h-4 w-4" />
-          Add a selfie · close-up, outfit, or matchday photo
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => cameraRef.current?.click()}
+            className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-3 py-4 text-[12px] font-semibold text-white/70 transition hover:bg-white/10 active:scale-[0.97]"
+          >
+            <Camera className="h-5 w-5 text-pink-300" />
+            Take selfie
+          </button>
+          <button
+            onClick={() => galleryRef.current?.click()}
+            className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-white/20 bg-white/5 px-3 py-4 text-[12px] font-semibold text-white/70 transition hover:bg-white/10 active:scale-[0.97]"
+          >
+            <ImagePlus className="h-5 w-5 text-indigo-300" />
+            Upload photo
+          </button>
+        </div>
       )}
 
       {value && (

@@ -1,0 +1,233 @@
+Phase 5 — First-use UX, mobile image upload, card download/share, and guided funnel fixes.
+
+Do NOT add new gameplay features.
+Do NOT modify penalty gameplay.
+Do NOT modify Football IQ question content.
+Do NOT modify progression economy.
+Do NOT modify badge logic.
+Do NOT change quiz scoring.
+Do NOT redesign the whole app.
+
+Context:
+The app is now live on fangirlfc.live.
+After real mobile testing, we found several launch-blocking UX issues:
+
+1. Card image flow only allows taking a selfie. Users also need to upload an existing photo from gallery.
+2. The first-use flow is not guided enough. Users need clearer steps from Quiz → Card → Football IQ → Penalty → Updated Card → Share.
+3. Sign up is not visible enough, but we should not force sign up before the user experiences the product.
+4. Card download does not work reliably on mobile.
+5. Shared card link does not work when opened by another user/device.
+6. The main card should feel like the central object that all flows update.
+
+Goal:
+Fix the first-use experience and make the card actually shareable on mobile.
+
+---
+
+## 1. Image upload fix
+
+Find the current card photo/selfie input.
+
+Add two clear options:
+- Take selfie
+- Upload from gallery
+
+Requirements:
+- Users must be able to choose an existing image from their phone gallery.
+- Keep current selfie/camera option if it works.
+- Use a normal file input with image accept.
+- Do not force camera capture only.
+- Preview must update correctly.
+- Exported card must include the selected image.
+- Works on mobile.
+
+Acceptance:
+- On mobile, user can upload an existing photo.
+- On desktop, user can upload an image file.
+- Existing selfie behavior remains available.
+
+---
+
+## 2. Guided first-use flow
+
+Add a lightweight onboarding/progress guide.
+
+Do not create a heavy tutorial modal.
+Instead add clear step guidance.
+
+Recommended flow:
+Step 1 — Take the quiz
+Step 2 — Create your Fangirl Card
+Step 3 — Get World Cup Ready
+Step 4 — Play Penalty Queen
+Step 5 — Share your upgraded card
+
+Where to show:
+- Landing: explain the 5-step flow briefly.
+- Result page: guide user to create card first, with optional Penalty CTA.
+- Card page: show next recommended actions:
+  - Get World Cup Ready
+  - Upgrade with Penalty Queen
+  - Share / Save card
+- Football IQ result: CTA back to card and Penalty.
+- Penalty result: CTA back to card.
+
+Keep it clean and mobile-first.
+
+---
+
+## 3. Sign up visibility without blocking
+
+Do not force sign up before quiz.
+
+Improve sign up visibility at value moments:
+- Save my card
+- Share public card link
+- Keep my stars
+- Continue later
+
+If user is not signed in and tries to create a public share link, show a sign-up prompt:
+“Sign up to save and share your card link.”
+
+Do not block local card creation.
+
+Acceptance:
+- Sign up button is visible enough.
+- Users can still try the quiz and create a card without immediate sign up.
+- Public sharing/saving can request sign up.
+
+---
+
+## 4. Mobile card export/share fix
+
+Audit the current export/download system.
+
+Current issue:
+Card download does not work reliably on mobile.
+
+Implement robust mobile-friendly share/save behavior.
+
+Required behavior:
+Primary button should be:
+“Share / Save card”
+
+When clicked:
+1. Generate the card image from cardRef.
+2. If Web Share with files is supported:
+   - share the PNG image file.
+3. Else:
+   - trigger download.
+4. If download fails:
+   - open the generated image in a new tab or modal.
+   - show instruction: “Long press the image to save.”
+
+Do not include outside page UI in the exported image.
+Only cardRef should be exported.
+
+Acceptance:
+- Works on desktop.
+- Works on mobile browser as much as possible.
+- Provides fallback if direct download is blocked.
+- User can still save the card manually.
+- No console errors.
+
+---
+
+## 5. Public share link fix
+
+Current issue:
+Shared card link does not work properly when opened by another user/device.
+
+Audit the current share link implementation.
+
+We need a real public card share link.
+
+Preferred architecture:
+- When user clicks “Share card link”, create a shareId.
+- Save the minimum card payload needed to render the card.
+- Create route:
+  /share/[shareId]
+- Opening /share/[shareId] on another device should render the card publicly.
+
+Important:
+Do not depend on localStorage for public share links.
+LocalStorage only works on the same device.
+
+If Firebase/Firestore is already configured:
+- create public_cards collection or reuse existing safe share storage if present.
+- store only non-sensitive card data:
+  - identity id
+  - display name
+  - selected template/vibe
+  - team
+  - card image/photo if already stored safely OR fallback to no photo if not possible
+  - progress proof values
+  - createdAt
+- Do not store unnecessary personal data.
+- Do not store private auth tokens.
+
+If Firebase is not configured for this flow:
+- report the safest minimal implementation path before coding.
+
+Acceptance:
+- User can create a share link.
+- Opening the share link in another browser/device works.
+- It renders the card or a share preview page.
+- It does not rely on localStorage.
+- If unauthenticated users cannot create public links safely, show sign-up prompt.
+
+---
+
+## 6. Main Card logic
+
+Make sure the user understands there is one main card being upgraded.
+
+Copy direction:
+- “Your Fangirl Card”
+- “Upgrade your card”
+- “Your card was updated”
+- “Share your upgraded card”
+
+Do not create confusion with many separate cards unless already intentionally supported.
+
+---
+
+## 7. QA after fixes
+
+Test full mobile-first flow:
+
+1. Open homepage.
+2. Start quiz.
+3. Get result.
+4. Create card.
+5. Upload photo from gallery.
+6. Save/share card image on mobile.
+7. Play Football IQ.
+8. Return to card and confirm IQ appears.
+9. Play Penalty.
+10. Return to card and confirm badge/score appears.
+11. Generate public share link.
+12. Open link in another browser/device.
+13. Confirm card/share page loads.
+14. Confirm no console errors.
+
+---
+
+## 8. Output required
+
+Before coding public share link, report what current share system does and whether Firebase/Firestore is available for public links.
+
+Then implement fixes in safe order:
+A. image upload
+B. mobile export/share fallback
+C. guided CTAs
+D. public share link architecture
+
+Report:
+- exact files changed
+- what was fixed
+- how mobile export works
+- how public share link works
+- whether sign-up is required for public links
+- typecheck result
+- build result

@@ -51,6 +51,47 @@ export function buildShareUrl(shareId: string, mode?: string): string {
   return `${origin}/compare/${shareId}${suffix}`;
 }
 
+// ---------- Public card share (cross-device, Firestore-backed) ----------
+
+export function buildCardShareUrl(shareId: string): string {
+  if (typeof window === "undefined") return `/share/${shareId}`;
+  return `${window.location.origin}/share/${shareId}`;
+}
+
+export async function savePublicCard(record: ShareRecord): Promise<string | null> {
+  const db = getFirebaseDb();
+  if (db) {
+    try {
+      await setDoc(doc(db, "public_cards", record.shareId), {
+        shareId: record.shareId,
+        identityId: record.identityId,
+        displayName: record.displayName,
+        teamCode: record.teamCode,
+        templateId: record.templateId,
+        stars: record.stars,
+        createdAt: record.createdAt,
+      });
+      return buildCardShareUrl(record.shareId);
+    } catch (err) {
+      console.warn("public_cards save failed, using payload URL", err);
+    }
+  }
+  return null;
+}
+
+export async function loadPublicCard(shareId: string): Promise<ShareRecord | null> {
+  const db = getFirebaseDb();
+  if (db) {
+    try {
+      const snap = await getDoc(doc(db, "public_cards", shareId));
+      if (snap.exists()) return snap.data() as ShareRecord;
+    } catch (err) {
+      console.warn("public_cards load failed", err);
+    }
+  }
+  return null;
+}
+
 // ---------- Cross-device payload encoding (no backend) ----------
 
 export interface SharePayload {

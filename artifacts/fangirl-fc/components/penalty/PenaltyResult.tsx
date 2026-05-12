@@ -151,18 +151,18 @@ export function PenaltyResult({ attempts, session, identity, onReplay }: Props) 
       )}
 
       <div className="flex flex-col gap-3">
+        <Link
+          href={cardHref}
+          className="shine-button flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-black uppercase tracking-wider"
+        >
+          🃏 See my upgraded card
+        </Link>
         <button
           onClick={onReplay}
-          className="shine-button w-full rounded-2xl px-6 py-3.5 text-sm font-black uppercase tracking-wider"
+          className="flex w-full items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-bold text-white/80 hover:bg-white/10 transition"
         >
           ⚽ Play Again
         </button>
-        <Link
-          href={cardHref}
-          className="flex w-full items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-3.5 text-sm font-bold text-white/80 hover:bg-white/10 transition"
-        >
-          Make my Fangirl Card →
-        </Link>
         <Link
           href="/"
           className="text-center text-xs text-white/40 hover:text-white/60 transition"
