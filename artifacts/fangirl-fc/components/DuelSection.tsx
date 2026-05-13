@@ -35,7 +35,7 @@ function nextGoalText(
   }
   if (rank === 1) return "Next goal: keep your #1 spot";
   if (rank !== -1) return "Next goal: keep climbing the ranking";
-  return "Next goal: publish your official card and enter the ranking";
+  return "Next goal: save your Fangirl Card and enter the ranking";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ export function DuelSection({ rankResult, hasOfficialCard, onDuelClick }: Props)
     return (
       <div className="mt-2 rounded-xl bg-white/5 px-3 py-2">
         <p className="text-[11px] text-white/40">
-          Publish your official card to start competing in the ranking
+          Save your Fangirl Card to start competing in the ranking
         </p>
       </div>
     );

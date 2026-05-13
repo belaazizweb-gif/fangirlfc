@@ -404,7 +404,7 @@ function Inner() {
 
       {presetId && (
         <p className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-center text-[11px] text-white/50">
-          Your official card will be saved as your quiz result:{" "}
+          Your Fangirl Card will be saved as your quiz result:{" "}
           <span className="font-bold text-white/75">{identity.title}</span>.
         </p>
       )}

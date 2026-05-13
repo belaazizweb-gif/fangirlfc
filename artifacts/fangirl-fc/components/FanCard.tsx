@@ -279,7 +279,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
             className="text-[9px] font-extrabold uppercase tracking-[0.4em]"
             style={{ color: theme.accent }}
           >
-            ⚽ FIFA World Cup
+            ⚽ World Cup Fan Card
           </div>
           <div
             className="text-[20px] font-black leading-tight"

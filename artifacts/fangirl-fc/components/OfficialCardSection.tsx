@@ -166,10 +166,10 @@ export function OfficialCardSection({
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 text-[13px] font-bold text-white/70">
           <Shield className="h-4 w-4 text-white/40" />
-          Official Fan Card
+          Fangirl Card
         </div>
         <p className="mt-2 text-[12px] text-white/50">
-          Sign in to publish your official fan card — one card, one team, yours forever.
+          Sign in to save your Fangirl Card — one card, one team, yours forever.
         </p>
         <div className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold text-pink-300">
           <LogIn className="h-3.5 w-3.5" />
@@ -185,7 +185,7 @@ export function OfficialCardSection({
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-2 text-[13px] font-bold text-white/70">
           <Shield className="h-4 w-4 text-white/40" />
-          Official Fan Card
+          Fangirl Card
         </div>
         <div className="mt-3 flex items-center gap-2 text-[12px] text-white/40">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -228,7 +228,7 @@ export function OfficialCardSection({
             onClick={() => void doSave(false)}
             className="rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-[13px] font-bold text-white transition hover:bg-white/20"
           >
-            Make official, keep team as {currentOfficialTeam?.flag}{" "}
+            Save Fangirl Card, keep team as {currentOfficialTeam?.flag}{" "}
             {currentOfficialTeam?.name}
           </button>
           <button
@@ -272,12 +272,12 @@ export function OfficialCardSection({
           ) : (
             <Shield className="h-4 w-4 text-white/40" />
           )}
-          Official Fan Card
+          Fangirl Card
         </div>
         {officialStars > 0 && (
           <div className="flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-bold text-amber-300">
             <Star className="h-2.5 w-2.5 fill-amber-300" />
-            {officialStars} official stars
+            {officialStars} Fangirl stars
           </div>
         )}
       </div>
@@ -285,7 +285,7 @@ export function OfficialCardSection({
       {/* Explanation — shown when no official card yet */}
       {!hasExisting && status === "idle" && (
         <p className="mt-1.5 text-[11px] text-white/45">
-          Your official card is the only card that counts for stars, ranking, and team competition.
+          Your Fangirl Card is the one that counts for stars, ranking, and team competition.
         </p>
       )}
 
@@ -298,7 +298,7 @@ export function OfficialCardSection({
           {lastAward && (
             <div className="mt-1.5 flex items-center gap-1.5 rounded-xl bg-amber-400/15 px-3 py-1.5 text-[12px] font-bold text-amber-300">
               <Star className="h-3 w-3 fill-amber-300" />
-              +{lastAward.stars} official star{lastAward.stars !== 1 ? "s" : ""} ·{" "}
+              +{lastAward.stars} Fangirl star{lastAward.stars !== 1 ? "s" : ""} ·{" "}
               +{lastAward.xp} XP earned
             </div>
           )}
@@ -326,17 +326,17 @@ export function OfficialCardSection({
         ) : status === "saved" ? (
           <>
             <ShieldCheck className="h-4 w-4" />
-            Official — update again
+            Saved — update again
           </>
         ) : hasExisting ? (
           <>
             <Shield className="h-4 w-4" />
-            Replace official card
+            Replace Fangirl Card
           </>
         ) : (
           <>
             <Shield className="h-4 w-4" />
-            Make Official
+            Save Fangirl Card
           </>
         )}
       </button>

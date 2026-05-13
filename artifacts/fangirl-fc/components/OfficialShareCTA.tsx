@@ -94,7 +94,7 @@ export function OfficialShareCTA({
   if (!hasOfficial) {
     return (
       <p className="mt-2 text-center text-[11px] text-white/30">
-        Publish your official card first to unlock the share reward.
+        Save your Fangirl Card first to unlock the share reward.
       </p>
     );
   }
@@ -103,7 +103,7 @@ export function OfficialShareCTA({
   if (!isMatch) {
     return (
       <p className="mt-2 text-center text-[11px] text-white/40">
-        Only your official card can earn the share reward.
+        Only your saved Fangirl Card can earn the share reward.
       </p>
     );
   }

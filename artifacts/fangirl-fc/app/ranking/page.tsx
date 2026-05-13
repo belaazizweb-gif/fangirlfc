@@ -101,7 +101,7 @@ function OwnStatsCard({ profile }: { profile: UserProfileFull }) {
   return (
     <div className="rounded-2xl border border-pink-300/30 bg-pink-400/10 p-4">
       <p className="text-[11px] font-bold uppercase tracking-wider text-pink-300/70">
-        Your official stats
+        Your Fangirl stats
       </p>
       <div className="mt-3 flex items-center gap-3">
         {profile.photoURL ? (
@@ -120,14 +120,14 @@ function OwnStatsCard({ profile }: { profile: UserProfileFull }) {
             {profile.officialCard?.displayName || profile.displayName}
           </p>
           <p className="mt-0.5 truncate text-[11px] text-white/50">
-            {identity ? `${identity.emoji} ${identity.title}` : "No official card yet"}
+            {identity ? `${identity.emoji} ${identity.title}` : "No Fangirl Card yet"}
             {identity && team ? ` · ${team.flag} ${team.name}` : ""}
           </p>
         </div>
       </div>
       <div className="mt-3 flex gap-4 border-t border-white/10 pt-3">
         <div>
-          <p className="text-[11px] text-white/40">Official stars</p>
+          <p className="text-[11px] text-white/40">Fangirl stars</p>
           <div className="mt-0.5 flex items-center gap-1 text-[15px] font-extrabold text-amber-300">
             <Star className="h-3.5 w-3.5 fill-amber-300" />
             {profile.officialStars ?? 0}
@@ -228,7 +228,7 @@ export default function RankingPage() {
           )}
         </div>
         <p className="mt-1 text-[13px] text-white/50">
-          Top {LIMIT} fans by official stars · Updated on every save
+          Top {LIMIT} fans by Fangirl stars · Updated on every save
         </p>
 
         <TopNav />
@@ -289,9 +289,9 @@ export default function RankingPage() {
           {!loading && !error && !rulesBlocked && entries.length === 0 && (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <Users className="h-10 w-10 text-white/20" />
-              <p className="text-[14px] font-bold text-white/50">No official fans yet</p>
+              <p className="text-[14px] font-bold text-white/50">No fans yet</p>
               <p className="text-[12px] text-white/30">
-                Be the first — publish your official fan card.
+                Be the first — save your Fangirl Card.
               </p>
             </div>
           )}

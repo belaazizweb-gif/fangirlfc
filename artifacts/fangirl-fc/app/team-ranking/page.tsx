@@ -169,7 +169,7 @@ export default function TeamRankingPage() {
           )}
         </div>
         <p className="mt-1 text-[13px] text-white/50">
-          Top {LIMIT} countries · Stars earned by official fans
+          Top {LIMIT} countries · Stars earned by Fangirl fans
         </p>
 
         <TopNav />
@@ -219,7 +219,7 @@ export default function TeamRankingPage() {
               <Globe className="h-10 w-10 text-white/20" />
               <p className="text-[14px] font-bold text-white/50">No teams yet</p>
               <p className="text-[12px] text-white/30">
-                Teams appear when fans publish their official card.
+                Teams appear when fans save their Fangirl Card.
               </p>
             </div>
           )}

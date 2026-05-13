@@ -104,7 +104,7 @@ const STEPS = [
   {
     n: "3",
     emoji: "✨",
-    title: "Sign in to make it official",
+    title: "Sign in to save your Fangirl Card",
     copy: "Save your card, keep your stars, and unlock your full profile.",
     tint: "from-violet-400/30 to-indigo-400/10",
     href: null,
@@ -212,7 +212,7 @@ export function LandingHero() {
               className="flex items-center justify-center gap-1.5 rounded-full border border-violet-300/30 bg-violet-400/10 px-6 py-3 text-[13px] font-bold text-violet-200 backdrop-blur transition hover:bg-violet-400/20"
             >
               <LogIn className="h-3.5 w-3.5" />
-              Sign in to save my official card
+              Sign in to save my Fangirl Card
             </button>
           )}
 
@@ -243,9 +243,9 @@ export function LandingHero() {
               <ShieldCheck className="h-4 w-4 text-violet-300" />
             </div>
             <div className="flex-1">
-              <p className="text-[14px] font-black text-white">Make it official</p>
+              <p className="text-[14px] font-black text-white">Save your Fangirl Card</p>
               <p className="mt-1 text-[12.5px] leading-snug text-white/65">
-                You can play first. Sign in when you want to save your official card, keep your stars, and share your progress.
+                You can play first. Sign in when you want to save your Fangirl Card, keep your stars, and share your progress.
               </p>
               <button
                 onClick={() => setShowAuthModal(true)}
