@@ -1,0 +1,175 @@
+Phase 6 — First-visit Landing UX Rework.
+
+Do NOT modify penalty gameplay.
+Do NOT modify Football IQ logic/questions.
+Do NOT modify progression economy.
+Do NOT modify FanCard design.
+Do NOT modify card export/share logic.
+Do NOT modify quiz scoring.
+Do NOT modify Firestore rules.
+
+Problem:
+The landing page currently looks nice, but first-time users see too many choices immediately:
+- Quiz
+- Penalty
+- IQ
+- Matchday
+- Groups
+- Take Quiz
+- Sign In
+- Already have a result
+- identity cards
+
+A new user from TikTok does not immediately understand the official flow.
+
+Product decision:
+We have two flows:
+
+1. Guest acquisition flow:
+Landing → Start quiz → Result → Preview card
+
+2. Official retention flow:
+Sign in → Official Fan Card → Football IQ → Penalty Queen → Stars/Badges → Share upgraded card
+
+We should NOT force login before the quiz.
+But Sign In / Official Card must be more visible and understandable.
+
+Goal:
+Make the landing page clearly guide first-time users.
+
+---
+
+## 1. Simplify guest header
+
+On the landing page only, for non-authenticated/guest users:
+
+Show:
+- Fangirl FC logo
+- Start Quiz button
+- Sign In button
+
+Hide or de-emphasize the large nav pill row:
+- Quiz
+- Penalty
+- IQ
+- Matchday
+- Groups
+
+Reason:
+The nav row creates too many choices before the user understands the product.
+
+If removing completely is risky, hide it only on the landing hero area or move it below the hero after the “How it works” section.
+
+Do not remove TopNav globally from the app.
+Only adjust the landing page experience.
+
+---
+
+## 2. Update hero copy
+
+Current hero is too focused only on the quiz.
+
+New hero direction:
+
+Headline:
+“Get World Cup Ready”
+
+Second line:
+“Find your Fangirl Type”
+
+Subtitle:
+“Take the quiz, create your Fan Card, learn football, play Penalty Queen, and upgrade your level.”
+
+Primary CTA:
+“Start free — Take the quiz”
+
+Secondary CTA:
+“Sign in to save my official card”
+
+CTA behavior:
+- Primary goes to /quiz
+- Secondary goes to current sign-in flow
+
+Do not force sign-in before quiz.
+
+---
+
+## 3. Add clear two-flow explanation
+
+Add a compact section near the hero, before identity cards:
+
+Title:
+“How Fangirl FC works”
+
+Show 5 steps:
+1. Take the quiz
+2. Create your Fan Card
+3. Sign in to make it official
+4. Learn football with Football IQ
+5. Play Penalty Queen and upgrade your card
+
+Keep this mobile-first and visually clean.
+Use small cards or a vertical stepper.
+
+---
+
+## 4. Clarify Official Card concept
+
+Add a small premium info box:
+
+Title:
+“Make it official”
+
+Copy:
+“You can play first. Sign in when you want to save your official card, keep your stars, and share your progress.”
+
+CTA:
+“Sign in to save progress”
+
+This should be visible, but secondary to “Start free”.
+
+---
+
+## 5. Fix ambiguous existing CTA
+
+Replace:
+“Already have a result? Make my card”
+
+With:
+“I already played — continue to my card”
+
+or:
+“Already have a result? Continue to my card”
+
+Make it visually secondary.
+
+---
+
+## 6. Do not break current flows
+
+Preserve:
+- /quiz
+- /result
+- /card
+- /football-iq
+- /penalty
+- TopNav on internal pages
+- card export
+- share/save logic
+- auth flow
+
+---
+
+## 7. Acceptance criteria
+
+- First-time landing clearly explains what the app does.
+- Primary action is obvious: Start free / Take the quiz.
+- Sign in is visible but not forced.
+- User understands that the official card is saved after sign in.
+- The flow Quiz → Card → IQ → Penalty → Share is clear.
+- Landing has fewer competing CTAs above the fold.
+- Mobile layout is clean.
+- Typecheck passes.
+- Build passes.
+- No console errors.
+- Report exact files changed.

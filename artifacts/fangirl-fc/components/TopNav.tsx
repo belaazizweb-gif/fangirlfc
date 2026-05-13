@@ -34,6 +34,8 @@ const LINKS = [
 export function TopNav() {
   const pathname = usePathname();
 
+  if (pathname === "/") return null;
+
   return (
     <nav className="no-scrollbar -mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1">
       {LINKS.map((l) => {

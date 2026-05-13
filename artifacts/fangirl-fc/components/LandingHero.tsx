@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Heart, Camera } from "lucide-react";
+import { ArrowRight, Sparkles, Heart, Camera, LogIn, ShieldCheck } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
 import { TEMPLATES, getTemplate } from "@/lib/templates";
 import { FanCard } from "./FanCard";
 import { UnlockedIdentities } from "./UnlockedIdentities";
+import { AuthModal } from "./AuthModal";
+import { useAuth } from "./AuthProvider";
 import type { FanIdentityId } from "@/types";
 
 const HERO_PREVIEWS: Array<{
@@ -93,38 +96,42 @@ const STEPS = [
   {
     n: "2",
     emoji: "🃏",
-    title: "Create your Fangirl Card",
+    title: "Create your Fan Card",
     copy: "Turn your result into a card with your photo and team.",
     tint: "from-fuchsia-400/30 to-violet-400/10",
     href: null,
   },
   {
     n: "3",
+    emoji: "✨",
+    title: "Sign in to make it official",
+    copy: "Save your card, keep your stars, and unlock your full profile.",
+    tint: "from-violet-400/30 to-indigo-400/10",
+    href: null,
+    isSignIn: true,
+  },
+  {
+    n: "4",
     emoji: "🧠",
-    title: "Get World Cup Ready",
-    copy: "Answer 2 daily football questions and level up your IQ.",
+    title: "Learn football with Football IQ",
+    copy: "Answer 2 daily questions and level up your knowledge.",
     tint: "from-indigo-400/30 to-purple-400/10",
     href: "/football-iq",
   },
   {
-    n: "4",
+    n: "5",
     emoji: "⚽",
-    title: "Play Penalty Queen",
-    copy: "Score penalties, unlock badges, and upgrade your card.",
+    title: "Play Penalty Queen & upgrade",
+    copy: "Score penalties, unlock badges, and share your upgraded card.",
     tint: "from-amber-300/30 to-orange-400/10",
     href: "/penalty",
-  },
-  {
-    n: "5",
-    emoji: "💌",
-    title: "Share your upgraded card",
-    copy: "Send your card to besties, the group chat, or post it.",
-    tint: "from-pink-300/30 to-rose-300/10",
-    href: null,
   },
 ];
 
 export function LandingHero() {
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
   return (
     <div className="flex flex-col gap-10">
       {/* ---------------- HERO ---------------- */}
@@ -152,13 +159,14 @@ export function LandingHero() {
             <Sparkles className="h-3 w-3" /> World Cup 2026 · for the girls
           </span>
           <h1 className="mt-5 text-[38px] font-black leading-[0.95] tracking-tight">
-            Find your{" "}
-            <span className="gradient-text">Fangirl Type</span>
-            <br />
-            in 60 seconds 💖
+            Get World Cup{" "}
+            <span className="gradient-text">Ready</span>
           </h1>
-          <p className="mt-3 px-4 text-[15px] leading-snug text-white/85">
-            Discover how you really watch football — your matchday vibe, team instinct, and fan personality.
+          <p className="mt-2 text-[22px] font-black leading-tight tracking-tight text-white/90">
+            Find your Fangirl Type
+          </p>
+          <p className="mt-3 px-4 text-[15px] leading-snug text-white/80">
+            Take the quiz, create your Fan Card, learn football, play Penalty Queen, and upgrade your level.
           </p>
         </div>
 
@@ -193,17 +201,28 @@ export function LandingHero() {
             href="/quiz"
             className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
           >
-            Find my fan type
+            Start free — Take the quiz
             <ArrowRight className="h-4 w-4" />
           </Link>
 
-          {/* Secondary CTA — visually smaller */}
+          {/* Sign In CTA — only shown to guests */}
+          {!user && (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center justify-center gap-1.5 rounded-full border border-violet-300/30 bg-violet-400/10 px-6 py-3 text-[13px] font-bold text-violet-200 backdrop-blur transition hover:bg-violet-400/20"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Sign in to save my official card
+            </button>
+          )}
+
+          {/* Already played — visually tertiary */}
           <Link
             href="/card?id=princess"
-            className="flex items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-[12px] font-semibold text-white/55 backdrop-blur transition hover:bg-white/10 hover:text-white/80"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-[11px] font-semibold text-white/40 backdrop-blur transition hover:bg-white/10 hover:text-white/60"
           >
-            <Camera className="h-3.5 w-3.5" />
-            Already have a result? Make my card
+            <Camera className="h-3 w-3" />
+            Already played? Continue to my card
           </Link>
 
           {/* Trust / friction line */}
@@ -212,6 +231,33 @@ export function LandingHero() {
           </p>
         </div>
       </section>
+
+      {/* ---------------- MAKE IT OFFICIAL BOX ---------------- */}
+      {!user && (
+        <section className="relative overflow-hidden rounded-[28px] border border-violet-400/20 bg-gradient-to-br from-violet-500/15 via-fuchsia-400/10 to-indigo-400/10 p-5">
+          <div className="absolute -right-4 -top-4 text-[90px] leading-none opacity-[0.07]">
+            ✨
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-400/20">
+              <ShieldCheck className="h-4 w-4 text-violet-300" />
+            </div>
+            <div className="flex-1">
+              <p className="text-[14px] font-black text-white">Make it official</p>
+              <p className="mt-1 text-[12.5px] leading-snug text-white/65">
+                You can play first. Sign in when you want to save your official card, keep your stars, and share your progress.
+              </p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="mt-3 flex items-center gap-1.5 rounded-full bg-violet-500/25 px-4 py-2 text-[12px] font-bold text-violet-200 transition hover:bg-violet-500/35"
+              >
+                <LogIn className="h-3 w-3" />
+                Sign in to save progress
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ---------------- TAGLINE / SOCIAL FEEL ---------------- */}
       <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-pink-400/20 via-fuchsia-400/10 to-amber-200/20 p-6 text-center">
@@ -299,8 +345,10 @@ export function LandingHero() {
 
       {/* ---------------- HOW IT WORKS — 5-step flow ---------------- */}
       <section>
-        <div className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
-          How it works
+        <div className="mb-4 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+            How Fangirl FC works
+          </div>
         </div>
         <div className="flex flex-col gap-2.5">
           {STEPS.map((s) => (
@@ -321,14 +369,21 @@ export function LandingHero() {
                     {s.copy}
                   </div>
                 </div>
-                {s.href && (
+                {s.isSignIn && !user ? (
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Sign in →
+                  </button>
+                ) : s.href ? (
                   <Link
                     href={s.href}
                     className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
                   >
                     Start →
                   </Link>
-                )}
+                ) : null}
               </div>
             </div>
           ))}
@@ -409,7 +464,6 @@ export function LandingHero() {
                 key={r.handle}
                 className={`relative w-[240px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${r.grad} p-4 backdrop-blur`}
               >
-                {/* Avatar photo */}
                 <div className="flex items-center gap-2.5">
                   <img
                     src={r.photo}
@@ -426,17 +480,14 @@ export function LandingHero() {
                     <div className="text-[10px] text-white/40 leading-none mt-0.5">{r.handle}</div>
                   </div>
                 </div>
-                {/* Stars */}
                 <div className="mt-2.5 flex gap-0.5">
                   {Array.from({ length: r.stars }).map((_, i) => (
                     <span key={i} className="text-[10px]">⭐</span>
                   ))}
                 </div>
-                {/* Quote */}
                 <p className="mt-2 text-[12px] leading-snug text-white/80">
                   &ldquo;{r.text}&rdquo;
                 </p>
-                {/* Identity badge */}
                 <div className="mt-3 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-white/50">
                   {r.identity}
                 </div>
@@ -457,6 +508,9 @@ export function LandingHero() {
           Sticker tracker · coming soon
         </Link>
       </section>
+
+      {/* Auth modal */}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </div>
   );
 }
