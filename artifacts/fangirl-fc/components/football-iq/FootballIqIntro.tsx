@@ -65,8 +65,9 @@ export function FootballIqIntro({
       </div>
 
       {isPracticeMode && (
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-center text-[12px] text-white/45">
-          Practice mode — rewards already claimed today
+        <div className="rounded-xl border border-amber-400/20 bg-amber-400/8 px-4 py-3 text-center">
+          <p className="text-[12px] font-bold text-amber-200">Practice mode — rewards already claimed today.</p>
+          <p className="mt-0.5 text-[11px] text-white/45">Come back tomorrow for more XP.</p>
         </div>
       )}
 

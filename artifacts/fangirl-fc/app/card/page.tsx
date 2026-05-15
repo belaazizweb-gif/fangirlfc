@@ -19,6 +19,7 @@ import { StarProgress } from "@/components/StarProgress";
 import { RarityBadge } from "@/components/RarityBadge";
 import { StoryModeKit } from "@/components/StoryModeKit";
 import { OfficialCardSection } from "@/components/OfficialCardSection";
+import { SaveProgressBanner } from "@/components/SaveProgressBanner";
 import { trackEvent } from "@/lib/analytics";
 import {
   awardIdentityStar,
@@ -26,7 +27,7 @@ import {
   getIdentityStars,
   getNextHint,
 } from "@/lib/stars";
-import { exportNodeAsPng, shareOrDownloadCard } from "@/lib/exportImage";
+import { downloadCardImage, shareCardImage, exportNodeAsPng } from "@/lib/exportImage";
 import { buildPayloadShareUrl, newShareId, saveShare, savePublicCard } from "@/lib/share";
 import { getCardProgressDisplay, type CardProgressDisplay } from "@/lib/cardProgressAdapter";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
@@ -179,12 +180,11 @@ function Inner() {
     }
   };
 
-  // Primary: share or save the card as an image (mobile-friendly)
-  const handleShareImage = async () => {
+  const handleDownload = async () => {
     if (!cardRef.current) return;
     setBusy(true);
     try {
-      const result = await shareOrDownloadCard(cardRef.current, "fangirl-fc-card.png");
+      const result = await downloadCardImage(cardRef.current, "fangirl-fc-card.png");
       if (result.status === "fallback" && result.dataUrl) {
         setFallbackImageUrl(result.dataUrl);
       }
@@ -198,8 +198,25 @@ function Inner() {
     }
   };
 
-  // Secondary: generate a share link (cross-device URL)
-  const handleShare = async () => {
+  const handleShareCard = async () => {
+    if (!cardRef.current) return;
+    setBusy(true);
+    try {
+      const result = await shareCardImage(cardRef.current, "fangirl-fc-card.png", shareUrl);
+      if (result.status === "fallback" && result.dataUrl) {
+        setFallbackImageUrl(result.dataUrl);
+      }
+      const next = awardIdentityStar(identity.id, "card_generated");
+      setStars(next);
+      setHint(getNextHint(next, getIdentityActions(identity.id)));
+      persistCard();
+      trackEvent("card_exported", { identityId: identity.id, templateId, result: result.status });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGetShareLink = async () => {
     setBusy(true);
     try {
       const shareId = newShareId();
@@ -213,13 +230,11 @@ function Inner() {
         createdAt: Date.now(),
       };
 
-      // Try to save to Firestore public_cards → gives a clean /share/[shareId] URL
       const publicUrl = await savePublicCard(record);
 
       if (publicUrl) {
         setShareUrl(publicUrl);
       } else {
-        // Firestore unavailable — fall back to payload URL (cross-device, no server)
         await saveShare(record);
         setShareUrl(buildPayloadShareUrl(record, shareMode));
       }
@@ -234,8 +249,7 @@ function Inner() {
     }
   };
 
-  // Legacy download used by StoryModeKit
-  const handleDownload = async () => {
+  const handleStoryDownload = async () => {
     if (!cardRef.current) return;
     setBusy(true);
     try {
@@ -416,18 +430,24 @@ function Inner() {
         templateId={templateId}
       />
 
+      <SaveProgressBanner
+        title="Save your Fangirl Card"
+        message="Sign in to keep your stars, badges, IQ level and create a shareable link."
+      />
+
       <ShareTargetSelector value={shareMode} onChange={handleModeChange} />
 
       <ShareActions
         shareUrl={shareUrl}
-        onShareImage={handleShareImage}
-        onShareClick={handleShare}
+        onDownload={handleDownload}
+        onShareCard={handleShareCard}
+        onGetShareLink={handleGetShareLink}
         busy={busy}
       />
 
       <StoryModeKit
         identity={activeIdentity}
-        onDownload={handleDownload}
+        onDownload={handleStoryDownload}
         busy={busy}
       />
 

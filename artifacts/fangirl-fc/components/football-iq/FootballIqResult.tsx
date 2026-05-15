@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, RefreshCw } from "lucide-react";
+import { Zap, RefreshCw, LayoutDashboard } from "lucide-react";
 import { getBadge } from "@/lib/badges";
 import type { BadgeId } from "@/lib/badges";
+import { SaveProgressBanner } from "@/components/SaveProgressBanner";
 
 interface FootballIqResultProps {
   correctCount: number;
@@ -55,7 +56,7 @@ export function FootballIqResult({
 
       {isPracticeMode && (
         <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-center text-[12px] text-white/40">
-          Practice mode — no XP today (already claimed)
+          Practice mode — rewards already claimed today. Come back tomorrow for more XP.
         </div>
       )}
 
@@ -96,7 +97,20 @@ export function FootballIqResult({
         </div>
       )}
 
+      <SaveProgressBanner
+        title="Keep your progress"
+        message="Sign in to save your IQ level, stars and badges."
+      />
+
       <div className="flex flex-col gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-pink-300/35 bg-gradient-to-br from-pink-400/15 via-pink-400/8 to-purple-400/8 px-5 py-3.5 text-center transition hover:from-pink-400/25 active:scale-[0.98]"
+        >
+          <LayoutDashboard className="h-4 w-4 text-pink-200" />
+          <span className="text-sm font-bold text-pink-100">Go to dashboard</span>
+        </Link>
+
         <Link
           href="/penalty"
           className="flex flex-col items-center gap-0.5 rounded-2xl border border-amber-300/35 bg-gradient-to-br from-amber-300/12 via-orange-400/8 to-pink-400/8 px-5 py-3.5 text-center transition hover:from-amber-300/20 active:scale-[0.98]"

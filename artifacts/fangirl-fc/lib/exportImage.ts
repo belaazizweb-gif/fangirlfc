@@ -2,12 +2,106 @@
 
 import { toPng } from "html-to-image";
 
+export interface ExportShareResult {
+  status: "shared" | "downloaded" | "fallback" | "error";
+  dataUrl?: string;
+}
+
+export async function waitForImages(node: HTMLElement): Promise<void> {
+  const imgs = Array.from(node.querySelectorAll<HTMLImageElement>("img"));
+  await Promise.all(
+    imgs.map((img) => {
+      const decodeIt = (el: HTMLImageElement) =>
+        el.decode ? el.decode().catch(() => {}) : Promise.resolve();
+
+      if (img.complete && img.naturalHeight !== 0) {
+        return decodeIt(img);
+      }
+      return new Promise<void>((resolve) => {
+        const cleanup = () => resolve();
+        img.addEventListener("load", () => decodeIt(img).then(cleanup), { once: true });
+        img.addEventListener("error", cleanup, { once: true });
+        setTimeout(cleanup, 4000);
+      });
+    }),
+  );
+}
+
 async function generateCardPng(node: HTMLElement): Promise<string> {
+  await waitForImages(node);
   return toPng(node, {
     cacheBust: true,
     pixelRatio: 3,
     backgroundColor: "#000000",
   });
+}
+
+export async function downloadCardImage(
+  node: HTMLElement,
+  fileName: string,
+): Promise<ExportShareResult> {
+  let dataUrl: string;
+  try {
+    dataUrl = await generateCardPng(node);
+  } catch {
+    return { status: "error" };
+  }
+
+  try {
+    const link = document.createElement("a");
+    link.download = fileName;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return { status: "downloaded" };
+  } catch {
+    return { status: "fallback", dataUrl };
+  }
+}
+
+export async function shareCardImage(
+  node: HTMLElement,
+  fileName: string,
+  shareUrl?: string | null,
+): Promise<ExportShareResult> {
+  let dataUrl: string;
+  try {
+    dataUrl = await generateCardPng(node);
+  } catch {
+    return { status: "error" };
+  }
+
+  if (typeof navigator === "undefined") {
+    return { status: "fallback", dataUrl };
+  }
+
+  try {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], fileName, { type: "image/png" });
+    if ("canShare" in navigator && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "My Fangirl FC Card 💖",
+        text: "World Cup 2026 — I got my Fangirl Card!",
+      });
+      return { status: "shared" };
+    }
+  } catch (err) {
+    if ((err as Error).name === "AbortError") return { status: "error" };
+  }
+
+  if (shareUrl && typeof navigator !== "undefined" && "clipboard" in navigator) {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      return { status: "shared" };
+    } catch {
+      // fall through
+    }
+  }
+
+  return { status: "fallback", dataUrl };
 }
 
 export async function exportNodeAsPng(
@@ -23,57 +117,9 @@ export async function exportNodeAsPng(
   document.body.removeChild(link);
 }
 
-export interface ExportShareResult {
-  status: "shared" | "downloaded" | "fallback" | "error";
-  dataUrl?: string;
-}
-
 export async function shareOrDownloadCard(
   node: HTMLElement,
   fileName: string,
 ): Promise<ExportShareResult> {
-  let dataUrl: string;
-  try {
-    dataUrl = await generateCardPng(node);
-  } catch {
-    return { status: "error" };
-  }
-
-  if (typeof navigator === "undefined") {
-    return { status: "fallback", dataUrl };
-  }
-
-  // 1. Try Web Share API with file (best mobile experience — iOS 15+, Android Chrome)
-  try {
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
-    const file = new File([blob], fileName, { type: "image/png" });
-    if ("canShare" in navigator && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: "My Fangirl FC Card 💖",
-        text: "World Cup 2026 — I got my Fangirl Card!",
-      });
-      return { status: "shared" };
-    }
-  } catch (err) {
-    if ((err as Error).name === "AbortError") return { status: "error" };
-    // Not supported or failed — fall through to download
-  }
-
-  // 2. Try download anchor (works on desktop + Android without file share)
-  try {
-    const link = document.createElement("a");
-    link.download = fileName;
-    link.href = dataUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    return { status: "downloaded" };
-  } catch {
-    // Fall through to manual fallback
-  }
-
-  // 3. Return dataUrl so the caller can show a "long press to save" modal
-  return { status: "fallback", dataUrl };
+  return shareCardImage(node, fileName);
 }

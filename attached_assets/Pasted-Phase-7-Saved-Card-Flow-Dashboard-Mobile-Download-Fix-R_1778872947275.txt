@@ -1,0 +1,241 @@
+Phase 7 — Saved Card Flow + Dashboard + Mobile Download Fix.
+
+Read the relevant files first, then implement only the fixes below.
+
+Do NOT modify:
+- penalty gameplay
+- Football IQ questions/content
+- progression economy
+- badge logic
+- quiz scoring
+- FanCard visual design except where needed for export/share buttons
+- landing hero unless strictly necessary
+- Firestore rules unless required for share link permissions
+
+Current problem:
+The app works, but the user flow is not clear enough after the first experience.
+
+We need a clear distinction:
+
+Guest Mode:
+User can try the app freely:
+Quiz → Card → Football IQ → Penalty → updated card.
+
+Saved Mode:
+User signs in to keep:
+Fangirl Card, stars, badges, IQ level, penalty score, and share link.
+
+Do NOT force sign-in before the quiz.
+But after the user creates value, guide her clearly to sign in.
+
+Use public wording:
+- “Save your Fangirl Card”
+- “Keep your stars and badges”
+- “Continue later”
+- “Create a shareable card link”
+
+Do NOT use:
+- “Official”
+- “FIFA”
+
+---
+
+1. Create a simple /dashboard page
+
+Route:
+- app/dashboard/page.tsx
+
+Dashboard goal:
+Give the user one central place after quiz/card/IQ/penalty.
+
+Dashboard content:
+- Your Fangirl Card
+- Current stars / Fangirl level
+- Top badge
+- Latest penalty score
+- Football IQ level
+- Today’s next steps:
+  1. Get World Cup Ready
+  2. Play Penalty Queen
+  3. Download your card
+  4. Save your Fangirl Card
+
+If user is not signed in, show a clear guest prompt:
+“Playing as guest”
+“Sign in to keep your stars, badges, IQ level and share link.”
+
+Buttons:
+- View my card
+- Get World Cup Ready
+- Play Penalty Queen
+- Sign in to save progress
+
+Keep dashboard simple, mobile-first, and consistent with current app style.
+
+---
+
+2. Add stronger sign-in prompts after value moments
+
+If user is not signed in, show a compact save prompt on:
+
+- card page
+- Football IQ result screen
+- Penalty result screen
+- before creating public share link
+
+Copy:
+“Save your Fangirl Card”
+“Sign in to keep your stars, badges, IQ level and share link.”
+
+Do not block local card creation.
+Do not block quiz.
+Do not block playing IQ or penalty.
+
+---
+
+3. Clarify Practice Mode
+
+Practice is allowed, but the copy must be clear.
+
+For Football IQ, if daily rewards are already claimed:
+Show:
+“Practice mode — rewards already claimed today.”
+“Come back tomorrow for more XP.”
+
+For Penalty, if rewards are reduced or capped:
+Show:
+“You can keep playing, but rewards are limited today.”
+
+Do not disable replay.
+
+---
+
+4. Separate Download and Share on the card page
+
+Current issue:
+“Share / Save card” is confusing. On mobile it opens the share sheet, but user may want direct image download.
+
+Create separate actions:
+
+Primary button:
+“Download image”
+
+Secondary button:
+“Share card”
+
+Third action if available:
+“Copy share link”
+
+Download image behavior:
+1. Generate PNG from cardRef.
+2. Wait for all images inside cardRef to fully load/decode before export.
+3. Trigger direct download if browser allows.
+4. If mobile blocks download, show a modal with the generated image and text:
+“Long press the image to save.”
+
+Share card behavior:
+1. Generate PNG from cardRef.
+2. Use Web Share API with file if supported.
+3. If not supported, fallback to public share link / copied link.
+
+Download must NOT open WhatsApp by default.
+Share may open WhatsApp if user chooses it from native share sheet.
+
+---
+
+5. Fix blank or missing-photo export bug
+
+Bug:
+A user shared/downloaded the card and the generated image was blank or missing the uploaded photo.
+
+Required fix:
+Before exporting cardRef:
+- wait for all images inside cardRef
+- use img.decode() when available
+- fallback to onload promise
+- ensure uploaded photo is stored/rendered as a stable data URL
+- show loading state: “Preparing your card…”
+
+Add helper if needed:
+- waitForImages(cardRef)
+- exportCardImage(cardRef)
+
+Acceptance:
+- uploaded gallery photo appears in exported PNG
+- selfie photo appears in exported PNG
+- shared image is not blank
+- WhatsApp-shared image includes the card photo
+- outside UI is not included in export
+
+---
+
+6. Public share link behavior
+
+If user is not signed in and clicks “Copy share link” or “Get share link”:
+Show sign-in prompt:
+“Sign in to create a shareable card link.”
+
+If user is signed in:
+Use the existing /share/[shareId] public_cards flow.
+
+Do not rely on localStorage for public share links.
+
+---
+
+7. Add dashboard link where useful
+
+Add a “Dashboard” link in internal navigation if appropriate.
+
+Do not clutter the landing page.
+
+After completing Football IQ or Penalty, include CTA:
+“Go to dashboard”
+or
+“View my saved card”
+
+---
+
+8. QA required
+
+After implementation, test:
+
+Guest flow:
+- landing
+- quiz
+- card
+- upload photo from gallery
+- download image
+- Football IQ
+- Penalty
+- card updates
+- sign-in prompt appears after value moments
+
+Saved flow:
+- sign in
+- dashboard
+- view card
+- IQ
+- penalty
+- share link
+
+Export:
+- gallery photo included
+- selfie included
+- image not blank
+- buttons/nav not included
+- mobile fallback modal works
+
+Run:
+- typecheck
+- build
+- console check
+
+Report:
+- exact files changed
+- how dashboard works
+- how guest vs saved mode is shown
+- how download differs from share
+- how missing-photo export bug was fixed
+- whether public share link requires sign-in
+- typecheck result
+- build result

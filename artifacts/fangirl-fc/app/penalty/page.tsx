@@ -15,6 +15,8 @@ import {
   type PenaltySession,
 } from "@/lib/progression";
 
+const FULL_XP_SESSIONS_PER_DAY = 3;
+
 type Phase = "intro" | "playing" | "result";
 
 export default function PenaltyPage() {
@@ -22,6 +24,7 @@ export default function PenaltyPage() {
   const [identity, setIdentity] = useState<FanIdentity | null>(null);
   const [completedAttempts, setCompletedAttempts] = useState<PenaltyAttempt[]>([]);
   const [finalSession, setFinalSession] = useState<PenaltySession | null>(null);
+  const [isReducedRewards, setIsReducedRewards] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -55,6 +58,9 @@ export default function PenaltyPage() {
       unlockBadges(badgesUnlocked);
     }
 
+    const prog = readProgression();
+    setIsReducedRewards(prog.dailyCaps.penaltySessionsToday > FULL_XP_SESSIONS_PER_DAY);
+
     setCompletedAttempts(attempts);
     setFinalSession(session);
     setPhase("result");
@@ -81,6 +87,7 @@ export default function PenaltyPage() {
         session={finalSession}
         identity={identity}
         onReplay={handleReplay}
+        isReducedRewards={isReducedRewards}
       />
     );
   }

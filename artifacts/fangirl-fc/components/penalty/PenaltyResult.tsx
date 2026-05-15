@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import { LayoutDashboard } from "lucide-react";
 import type { PenaltyAttempt } from "@/lib/penaltyEngine";
 import type { PenaltySession } from "@/lib/progression";
 import type { FanIdentity } from "@/types";
 import { getBadge } from "@/lib/badges";
+import { SaveProgressBanner } from "@/components/SaveProgressBanner";
 
 interface Props {
   attempts: PenaltyAttempt[];
   session: PenaltySession;
   identity: FanIdentity | null;
   onReplay: () => void;
+  isReducedRewards?: boolean;
 }
 
 function ScoreRing({ score }: { score: number }) {
@@ -54,7 +57,7 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
-export function PenaltyResult({ attempts, session, identity, onReplay }: Props) {
+export function PenaltyResult({ attempts, session, identity, onReplay, isReducedRewards }: Props) {
   const goals = attempts.filter((a) => a.isGoal).length;
   const perfects = attempts.filter((a) => a.isPerfect).length;
   const total = attempts.length;
@@ -128,6 +131,13 @@ export function PenaltyResult({ attempts, session, identity, onReplay }: Props) 
         </div>
       </div>
 
+      {isReducedRewards && (
+        <div className="rounded-xl border border-amber-400/20 bg-amber-400/8 px-4 py-2.5 text-center">
+          <p className="text-[12px] font-bold text-amber-200">Rewards are limited today.</p>
+          <p className="mt-0.5 text-[11px] text-white/45">You can keep playing, but rewards are limited today. Come back tomorrow for full XP.</p>
+        </div>
+      )}
+
       {session.badgesUnlocked.length > 0 && (
         <div className="glass rounded-2xl p-4 flex flex-col gap-3">
           <p className="text-xs font-black uppercase tracking-widest text-pink-300">
@@ -150,7 +160,20 @@ export function PenaltyResult({ attempts, session, identity, onReplay }: Props) 
         </div>
       )}
 
+      <SaveProgressBanner
+        title="Keep your progress"
+        message="Sign in to save your score, stars and badges."
+      />
+
       <div className="flex flex-col gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 rounded-2xl border border-pink-300/35 bg-gradient-to-br from-pink-400/15 via-pink-400/8 to-purple-400/8 px-6 py-3.5 text-center transition hover:from-pink-400/25 active:scale-[0.98]"
+        >
+          <LayoutDashboard className="h-4 w-4 text-pink-200" />
+          <span className="text-sm font-bold text-pink-100">Go to dashboard</span>
+        </Link>
+
         <Link
           href={cardHref}
           className="shine-button flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-black uppercase tracking-wider"

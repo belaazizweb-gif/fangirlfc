@@ -14,10 +14,12 @@ import {
   Flag,
   Crosshair,
   Brain,
+  LayoutDashboard,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
+  { href: "/dashboard",     label: "Dashboard",  icon: LayoutDashboard },
   { href: "/quiz",          label: "Quiz",       icon: HelpCircle   },
   { href: "/penalty",       label: "Penalty",    icon: Crosshair    },
   { href: "/football-iq",   label: "IQ",         icon: Brain        },
