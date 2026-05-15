@@ -253,7 +253,10 @@ function Inner() {
     if (!cardRef.current) return;
     setBusy(true);
     try {
-      await exportNodeAsPng(cardRef.current, "fangirl-fc-card.png");
+      const result = await exportNodeAsPng(cardRef.current, "fangirl-fc-card.png");
+      if (result.status === "fallback" && result.dataUrl) {
+        setFallbackImageUrl(result.dataUrl);
+      }
       const next = awardIdentityStar(identity.id, "card_generated");
       setStars(next);
       setHint(getNextHint(next, getIdentityActions(identity.id)));

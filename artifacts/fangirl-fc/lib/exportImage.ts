@@ -35,9 +35,8 @@ function isIOS(): boolean {
 async function generateCardPng(node: HTMLElement): Promise<string> {
   await waitForImages(node);
   const opts = { cacheBust: true, pixelRatio: 3, backgroundColor: "#000000" };
-  // iOS Safari often produces a blank/partial canvas on the first toPng call
-  // due to WebKit's deferred image rendering. A warm-up pass + short delay
-  // forces a complete render before we capture the final PNG.
+  // iOS Safari often produces a blank canvas on the first toPng call due to
+  // WebKit's deferred rendering. A warm-up pass + short delay ensures a full render.
   if (isIOS()) {
     await toPng(node, opts).catch(() => {});
     await new Promise((r) => setTimeout(r, 100));
@@ -45,7 +44,14 @@ async function generateCardPng(node: HTMLElement): Promise<string> {
   return toPng(node, opts);
 }
 
-export async function downloadCardImage(
+/**
+ * Shared download logic used by both "Download image" and "Download story card".
+ *
+ * iOS:  1st try → native share sheet (user taps "Save Image" — no extra step).
+ *        Fallback → long-press modal if share API unavailable or user cancels.
+ * Android / Desktop: Blob URL anchor click → direct download to Files.
+ */
+async function triggerDownload(
   node: HTMLElement,
   fileName: string,
 ): Promise<ExportShareResult> {
@@ -56,13 +62,26 @@ export async function downloadCardImage(
     return { status: "error" };
   }
 
-  // iOS Safari silently ignores <a download> — show long-press modal instead.
   if (isIOS()) {
+    // Prefer the native share sheet — gives the user a "Save Image" option directly.
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], fileName, { type: "image/png" });
+      if ("canShare" in navigator && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Fangirl FC Card 💖" });
+        return { status: "shared" };
+      }
+    } catch (err) {
+      // AbortError = user dismissed the share sheet intentionally.
+      if ((err as Error).name === "AbortError") return { status: "error" };
+      // Any other error → fall through to long-press modal.
+    }
+    // Last resort: show the image in a modal for long-press saving.
     return { status: "fallback", dataUrl };
   }
 
-  // Desktop + Android: convert data URL → Blob URL before triggering download.
-  // Raw data: URLs are not reliably downloaded on Android Chrome.
+  // Android + Desktop: convert data URL → Blob URL for reliable file download.
   try {
     const res = await fetch(dataUrl);
     const blob = await res.blob();
@@ -78,6 +97,24 @@ export async function downloadCardImage(
   } catch {
     return { status: "fallback", dataUrl };
   }
+}
+
+export async function downloadCardImage(
+  node: HTMLElement,
+  fileName: string,
+): Promise<ExportShareResult> {
+  return triggerDownload(node, fileName);
+}
+
+/**
+ * Same download logic as downloadCardImage — now includes iOS share sheet +
+ * Android Blob URL instead of the old silent-failure data: URL approach.
+ */
+export async function exportNodeAsPng(
+  node: HTMLElement,
+  fileName: string,
+): Promise<ExportShareResult> {
+  return triggerDownload(node, fileName);
 }
 
 export async function shareCardImage(
@@ -112,7 +149,7 @@ export async function shareCardImage(
     if ((err as Error).name === "AbortError") return { status: "error" };
   }
 
-  if (shareUrl && typeof navigator !== "undefined" && "clipboard" in navigator) {
+  if (shareUrl && "clipboard" in navigator) {
     try {
       await navigator.clipboard.writeText(shareUrl);
       return { status: "shared" };
@@ -122,19 +159,6 @@ export async function shareCardImage(
   }
 
   return { status: "fallback", dataUrl };
-}
-
-export async function exportNodeAsPng(
-  node: HTMLElement,
-  fileName: string,
-): Promise<void> {
-  const dataUrl = await generateCardPng(node);
-  const link = document.createElement("a");
-  link.download = fileName;
-  link.href = dataUrl;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 export async function shareOrDownloadCard(
