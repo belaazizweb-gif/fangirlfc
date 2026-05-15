@@ -52,19 +52,24 @@ export async function downloadCardImage(
     return { status: "error" };
   }
 
-  // iOS Safari silently ignores <a download> and navigates to the image URL instead.
-  // Go straight to the long-press modal so the user can actually save to Camera Roll.
+  // iOS Safari silently ignores <a download> — show long-press modal instead.
   if (isIOS()) {
     return { status: "fallback", dataUrl };
   }
 
+  // Desktop + Android: convert data URL → Blob URL before triggering download.
+  // Raw data: URLs are not reliably downloaded on Android Chrome.
   try {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.download = fileName;
-    link.href = dataUrl;
+    link.href = blobUrl;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
     return { status: "downloaded" };
   } catch {
     return { status: "fallback", dataUrl };
