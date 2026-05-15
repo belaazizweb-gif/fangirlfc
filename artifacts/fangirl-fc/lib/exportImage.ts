@@ -36,6 +36,11 @@ async function generateCardPng(node: HTMLElement): Promise<string> {
   });
 }
 
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
 export async function downloadCardImage(
   node: HTMLElement,
   fileName: string,
@@ -45,6 +50,12 @@ export async function downloadCardImage(
     dataUrl = await generateCardPng(node);
   } catch {
     return { status: "error" };
+  }
+
+  // iOS Safari silently ignores <a download> and navigates to the image URL instead.
+  // Go straight to the long-press modal so the user can actually save to Camera Roll.
+  if (isIOS()) {
+    return { status: "fallback", dataUrl };
   }
 
   try {
