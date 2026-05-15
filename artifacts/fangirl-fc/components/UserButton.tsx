@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { LogIn, LogOut, UserCircle2 } from "lucide-react";
+import { LogIn, LogOut, UserCircle2, LayoutDashboard } from "lucide-react";
+import Link from "next/link";
 import { useAuth } from "@/components/AuthProvider";
 import { AuthModal } from "@/components/AuthModal";
 import { signOut } from "@/lib/auth";
@@ -61,6 +62,7 @@ export function UserButton() {
             onClick={() => setMenuOpen(false)}
           />
           <div className="absolute right-0 top-9 z-50 w-52 rounded-2xl border border-white/10 bg-[#130820] p-3 shadow-xl">
+            {/* User info */}
             <div className="mb-2 flex items-center gap-2 border-b border-white/10 pb-2">
               <UserCircle2 className="h-5 w-5 text-pink-300" />
               <div className="min-w-0">
@@ -72,12 +74,24 @@ export function UserButton() {
                 </p>
               </div>
             </div>
+
+            {/* Dashboard link */}
+            <Link
+              href="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[12px] font-semibold text-pink-200 hover:bg-pink-400/15 transition"
+            >
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              My Dashboard
+            </Link>
+
+            {/* Sign out */}
             <button
               onClick={async () => {
                 await signOut();
                 setMenuOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[12px] text-white/70 hover:bg-white/10"
+              className="flex w-full items-center gap-2 rounded-xl px-2 py-2 text-[12px] text-white/70 hover:bg-white/10 transition"
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign out
