@@ -17,13 +17,14 @@ service cloud.firestore {
                              && request.auth.uid == resource.data.get('userId', '');
     }
 
-    // ── Public card share links (unauthenticated) ─────────────────────────────
-    // Anyone can create a share record (no auth required — app has no login gate).
+    // ── Public card share links ───────────────────────────────────────────────
+    // Auth required to create (share link is now gated behind sign-in in the UI).
     // Anyone can read (the /share/[shareId] page is public).
     // Records are immutable once created (no update/delete).
     match /public_cards/{shareId} {
       allow read: if true;
-      allow create: if request.resource.data.keys().hasAll([
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasAll([
                          'shareId', 'identityId', 'displayName', 'teamCode',
                          'templateId', 'stars', 'createdAt'
                        ])
