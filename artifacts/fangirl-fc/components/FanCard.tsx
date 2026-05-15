@@ -344,7 +344,6 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
               <img
                 src={selfieUrl}
                 alt=""
-                crossOrigin="anonymous"
                 className="absolute inset-0 h-full w-full"
                 style={{
                   objectFit: css.objectFit,

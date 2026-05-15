@@ -27,18 +27,22 @@ export async function waitForImages(node: HTMLElement): Promise<void> {
   );
 }
 
-async function generateCardPng(node: HTMLElement): Promise<string> {
-  await waitForImages(node);
-  return toPng(node, {
-    cacheBust: true,
-    pixelRatio: 3,
-    backgroundColor: "#000000",
-  });
-}
-
 function isIOS(): boolean {
   if (typeof navigator === "undefined") return false;
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
+
+async function generateCardPng(node: HTMLElement): Promise<string> {
+  await waitForImages(node);
+  const opts = { cacheBust: true, pixelRatio: 3, backgroundColor: "#000000" };
+  // iOS Safari often produces a blank/partial canvas on the first toPng call
+  // due to WebKit's deferred image rendering. A warm-up pass + short delay
+  // forces a complete render before we capture the final PNG.
+  if (isIOS()) {
+    await toPng(node, opts).catch(() => {});
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  return toPng(node, opts);
 }
 
 export async function downloadCardImage(
