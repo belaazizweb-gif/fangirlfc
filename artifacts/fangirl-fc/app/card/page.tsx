@@ -339,7 +339,7 @@ function Inner() {
             <span className="text-xl shrink-0">🧠</span>
             <div>
               <p className="text-[13px] font-bold text-indigo-100">Get World Cup Ready</p>
-              <p className="text-[11px] text-white/40">Football IQ — learn the game</p>
+              <p className="text-[11px] text-white/40">Learn Football — today&apos;s lesson</p>
             </div>
           </Link>
           <Link

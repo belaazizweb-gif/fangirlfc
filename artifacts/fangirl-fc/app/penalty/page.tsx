@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { PenaltyIntro } from "@/components/penalty/PenaltyIntro";
 import { PenaltyGame } from "@/components/penalty/PenaltyGame";
 import { PenaltyResult } from "@/components/penalty/PenaltyResult";
+import {
+  PenaltyHowToModal,
+  hasPenaltyTutorialBeenSeen,
+} from "@/components/penalty/PenaltyHowToModal";
 import { FAN_TYPES } from "@/lib/fanTypes";
 import type { FanIdentityId, FanIdentity } from "@/types";
 import type { PenaltyAttempt } from "@/lib/penaltyEngine";
@@ -25,6 +29,7 @@ export default function PenaltyPage() {
   const [completedAttempts, setCompletedAttempts] = useState<PenaltyAttempt[]>([]);
   const [finalSession, setFinalSession] = useState<PenaltySession | null>(null);
   const [isReducedRewards, setIsReducedRewards] = useState(false);
+  const [showHowTo, setShowHowTo] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -32,6 +37,8 @@ export default function PenaltyPage() {
     if (lastId && FAN_TYPES[lastId]) {
       setIdentity(FAN_TYPES[lastId]!);
     }
+    // Show tutorial on first ever visit.
+    if (!hasPenaltyTutorialBeenSeen()) setShowHowTo(true);
   }, []);
 
   const handleStart = () => {
@@ -73,7 +80,18 @@ export default function PenaltyPage() {
   };
 
   if (phase === "intro") {
-    return <PenaltyIntro identity={identity} onStart={handleStart} />;
+    return (
+      <>
+        <PenaltyIntro
+          identity={identity}
+          onStart={handleStart}
+          onShowHowTo={() => setShowHowTo(true)}
+        />
+        {showHowTo && (
+          <PenaltyHowToModal onDismiss={() => setShowHowTo(false)} />
+        )}
+      </>
+    );
   }
 
   if (phase === "playing") {

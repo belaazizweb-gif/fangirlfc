@@ -36,7 +36,7 @@ export function FootballIqIntro({
           </div>
           <div>
             <p className="text-[13px] font-bold text-indigo-100">
-              Football IQ Lv.{currentLevel} — {LEVEL_LABELS[currentLevel] ?? "Expert"}
+              Learn Lv.{currentLevel} — {LEVEL_LABELS[currentLevel] ?? "Expert"}
             </p>
             <p className="text-[11px] text-white/40">{totalCorrect} correct answer{totalCorrect !== 1 ? "s" : ""} so far</p>
           </div>
@@ -75,7 +75,7 @@ export function FootballIqIntro({
         onClick={onStart}
         className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-3.5 text-center text-sm font-extrabold text-white shadow-lg transition hover:from-indigo-400 hover:to-purple-400 active:scale-[0.98]"
       >
-        {isPracticeMode ? "Practice again" : "Start today's IQ"}
+        {isPracticeMode ? "Practice again" : "Start today's lesson"}
       </button>
     </div>
   );

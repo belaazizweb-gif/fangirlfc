@@ -2,35 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  HelpCircle,
-  CalendarDays,
-  Users,
-  Layers,
-  Trophy,
-  Target,
-  Sticker,
-  Medal,
-  Flag,
-  Crosshair,
-  Brain,
-  LayoutDashboard,
-} from "lucide-react";
+import { Brain, Crosshair, LayoutDashboard, CreditCard } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
-  { href: "/dashboard",     label: "Dashboard",  icon: LayoutDashboard },
-  { href: "/quiz",          label: "Quiz",       icon: HelpCircle   },
-  { href: "/penalty",       label: "Penalty",    icon: Crosshair    },
-  { href: "/football-iq",   label: "IQ",         icon: Brain        },
-  { href: "/matchday",      label: "Matchday",   icon: CalendarDays },
-  { href: "/groups",        label: "Groups",     icon: Users        },
-  { href: "/my-cards",      label: "Cards",      icon: Layers       },
-  { href: "/level",         label: "Level",      icon: Trophy       },
-  { href: "/ranking",       label: "Ranking",    icon: Medal        },
-  { href: "/team-ranking",  label: "Teams",      icon: Flag         },
-  { href: "/challenges",    label: "Challenges", icon: Target       },
-  { href: "/stickers",      label: "Stickers",   icon: Sticker      },
+  { href: "/dashboard",   label: "Dashboard", icon: LayoutDashboard },
+  { href: "/my-cards",    label: "Card",       icon: CreditCard      },
+  { href: "/football-iq", label: "Learn",      icon: Brain           },
+  { href: "/penalty",     label: "Penalty",    icon: Crosshair       },
 ];
 
 export function TopNav() {

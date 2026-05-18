@@ -101,7 +101,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-3 gap-3">
                 <div className="glass rounded-xl p-3 text-center">
                   <p className="text-xl font-black text-indigo-300">{data.iqLevel}</p>
-                  <p className="text-[10px] text-white/40 mt-0.5 uppercase tracking-wider">IQ Level</p>
+                  <p className="text-[10px] text-white/40 mt-0.5 uppercase tracking-wider">Learn Lv.</p>
                 </div>
                 <div className="glass rounded-xl p-3 text-center">
                   <p className="text-xl font-black text-amber-300">{data.penaltyBest}</p>
@@ -137,7 +137,7 @@ export default function DashboardPage() {
                 <span className="text-xl shrink-0">🧠</span>
                 <div>
                   <p className="text-[13px] font-bold text-indigo-100">Get World Cup Ready</p>
-                  <p className="text-[11px] text-white/40">Football IQ — learn the game</p>
+                  <p className="text-[11px] text-white/40">Learn Football — today&apos;s lesson</p>
                 </div>
               </Link>
               <Link

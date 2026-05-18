@@ -207,7 +207,7 @@ export const FanCard = forwardRef<HTMLDivElement, Props>(function FanCard(
     pillParts.push(`⚽ ${progressProof.latestPenaltyGoals}/${progressProof.latestPenaltyAttempts}`);
   }
   if (progressProof && progressProof.footballIQLevel > 0) {
-    pillParts.push(`🧠 IQ Lv.${progressProof.footballIQLevel}`);
+    pillParts.push(`🧠 Learn Lv.${progressProof.footballIQLevel}`);
   }
   const pillText = pillParts.join("  •  ");
 

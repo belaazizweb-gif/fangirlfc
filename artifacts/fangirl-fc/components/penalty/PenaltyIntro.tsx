@@ -5,6 +5,7 @@ import type { FanIdentity } from "@/types";
 interface Props {
   identity: FanIdentity | null;
   onStart: () => void;
+  onShowHowTo?: () => void;
 }
 
 const RULES = [
@@ -30,7 +31,7 @@ const RULES = [
   },
 ];
 
-export function PenaltyIntro({ identity, onStart }: Props) {
+export function PenaltyIntro({ identity, onStart, onShowHowTo }: Props) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -85,9 +86,19 @@ export function PenaltyIntro({ identity, onStart }: Props) {
         ⚽ Start Challenge
       </button>
 
-      <p className="text-center text-[11px] text-white/30">
-        3 penalties · results saved locally · no account needed
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] text-white/30">
+          3 penalties · results saved locally · no account needed
+        </p>
+        {onShowHowTo && (
+          <button
+            onClick={onShowHowTo}
+            className="text-[11px] font-semibold text-pink-300/60 hover:text-pink-200 transition"
+          >
+            How to play ?
+          </button>
+        )}
+      </div>
     </div>
   );
 }

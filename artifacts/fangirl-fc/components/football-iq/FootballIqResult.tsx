@@ -66,7 +66,7 @@ export function FootballIqResult({
         </div>
         <div>
           <p className="text-[13px] font-bold text-indigo-100">
-            Football IQ Lv.{footballIQLevel}
+            Learn Lv.{footballIQLevel}
           </p>
           <p className="text-[11px] text-white/40">
             {LEVEL_LABELS[footballIQLevel] ?? "Expert"}
@@ -99,7 +99,7 @@ export function FootballIqResult({
 
       <SaveProgressBanner
         title="Keep your progress"
-        message="Sign in to save your IQ level, stars and badges."
+        message="Sign in to save your Learn level, stars and badges."
       />
 
       <div className="flex flex-col gap-3">

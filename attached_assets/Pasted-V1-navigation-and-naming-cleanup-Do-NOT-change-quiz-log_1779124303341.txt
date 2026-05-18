@@ -1,0 +1,93 @@
+V1 navigation and naming cleanup.
+
+Do NOT change quiz logic.
+Do NOT change FanCard design.
+Do NOT change progression economy.
+Do NOT change Football IQ question content.
+Do NOT change penalty gameplay.
+Do NOT change photo persistence logic.
+
+Goal:
+Simplify the app for first-time users.
+The V1 should show only the core flow:
+Dashboard → Card → Learn → Penalty
+
+1. Rename IQ to Learn in visible UI
+
+Visible navigation:
+“IQ” → “Learn”
+
+Visible copy:
+“Football IQ” → “Learn Football” where appropriate.
+Keep “World Cup Ready” as the page title.
+
+Examples:
+- Nav label: Learn
+- CTA: Start today’s lesson
+- Result: Lesson complete
+- Progress label: Learn Lv.1
+
+Do not rename internal files unless necessary.
+
+2. Hide non-core modules from main navigation
+
+Hide these from the main visible nav for now:
+- Matchday
+- Groups
+- Level
+- Social Challenges
+
+Routes can remain available.
+Do not delete pages.
+Only remove/de-emphasize them from the main navigation.
+
+Main navigation should be:
+- Dashboard
+- Card
+- Learn
+- Penalty
+
+Quiz can remain accessible from landing/result flow, but it does not need to dominate internal navigation after the card.
+
+3. Make Dashboard the main post-card hub
+
+Dashboard should clearly show:
+1. View / update Fangirl Card
+2. Learn Football
+3. Play Penalty Queen
+4. Download / share upgraded card
+5. Save progress if guest
+
+Use simple copy:
+“Your next steps”
+“Keep upgrading your Fangirl Card”
+
+4. Add first-time Penalty tutorial popup
+
+On first visit to Penalty, before playing, show a small modal/card:
+
+Title:
+“How to play Penalty Queen”
+
+Steps:
+1. Tap inside the goal to aim
+2. Choose Safe or Power
+3. Tap the power bar to shoot
+
+Button:
+“Got it”
+
+Store dismissal in localStorage so it does not show every time.
+Add a small “How to play” button/link on the Penalty page to reopen it.
+
+Do not change the gameplay mechanics.
+
+5. Run:
+- typecheck
+- build
+
+Report:
+- exact files changed
+- where IQ was renamed to Learn
+- which modules were hidden from nav
+- how the penalty tutorial works
