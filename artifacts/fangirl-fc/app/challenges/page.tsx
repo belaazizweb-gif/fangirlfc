@@ -47,9 +47,9 @@ export default function ChallengesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-black">Daily Challenges</h1>
+        <h1 className="text-2xl font-black">Social Challenges</h1>
         <p className="mt-1 text-sm text-white/60">
-          Tiny missions. Big star energy. {done.length}/{CHALLENGES.length}{" "}
+          Social mini-missions, not football lessons. {done.length}/{CHALLENGES.length}{" "}
           completed.
         </p>
       </div>

@@ -28,6 +28,7 @@ import {
   getNextHint,
 } from "@/lib/stars";
 import { downloadCardImage, shareCardImage, exportNodeAsPng } from "@/lib/exportImage";
+import { saveSelfie, loadSelfie, clearSelfie } from "@/lib/selfieStorage";
 import { buildPayloadShareUrl, newShareId, saveShare, savePublicCard } from "@/lib/share";
 import { getCardProgressDisplay, type CardProgressDisplay } from "@/lib/cardProgressAdapter";
 import { getShareMode, fillCaption } from "@/lib/shareModes";
@@ -97,6 +98,12 @@ function Inner() {
   const match = useMemo(() => (matchId ? getMatch(matchId) : null), [matchId]);
   const [matchContext, setMatchContext] = useState<string | undefined>();
   const [predictionText, setPredictionText] = useState<string | undefined>();
+
+  // Restore persisted selfie on mount (survives navigation away and back)
+  useEffect(() => {
+    const saved = loadSelfie();
+    if (saved) setSelfie(saved);
+  }, []);
 
   useEffect(() => {
     const s = getIdentityStars(id);
@@ -318,22 +325,43 @@ function Inner() {
         <StarProgress stars={stars} hint={hint || "Next level: share your card"} />
       </div>
 
-      {/* Upgrade CTAs */}
-      <div className="grid grid-cols-2 gap-2">
-        <Link
-          href="/football-iq"
-          className="flex flex-col items-center gap-1 rounded-2xl border border-indigo-300/30 bg-gradient-to-br from-indigo-400/10 via-purple-400/8 to-pink-400/8 px-3 py-3.5 text-center transition hover:from-indigo-400/18 active:scale-[0.98]"
-        >
-          <span className="text-[13px] font-bold text-indigo-100">🧠 Get World Cup Ready</span>
-          <span className="text-[10px] text-white/45">Upgrade IQ level</span>
-        </Link>
-        <Link
-          href="/penalty"
-          className="flex flex-col items-center gap-1 rounded-2xl border border-amber-300/35 bg-gradient-to-br from-amber-300/12 via-orange-400/8 to-pink-400/8 px-3 py-3.5 text-center transition hover:from-amber-300/20 active:scale-[0.98]"
-        >
-          <span className="text-[13px] font-bold text-amber-100">⚽ Penalty Queen</span>
-          <span className="text-[10px] text-white/45">Earn badge + stars</span>
-        </Link>
+      {/* Next steps — ordered 1-2-3 */}
+      <div>
+        <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-white/40">
+          Next steps
+        </p>
+        <div className="flex flex-col gap-2">
+          <Link
+            href="/football-iq"
+            className="flex items-center gap-3 rounded-xl border border-indigo-300/30 bg-indigo-400/8 px-4 py-3 transition hover:bg-indigo-400/15 active:scale-[0.99]"
+          >
+            <span className="text-[11px] font-extrabold text-indigo-300/70 shrink-0 w-4">1</span>
+            <span className="text-xl shrink-0">🧠</span>
+            <div>
+              <p className="text-[13px] font-bold text-indigo-100">Get World Cup Ready</p>
+              <p className="text-[11px] text-white/40">Football IQ — learn the game</p>
+            </div>
+          </Link>
+          <Link
+            href="/penalty"
+            className="flex items-center gap-3 rounded-xl border border-amber-300/30 bg-amber-400/8 px-4 py-3 transition hover:bg-amber-400/15 active:scale-[0.99]"
+          >
+            <span className="text-[11px] font-extrabold text-amber-300/70 shrink-0 w-4">2</span>
+            <span className="text-xl shrink-0">⚽</span>
+            <div>
+              <p className="text-[13px] font-bold text-amber-100">Play Penalty Queen</p>
+              <p className="text-[11px] text-white/40">Earn stars and badges</p>
+            </div>
+          </Link>
+          <div className="flex items-center gap-3 rounded-xl border border-pink-300/25 bg-pink-400/6 px-4 py-3">
+            <span className="text-[11px] font-extrabold text-pink-300/70 shrink-0 w-4">3</span>
+            <span className="text-xl shrink-0">🃏</span>
+            <div>
+              <p className="text-[13px] font-bold text-pink-100">Download your upgraded card</p>
+              <p className="text-[11px] text-white/40">Scroll down to share</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="glass flex flex-col gap-4 rounded-2xl p-4">
@@ -393,7 +421,11 @@ function Inner() {
           <div className="mt-2" onPointerUp={handleZoomCommit}>
             <PhotoUpload
               value={selfie}
-              onChange={setSelfie}
+              onChange={(url) => {
+                setSelfie(url);
+                if (url) void saveSelfie(url);
+                else clearSelfie();
+              }}
               fit={selfieFit}
               onFitChange={handleFitChange}
               zoom={zoom}

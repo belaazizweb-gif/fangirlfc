@@ -11,17 +11,17 @@ const RULES = [
   {
     emoji: "🎯",
     label: "Aim",
-    desc: "Pick your direction — left, center, or right.",
+    desc: "Tap inside the goal to place your shot.",
   },
   {
     emoji: "🦵",
-    label: "Shot",
+    label: "Shot type",
     desc: "Choose Safe or Power. Curve Shot unlocks later.",
   },
   {
     emoji: "⚡",
-    label: "Power",
-    desc: "Tap the bar at the right moment. Hit the golden zone for max power.",
+    label: "Shoot",
+    desc: "Tap the power bar at the right moment. Hit the golden zone for max power.",
   },
   {
     emoji: "⚽",

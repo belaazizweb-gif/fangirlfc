@@ -126,23 +126,25 @@ export default function DashboardPage() {
 
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-white/40 mb-3">
-              Today&apos;s next steps
+              Next steps
             </p>
             <div className="flex flex-col gap-2">
               <Link
                 href="/football-iq"
                 className="flex items-center gap-3 rounded-xl border border-indigo-300/30 bg-indigo-400/8 px-4 py-3 transition hover:bg-indigo-400/15 active:scale-[0.99]"
               >
+                <span className="text-[11px] font-extrabold text-indigo-300/70 shrink-0 w-4">1</span>
                 <span className="text-xl shrink-0">🧠</span>
                 <div>
                   <p className="text-[13px] font-bold text-indigo-100">Get World Cup Ready</p>
-                  <p className="text-[11px] text-white/40">Daily Football IQ challenge</p>
+                  <p className="text-[11px] text-white/40">Football IQ — learn the game</p>
                 </div>
               </Link>
               <Link
                 href="/penalty"
                 className="flex items-center gap-3 rounded-xl border border-amber-300/30 bg-amber-400/8 px-4 py-3 transition hover:bg-amber-400/15 active:scale-[0.99]"
               >
+                <span className="text-[11px] font-extrabold text-amber-300/70 shrink-0 w-4">2</span>
                 <span className="text-xl shrink-0">⚽</span>
                 <div>
                   <p className="text-[13px] font-bold text-amber-100">Play Penalty Queen</p>
@@ -153,9 +155,10 @@ export default function DashboardPage() {
                 href={cardHref}
                 className="flex items-center gap-3 rounded-xl border border-pink-300/30 bg-pink-400/8 px-4 py-3 transition hover:bg-pink-400/15 active:scale-[0.99]"
               >
+                <span className="text-[11px] font-extrabold text-pink-300/70 shrink-0 w-4">3</span>
                 <span className="text-xl shrink-0">🃏</span>
                 <div>
-                  <p className="text-[13px] font-bold text-pink-100">Download your card</p>
+                  <p className="text-[13px] font-bold text-pink-100">Download your upgraded card</p>
                   <p className="text-[11px] text-white/40">Share your Fangirl identity</p>
                 </div>
               </Link>
