@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Heart, Camera, LogIn, ShieldCheck } from "lucide-react";
+import { ArrowRight, Sparkles, Camera, LogIn, ShieldCheck, Heart } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
 import { TEMPLATES, getTemplate } from "@/lib/templates";
 import { FanCard } from "./FanCard";
@@ -55,6 +55,52 @@ const CARD_H = 640;
 const SCALED_W = CARD_W * PREVIEW_SCALE;
 const SCALED_H = CARD_H * PREVIEW_SCALE;
 
+const FLOW_STEPS = ["Quiz", "Card", "Learn", "Penalty", "Share"] as const;
+
+const HOW_IT_WORKS = [
+  {
+    n: "1",
+    emoji: "🎯",
+    title: "Take the quiz",
+    copy: "5 questions to find your football fan personality.",
+    tint: "from-pink-400/30 to-rose-400/10",
+    href: "/quiz",
+  },
+  {
+    n: "2",
+    emoji: "🃏",
+    title: "Create your Fan Card",
+    copy: "Turn your result into a card with your photo and team.",
+    tint: "from-fuchsia-400/30 to-violet-400/10",
+    href: null,
+  },
+  {
+    n: "3",
+    emoji: "✨",
+    title: "Sign in to save your Fangirl Card",
+    copy: "Save your card, keep your stars, and unlock your full profile.",
+    tint: "from-violet-400/30 to-indigo-400/10",
+    href: null,
+    isSignIn: true,
+  },
+  {
+    n: "4",
+    emoji: "🧠",
+    title: "Learn football",
+    copy: "Answer 2 daily questions and level up your knowledge.",
+    tint: "from-indigo-400/30 to-purple-400/10",
+    href: "/football-iq",
+  },
+  {
+    n: "5",
+    emoji: "⚽",
+    title: "Play Penalty Queen & share",
+    copy: "Score penalties, unlock badges, and share your upgraded card.",
+    tint: "from-amber-300/30 to-orange-400/10",
+    href: "/penalty",
+  },
+];
+
 function HeroCard({ preview }: { preview: (typeof HERO_PREVIEWS)[number] }) {
   const identity = FAN_TYPES[preview.identityId];
   const template = getTemplate(preview.templateId);
@@ -84,59 +130,15 @@ function HeroCard({ preview }: { preview: (typeof HERO_PREVIEWS)[number] }) {
   );
 }
 
-const STEPS = [
-  {
-    n: "1",
-    emoji: "🎯",
-    title: "Take the quiz",
-    copy: "5 questions to find your football fan personality.",
-    tint: "from-pink-400/30 to-rose-400/10",
-    href: "/quiz",
-  },
-  {
-    n: "2",
-    emoji: "🃏",
-    title: "Create your Fan Card",
-    copy: "Turn your result into a card with your photo and team.",
-    tint: "from-fuchsia-400/30 to-violet-400/10",
-    href: null,
-  },
-  {
-    n: "3",
-    emoji: "✨",
-    title: "Sign in to save your Fangirl Card",
-    copy: "Save your card, keep your stars, and unlock your full profile.",
-    tint: "from-violet-400/30 to-indigo-400/10",
-    href: null,
-    isSignIn: true,
-  },
-  {
-    n: "4",
-    emoji: "🧠",
-    title: "Learn football with Football IQ",
-    copy: "Answer 2 daily questions and level up your knowledge.",
-    tint: "from-indigo-400/30 to-purple-400/10",
-    href: "/football-iq",
-  },
-  {
-    n: "5",
-    emoji: "⚽",
-    title: "Play Penalty Queen & upgrade",
-    copy: "Score penalties, unlock badges, and share your upgraded card.",
-    tint: "from-amber-300/30 to-orange-400/10",
-    href: "/penalty",
-  },
-];
-
 export function LandingHero() {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   return (
     <div className="flex flex-col gap-10">
-      {/* ---------------- HERO ---------------- */}
+
+      {/* ── 1. HERO ── */}
       <section className="relative -mx-4 overflow-hidden rounded-b-[40px] px-4 pb-10 pt-2">
-        {/* Glossy gradient background */}
         <div
           aria-hidden
           className="absolute inset-0 -z-10"
@@ -175,7 +177,7 @@ export function LandingHero() {
           Your result will look like this 👇
         </p>
 
-        {/* Real big card previews — fanned */}
+        {/* Sample cards — fanned */}
         <div className="relative mt-3 flex h-[300px] items-center justify-center">
           <div
             aria-hidden
@@ -194,29 +196,30 @@ export function LandingHero() {
           </div>
         </div>
 
+        {/* Compact flow stepper */}
+        <div className="mt-5 flex items-center justify-center gap-1 overflow-x-auto pb-0.5">
+          {FLOW_STEPS.map((step, i) => (
+            <span key={step} className="flex shrink-0 items-center gap-1">
+              <span className="rounded-full border border-white/20 bg-white/8 px-2.5 py-1 text-[11px] font-bold text-white/75">
+                {i + 1}&nbsp;{step}
+              </span>
+              {i < FLOW_STEPS.length - 1 && (
+                <span className="text-[10px] text-white/30">→</span>
+              )}
+            </span>
+          ))}
+        </div>
+
         {/* CTAs */}
-        <div className="mt-6 flex flex-col gap-2.5">
-          {/* Primary CTA */}
+        <div className="mt-5 flex flex-col gap-2.5">
           <Link
             href="/quiz"
             className="shine-button flex items-center justify-center gap-2 rounded-full px-6 py-4 text-base"
           >
-            Start free — Take the quiz
+            Start with the quiz
             <ArrowRight className="h-4 w-4" />
           </Link>
 
-          {/* Sign In CTA — only shown to guests */}
-          {!user && (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="flex items-center justify-center gap-1.5 rounded-full border border-violet-300/30 bg-violet-400/10 px-6 py-3 text-[13px] font-bold text-violet-200 backdrop-blur transition hover:bg-violet-400/20"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              Sign in to save my Fangirl Card
-            </button>
-          )}
-
-          {/* Already played — visually tertiary */}
           <Link
             href="/card?id=princess"
             className="flex items-center justify-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-6 py-2.5 text-[11px] font-semibold text-white/40 backdrop-blur transition hover:bg-white/10 hover:text-white/60"
@@ -225,41 +228,60 @@ export function LandingHero() {
             Already played? Continue to my card
           </Link>
 
-          {/* Trust / friction line */}
           <p className="mt-0.5 text-center text-[11px] text-white/45">
-            No signup &nbsp;·&nbsp; 5 football questions &nbsp;·&nbsp; Just for fun
+            No sign-up to start. Sign in later to save your card, stars, and progress.
           </p>
         </div>
       </section>
 
-      {/* ---------------- MAKE IT OFFICIAL BOX ---------------- */}
-      {!user && (
-        <section className="relative overflow-hidden rounded-[28px] border border-violet-400/20 bg-gradient-to-br from-violet-500/15 via-fuchsia-400/10 to-indigo-400/10 p-5">
-          <div className="absolute -right-4 -top-4 text-[90px] leading-none opacity-[0.07]">
-            ✨
+      {/* ── 2. HOW IT WORKS — shown immediately after hero ── */}
+      <section>
+        <div className="mb-4 text-center">
+          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
+            How Fangirl FC works
           </div>
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-400/20">
-              <ShieldCheck className="h-4 w-4 text-violet-300" />
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {HOW_IT_WORKS.map((s) => (
+            <div
+              key={s.n}
+              className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
+                  {s.n}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5 text-[15px] font-bold text-white">
+                    <span>{s.emoji}</span>
+                    <span>{s.title}</span>
+                  </div>
+                  <div className="text-[12.5px] leading-snug text-white/70">
+                    {s.copy}
+                  </div>
+                </div>
+                {s.isSignIn && !user ? (
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Sign in →
+                  </button>
+                ) : s.href ? (
+                  <Link
+                    href={s.href}
+                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
+                  >
+                    Start →
+                  </Link>
+                ) : null}
+              </div>
             </div>
-            <div className="flex-1">
-              <p className="text-[14px] font-black text-white">Save your Fangirl Card</p>
-              <p className="mt-1 text-[12.5px] leading-snug text-white/65">
-                You can play first. Sign in when you want to save your Fangirl Card, keep your stars, and share your progress.
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="mt-3 flex items-center gap-1.5 rounded-full bg-violet-500/25 px-4 py-2 text-[12px] font-bold text-violet-200 transition hover:bg-violet-500/35"
-              >
-                <LogIn className="h-3 w-3" />
-                Sign in to save progress
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
+          ))}
+        </div>
+      </section>
 
-      {/* ---------------- TAGLINE / SOCIAL FEEL ---------------- */}
+      {/* ── 3. TAGLINE ── */}
       <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-pink-400/20 via-fuchsia-400/10 to-amber-200/20 p-6 text-center">
         <div className="absolute -right-6 -top-6 text-[110px] leading-none opacity-10">
           💖
@@ -274,7 +296,7 @@ export function LandingHero() {
         </p>
       </section>
 
-      {/* ---------------- IDENTITY PREVIEW — moved above How It Works ---------------- */}
+      {/* ── 4. IDENTITY PREVIEW ── */}
       <section>
         <div className="mb-3 text-center">
           <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
@@ -334,7 +356,6 @@ export function LandingHero() {
             );
           })}
         </div>
-        {/* Quiz nudge below the grid */}
         <Link
           href="/quiz"
           className="mt-4 flex items-center justify-center gap-2 rounded-full border border-pink-300/30 bg-pink-400/10 px-5 py-2.5 text-[13px] font-bold text-pink-100 transition hover:bg-pink-400/20"
@@ -343,69 +364,37 @@ export function LandingHero() {
         </Link>
       </section>
 
-      {/* ---------------- HOW IT WORKS — 5-step flow ---------------- */}
-      <section>
-        <div className="mb-4 text-center">
-          <div className="text-[11px] font-bold uppercase tracking-[0.28em] text-white/55">
-            How Fangirl FC works
-          </div>
-        </div>
-        <div className="flex flex-col gap-2.5">
-          {STEPS.map((s) => (
-            <div
-              key={s.n}
-              className={`relative overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br ${s.tint} p-4 backdrop-blur`}
-            >
-              <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/95 text-sm font-black text-rose-600 shadow">
-                  {s.n}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-1.5 text-[15px] font-bold text-white">
-                    <span>{s.emoji}</span>
-                    <span>{s.title}</span>
-                  </div>
-                  <div className="text-[12.5px] leading-snug text-white/70">
-                    {s.copy}
-                  </div>
-                </div>
-                {s.isSignIn && !user ? (
-                  <button
-                    onClick={() => setShowAuthModal(true)}
-                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
-                  >
-                    Sign in →
-                  </button>
-                ) : s.href ? (
-                  <Link
-                    href={s.href}
-                    className="shrink-0 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[10px] font-bold text-white/70 hover:bg-white/20"
-                  >
-                    Start →
-                  </Link>
-                ) : null}
-              </div>
+      {/* ── 5. SIGN-IN BOX — compact, after value sections ── */}
+      {!user && (
+        <section className="relative overflow-hidden rounded-[28px] border border-violet-400/20 bg-gradient-to-br from-violet-500/12 via-fuchsia-400/8 to-indigo-400/8 p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-400/20">
+              <ShieldCheck className="h-3.5 w-3.5 text-violet-300" />
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="flex-1">
+              <p className="text-[13px] font-black text-white">No sign-up to start.</p>
+              <p className="mt-0.5 text-[12px] leading-snug text-white/60">
+                Sign in later to save your card, stars, and progress.
+              </p>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="mt-2.5 flex items-center gap-1.5 rounded-full bg-violet-500/22 px-3.5 py-1.5 text-[11px] font-bold text-violet-200 transition hover:bg-violet-500/32"
+              >
+                <LogIn className="h-3 w-3" />
+                Sign in to save progress
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
-      {/* ---------------- UNLOCKED IDENTITIES — lower, with context ---------------- */}
-      <section>
-        <p className="mb-2 text-center text-[11px] text-white/35">
-          Take the quiz to start unlocking fan identities.
-        </p>
-        <UnlockedIdentities />
-      </section>
-
-      {/* ---------------- REVIEWS ---------------- */}
+      {/* ── 6. REVIEWS ── */}
       <section>
         <div className="mb-4 text-center">
           <div className="mt-1 text-[18px] font-black tracking-tight">
             What girls are saying 💬
           </div>
         </div>
-        {/* Horizontal scroll — bleed to screen edges */}
         <div className="-mx-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-3 px-4" style={{ width: "max-content" }}>
             {[
@@ -498,7 +487,15 @@ export function LandingHero() {
         <p className="mt-1.5 text-center text-[10px] text-white/25">swipe to see more →</p>
       </section>
 
-      {/* ---------------- STICKER TEASER (subtle) ---------------- */}
+      {/* ── 7. UNLOCKED IDENTITIES ── */}
+      <section>
+        <p className="mb-2 text-center text-[11px] text-white/35">
+          Take the quiz to start unlocking fan identities.
+        </p>
+        <UnlockedIdentities />
+      </section>
+
+      {/* ── 8. STICKER TEASER ── */}
       <section className="text-center">
         <Link
           href="/stickers"
@@ -509,7 +506,6 @@ export function LandingHero() {
         </Link>
       </section>
 
-      {/* Auth modal */}
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </div>
   );
