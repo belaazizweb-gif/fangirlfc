@@ -8,16 +8,7 @@ import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
 import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
 import { useMaskedOverlay } from "./useMaskedOverlay";
-
-// ── Sample card data ──────────────────────────────────────────
-export const SAMPLE_DATA = {
-  rating: 91,
-  position: "ST",
-  countryCode: "FR",
-  flag: "/flags/fr.svg",
-  name: "LUCAS MOREAU",
-  stats: { PAC: 89, SHO: 86, PAS: 82, DRI: 88, DEF: 45, PHY: 84 } as Record<StatKey, number>,
-};
+import type { CreatorCardState, BadgeState, BadgeId } from "@/lib/cardCreator/creatorState";
 
 // ── Types ─────────────────────────────────────────────────────
 export interface LoadStatus {
@@ -28,10 +19,12 @@ export interface LoadStatus {
 
 interface CardCanvasProps {
   template: CardTemplateDefinition;
+  cardState: CreatorCardState;
   showDebugBoxes: boolean;
   stageRef: React.MutableRefObject<Konva.Stage | null>;
   onLoadStatusChange?: (s: LoadStatus) => void;
   previewScaleRef?: React.MutableRefObject<number>;
+  onPhotoDrag?: (pos: { x: number; y: number }) => void;
 }
 
 // ── Debug box colours by zone ────────────────────────────────
@@ -63,19 +56,52 @@ function PhotoPlaceholder({ x, y, w, h }: { x: number; y: number; w: number; h: 
   );
 }
 
-// ── Badge placeholder ────────────────────────────────────────
-function BadgePlaceholder({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+// ── Badge zone — supports generic (emoji) + upload + none ────
+function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
+  const badgeSrc = badge.type === "upload" ? (badge.src || "") : "";
+  const [badgeImg] = useImage(badgeSrc);
+
+  if (badge.type === "none") return null;
+
+  if (badge.type === "upload") {
+    if (badgeImg) {
+      return <KImage image={badgeImg} x={x} y={y} width={w} height={h} />;
+    }
+    // Still loading — show placeholder
+    return (
+      <Group>
+        <Rect x={x + w * 0.1} y={y + h * 0.1} width={w * 0.8} height={h * 0.8}
+          fill="#2a2050" stroke="#8060c0" strokeWidth={2} cornerRadius={6} />
+        <Text x={x} y={y + h * 0.3} width={w} height={h * 0.4}
+          text="⏳" fontSize={h * 0.36} align="center" verticalAlign="middle" />
+      </Group>
+    );
+  }
+
+  // Generic badge — coloured circle + emoji
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const size = Math.min(w, h) * 0.72;
+  const emojiMap: Record<BadgeId, string> = {
+    shield:    "🛡️",
+    star:      "⭐",
+    crown:     "👑",
+    lion:      "🦁",
+    ball:      "⚽",
+    lightning: "⚡",
+  };
+  const id = badge.type === "generic" ? badge.id : "shield";
+
   return (
     <Group>
-      <Rect
-        x={x + w * 0.1} y={y + h * 0.1}
-        width={w * 0.8} height={h * 0.8}
-        fill="#2a2050" stroke="#8060c0" strokeWidth={2} cornerRadius={6}
+      <Circle
+        x={cx} y={cy} radius={size / 2}
+        fill="rgba(0,0,0,0.50)" stroke="rgba(255,255,255,0.18)" strokeWidth={2}
       />
       <Text
-        x={x} y={y + h * 0.3}
-        width={w} height={h * 0.4}
-        text="⚽" fontSize={h * 0.36}
+        x={x} y={y} width={w} height={h}
+        text={emojiMap[id]}
+        fontSize={size * 0.62}
         align="center" verticalAlign="middle"
       />
     </Group>
@@ -126,13 +152,13 @@ function DebugBox({ x, y, w, h, color }: { x: number; y: number; w: number; h: n
 
 // ── Main component ────────────────────────────────────────────
 export default function CardCanvas({
-  template, showDebugBoxes, stageRef, onLoadStatusChange, previewScaleRef,
+  template, cardState, showDebugBoxes, stageRef, onLoadStatusChange, previewScaleRef, onPhotoDrag,
 }: CardCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(320);
   const [flagStatus, setFlagStatus] = useState<string>("loading");
 
-  // Container width observer — drives mobile preview scaling
+  // Container width observer
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -146,9 +172,12 @@ export default function CardCanvas({
     return () => ro.disconnect();
   }, []);
 
-  // Load raw template images
+  // Load template base images
   const [bgImage,      bgStatus]      = useImage(template.assets.background, "anonymous");
   const [overlayImage, overlayStatus] = useImage(template.assets.overlay,    "anonymous");
+
+  // Load user photo (data URL — never leaves browser)
+  const [photoImg] = useImage(cardState.photo.src || "");
 
   // Resolved layout + pixel coordinates
   const layout = resolveLayout(template);
@@ -159,28 +188,21 @@ export default function CardCanvas({
   const photoW = nW(layout.photo.w);
   const photoH = nH(layout.photo.h);
 
-  // ── Masked overlay ───────────────────────────────────────────
-  // overlay.png is 100% opaque in the photo zone (baked checkerboard).
-  // useMaskedOverlay punches a transparent hole at the photo zone rect
-  // using an offscreen canvas + destination-out composite operation.
+  // ── Masked overlay (Phase 1.5 engine) ───────────────────────
   const maskedOverlay = useMaskedOverlay(
-    overlayImage,
-    overlayStatus,
-    template.id,
+    overlayImage, overlayStatus, template.id,
     photoX, photoY, photoW, photoH,
   );
 
-  // Report load status to parent
-  const maskedOverlayStatus = maskedOverlay ? "loaded" : overlayStatus === "loaded" ? "masking" : overlayStatus;
+  const maskedOverlayStatus = maskedOverlay
+    ? "loaded"
+    : overlayStatus === "loaded" ? "masking" : overlayStatus;
+
   useEffect(() => {
-    onLoadStatusChange?.({
-      background: bgStatus,
-      overlay:    maskedOverlayStatus,
-      flag:       flagStatus,
-    });
+    onLoadStatusChange?.({ background: bgStatus, overlay: maskedOverlayStatus, flag: flagStatus });
   }, [bgStatus, maskedOverlayStatus, flagStatus, onLoadStatusChange]);
 
-  // Preview scale — stage is scaled down to fit container
+  // Preview scale
   const previewScale = containerWidth / TEMPLATE_W;
   const stageW = TEMPLATE_W * previewScale;
   const stageH = TEMPLATE_H * previewScale;
@@ -216,6 +238,11 @@ export default function CardCanvas({
   const posFontSize    = posH    * 0.65;
   const nameFontSize   = nameH   * 0.7;
 
+  // Photo transform values
+  const { photo } = cardState;
+  const photoOffsetX = photoImg ? photoImg.naturalWidth  / 2 : 0;
+  const photoOffsetY = photoImg ? photoImg.naturalHeight / 2 : 0;
+
   return (
     <div ref={containerRef} className="w-full">
       <Stage
@@ -227,11 +254,9 @@ export default function CardCanvas({
       >
         {/* ═══════════════════════════════════════════════════
             LAYER 1 — Base card composite
-            Render order:
-              a) background.png (transparent placeholder)
-              b) photo placeholder CLIPPED to layout.photo zone
-              c) masked overlay (overlay.png with photo zone = transparent)
-            The clipped photo shows through the transparent hole in the overlay.
+            a) background.png
+            b) user photo (or placeholder) clipped to photo zone
+            c) masked overlay (hole at photo zone)
         ═══════════════════════════════════════════════════ */}
         <Layer>
           {/* a) Background */}
@@ -241,51 +266,74 @@ export default function CardCanvas({
             <Rect x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} fill="#111122" />
           )}
 
-          {/* b) Photo placeholder — hard-clipped to the photo zone rect */}
-          <Group
-            clipX={photoX}
-            clipY={photoY}
-            clipWidth={photoW}
-            clipHeight={photoH}
-          >
-            <PhotoPlaceholder x={photoX} y={photoY} w={photoW} h={photoH} />
+          {/* b) Photo zone — clipped to exact zone rect */}
+          <Group clipX={photoX} clipY={photoY} clipWidth={photoW} clipHeight={photoH}>
+            {photo.src && photoImg ? (
+              /*
+               * User photo — positioned with logical coordinates.
+               * x/y = center of the photo on the canvas (logical).
+               * offsetX/offsetY = pivot at natural image center.
+               * scaleX/scaleY applied around that center.
+               *
+               * Drag stores new x/y via onDragEnd — Konva returns
+               * values already in logical (pre-scale) coordinates,
+               * so no manual division is needed.
+               */
+              <KImage
+                image={photoImg}
+                x={photo.x}
+                y={photo.y}
+                scaleX={photo.scale}
+                scaleY={photo.scale}
+                rotation={photo.rotation}
+                offsetX={photoOffsetX}
+                offsetY={photoOffsetY}
+                draggable
+                onDragEnd={(e) => {
+                  onPhotoDrag?.({ x: e.target.x(), y: e.target.y() });
+                }}
+              />
+            ) : (
+              <PhotoPlaceholder x={photoX} y={photoY} w={photoW} h={photoH} />
+            )}
           </Group>
 
-          {/* c) Masked overlay — transparent at photo zone, opaque everywhere else */}
+          {/* c) Masked overlay */}
           {maskedOverlay ? (
             <KImage
               key={`masked-${template.id}`}
               image={maskedOverlay}
               x={0} y={0}
-              width={TEMPLATE_W}
-              height={TEMPLATE_H}
+              width={TEMPLATE_W} height={TEMPLATE_H}
             />
           ) : overlayImage ? (
-            // Fallback while mask is generating: show raw overlay (photo hidden)
             <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
           ) : null}
         </Layer>
 
         {/* ═══════════════════════════════════════════════════
-            LAYER 2 — Card content (always above the card art)
-            Render order matches renderOrder from config:
-              flag → badge → rating → position → playerName → stats
+            LAYER 2 — Card content
+            flag → badge → rating → position → name → stats
         ═══════════════════════════════════════════════════ */}
         <Layer>
           {/* Flag */}
           <FlagZone
-            flagUrl={SAMPLE_DATA.flag} countryCode={SAMPLE_DATA.countryCode}
+            flagUrl={cardState.player.flagPath}
+            countryCode={cardState.player.countryCode}
             x={flagX} y={flagY} w={flagW} h={flagH}
             onStatus={setFlagStatus}
           />
 
-          {/* Badge placeholder */}
-          <BadgePlaceholder x={badgeX} y={badgeY} w={badgeW} h={badgeH} />
+          {/* Badge */}
+          <BadgeZone
+            badge={cardState.badge}
+            x={badgeX} y={badgeY} w={badgeW} h={badgeH}
+          />
 
           {/* Rating */}
           <Text
             x={ratingX} y={ratingY} width={ratingW} height={ratingH}
-            text={String(SAMPLE_DATA.rating)}
+            text={String(cardState.player.rating)}
             fontSize={ratingFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.ratingColor} align={layout.rating.align} verticalAlign="middle"
             shadowEnabled={style.shadow} shadowBlur={style.shadow ? 6 : 0} shadowColor="rgba(0,0,0,0.6)"
@@ -294,7 +342,7 @@ export default function CardCanvas({
           {/* Position */}
           <Text
             x={posX} y={posY} width={posW} height={posH}
-            text={SAMPLE_DATA.position}
+            text={cardState.player.position}
             fontSize={posFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.textColor} align={layout.position.align} verticalAlign="middle"
             shadowEnabled={style.shadow} shadowBlur={style.shadow ? 4 : 0} shadowColor="rgba(0,0,0,0.6)"
@@ -303,13 +351,13 @@ export default function CardCanvas({
           {/* Player name */}
           <Text
             x={nameX} y={nameY} width={nameW} height={nameH}
-            text={SAMPLE_DATA.name}
+            text={cardState.player.name.toUpperCase()}
             fontSize={nameFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.nameColor} align={layout.name.align} verticalAlign="middle"
             shadowEnabled={style.shadow} shadowBlur={style.shadow ? 6 : 0} shadowColor="rgba(0,0,0,0.7)"
           />
 
-          {/* Stats — six values in two columns from layout.stats.left / .right */}
+          {/* Stats */}
           {[...layout.stats.left, ...layout.stats.right].map((s) => {
             const sx      = nX(s.x);
             const sy      = nY(s.y);
@@ -319,11 +367,12 @@ export default function CardCanvas({
             const lblH    = sh * 0.4;
             const valSize = valH * 0.88;
             const lblSize = lblH * 0.72;
+            const val = cardState.stats[s.key as StatKey];
             return (
               <Group key={s.key}>
                 <Text
                   x={sx} y={sy} width={sw} height={valH}
-                  text={String(SAMPLE_DATA.stats[s.key as StatKey] ?? "")}
+                  text={String(val ?? "")}
                   fontSize={valSize} fontFamily="D-DIN Condensed" fontStyle="bold"
                   fill={style.statsColor} align="center" verticalAlign="middle"
                   shadowEnabled={style.shadow} shadowBlur={style.shadow ? 4 : 0} shadowColor="rgba(0,0,0,0.6)"
@@ -342,7 +391,6 @@ export default function CardCanvas({
 
         {/* ═══════════════════════════════════════════════════
             LAYER 3 — Debug boxes (conditional)
-            One coloured outline per zone, same coordinates as real render.
         ═══════════════════════════════════════════════════ */}
         {showDebugBoxes && (
           <Layer>

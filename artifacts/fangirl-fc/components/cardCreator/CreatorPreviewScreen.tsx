@@ -11,6 +11,7 @@ import TemplateSelector from "./TemplateSelector";
 import DebugPanel from "./DebugPanel";
 import type { LoadStatus } from "./CardCanvas";
 import { downloadCardPng } from "@/lib/cardCreator/exportCard";
+import { DEFAULT_CARD_STATE, type CreatorCardState } from "@/lib/cardCreator/creatorState";
 
 // Dynamically import CardCanvas (Konva is browser-only)
 const CardCanvas = dynamic(() => import("./CardCanvas"), { ssr: false });
@@ -34,6 +35,12 @@ export default function CreatorPreviewScreen() {
   const selectedTemplate = CARD_TEMPLATE_CONFIG.templates.find(
     (t) => t.id === selectedId
   )!;
+
+  // Build a minimal card state so the updated CardCanvas receives required props
+  const cardState: CreatorCardState = {
+    ...DEFAULT_CARD_STATE,
+    templateId: selectedId,
+  };
 
   const handleDownload = useCallback(async () => {
     if (!stageRef.current) return;
@@ -85,6 +92,7 @@ export default function CreatorPreviewScreen() {
         <div className="w-full max-w-sm rounded-xl overflow-hidden shadow-2xl border border-white/10">
           <CardCanvas
             template={selectedTemplate}
+            cardState={cardState}
             showDebugBoxes={showDebugBoxes}
             stageRef={stageRef}
             onLoadStatusChange={setLoadStatus}

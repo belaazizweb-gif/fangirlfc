@@ -2,19 +2,19 @@
 
 import dynamic from "next/dynamic";
 
-// Konva is browser-only — ssr:false requires a Client Component
-const CreatorPreviewScreen = dynamic(
-  () => import("@/components/cardCreator/CreatorPreviewScreen"),
+// Konva + localStorage are browser-only — load the full screen client-side
+const CreatorScreen = dynamic(
+  () => import("@/components/cardCreator/CreatorScreen"),
   {
     ssr: false,
     loading: () => (
       <div className="min-h-screen bg-[#0b0613] flex items-center justify-center">
-        <p className="text-white/40 text-sm animate-pulse">Loading render engine…</p>
+        <p className="text-white/40 text-sm animate-pulse">Loading creator…</p>
       </div>
     ),
   }
 );
 
 export default function CreatorPage() {
-  return <CreatorPreviewScreen />;
+  return <CreatorScreen />;
 }

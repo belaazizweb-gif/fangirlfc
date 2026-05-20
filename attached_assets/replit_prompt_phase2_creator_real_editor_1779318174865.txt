@@ -1,0 +1,555 @@
+TASK: FUT / Player Card Creator — Phase 2 Real Mobile Editor
+
+ROLE
+Act as a senior frontend/mobile-first engineer.
+Build this carefully as the real foundation of a future Play Store mobile app, not as a simple web form.
+
+PROJECT CONTEXT
+Fangirl FC has two product sections:
+
+1. Fangirl Section
+- Quiz
+- Fangirl Card
+- Learn
+- Penalty Queen
+
+2. FUT / Player Card Creator Section
+- Choose template
+- Upload photo
+- Move / zoom / rotate photo
+- Edit name, rating, position, country, badge, stats
+- Download PNG
+- Share PNG
+
+Phase 1 is already complete:
+- /creator route exists
+- Konva render engine works
+- templates render
+- normalized coordinates work
+- mobile scaling works
+- Download PNG works
+- overlay masking works
+- photo placeholder is visible through the masked overlay
+- typecheck/build passed
+
+Phase 2 goal:
+Turn /creator from a preview page into a real one-card mobile editor.
+
+STRICT SCOPE
+Build only the real one-card editor.
+
+Do NOT build:
+- My Cards full gallery
+- card history
+- player database
+- club database
+- real player images
+- real club logos
+- squad builder
+- pack opening
+- login requirement
+- cloud save
+- payments
+- ads
+
+Do NOT modify:
+- Landing
+- Dashboard
+- Quiz
+- Learn
+- Penalty
+- Auth
+- existing Fangirl Card logic
+- existing Fangirl navigation
+- existing progression logic
+- existing share/download flow
+
+Do not break Phase 1 rendering.
+
+CURRENT EXISTING TECH
+The project already has:
+- Konva
+- react-konva
+- use-image
+- /creator route
+- components/cardCreator/CardCanvas.tsx
+- components/cardCreator/CreatorPreviewScreen.tsx
+- components/cardCreator/TemplateSelector.tsx
+- components/cardCreator/DebugPanel.tsx
+- lib/cardCreator/renderUtils.ts
+- lib/cardCreator/exportCard.ts
+- lib/cardCreator/templateConfig.ts
+- lib/cardCreator/templates.ts
+- lib/cardCreator/countries.ts
+- lib/cardCreator/positions.ts
+- public/templates/{templateId}/source.png
+- public/templates/{templateId}/background.png
+- public/templates/{templateId}/overlay.png
+- public/templates/{templateId}/thumbnail.png
+- public/templates/{templateId}/config.json
+- public/flags/
+- public/fonts/d-din/
+
+Do not rebuild the render engine from scratch.
+Extend the current Phase 1 / Phase 1.5 implementation.
+
+FINAL UX PRINCIPLE
+This must feel like a mobile app editor, not a web form.
+
+The user should be able to:
+open /creator
+choose a template
+add a photo
+adjust the photo
+edit info
+edit badge
+edit stats
+download or share
+in less than 60 seconds.
+
+MAIN SCREEN STRUCTURE
+/creator should now become the real Creator screen.
+
+Mobile-first layout:
+
+Header:
+- Title: Card Creator
+- Subtitle: Create your football player card
+- Optional reset button
+
+Main area:
+- Large centered card preview
+
+Primary action row under preview:
+- Template
+- Photo
+- Info
+- Badge
+- Stats
+
+Export row:
+- Download PNG
+- Share PNG
+
+Debug:
+- Keep debug boxes available behind a small technical/debug toggle if already present.
+- Do not make debug mode prominent in the public UI.
+
+EDITOR INTERACTION MODEL
+Do not create a long vertical form.
+
+Use bottom sheets / modal panels:
+1. Template Sheet
+2. Photo Sheet
+3. Info Sheet
+4. Badge Sheet
+5. Stats Sheet
+
+The card preview must remain the visual center of the experience.
+
+STATE MODEL
+Create a clean card state model.
+
+Recommended type:
+
+type CreatorCardState = {
+  templateId: string;
+
+  photo: {
+    src: string | null;
+    x: number;
+    y: number;
+    scale: number;
+    rotation: number;
+  };
+
+  player: {
+    name: string;
+    rating: number;
+    position: string;
+    countryCode: string;
+    flagPath: string;
+  };
+
+  badge: {
+    type: "generic" | "upload" | "none";
+    id?: string;
+    src?: string;
+  };
+
+  stats: {
+    PAC: number;
+    SHO: number;
+    PAS: number;
+    DRI: number;
+    DEF: number;
+    PHY: number;
+  };
+};
+
+DEFAULT STATE
+Use this default card:
+
+templateId: "gold_elite_2026"
+
+photo:
+- src: null
+- x: 0
+- y: 0
+- scale: 1
+- rotation: 0
+
+player:
+- name: "LUCAS MOREAU"
+- rating: 91
+- position: "ST"
+- countryCode: "FR"
+- flagPath: "/flags/fr.svg"
+
+badge:
+- type: "generic"
+- id: "shield"
+
+stats:
+- PAC: 89
+- SHO: 86
+- PAS: 82
+- DRI: 88
+- DEF: 45
+- PHY: 84
+
+LOCAL AUTOSAVE
+For V1, no cloud save.
+
+Autosave the current card locally.
+
+Use localStorage key:
+fangirlfc.creator.currentCard
+
+Behavior:
+- load saved card state on /creator if present
+- save automatically after each edit
+- keep photo dataURL locally
+- add Reset card button with confirmation
+- reset restores default state
+
+Do not build My Cards gallery yet.
+
+TEMPLATE EDITING
+Template button opens Template Sheet.
+
+Template Sheet requirements:
+- show enabled templates only by default
+- hide usa_host_2026 if disabled
+- use thumbnails
+- categories/tabs if simple:
+  All / Classic / Special / World / Fangirl
+- selecting a template updates preview instantly
+- provide Done button
+- do not reset user data when changing templates
+
+Template change must preserve:
+- photo
+- photo transform
+- name
+- rating
+- position
+- country
+- badge
+- stats
+
+PHOTO EDITING
+Photo button opens Photo Sheet.
+
+Requirements:
+- Upload photo from device
+- Convert uploaded image to dataURL
+- Render uploaded image inside layout.photo zone
+- User can drag photo directly inside card preview
+- User can zoom photo with slider
+- User can rotate photo with slider
+- User can reset photo
+- Done button
+
+Photo controls:
+- Upload / Replace photo
+- Zoom slider
+  - min 0.5
+  - max 3
+  - default 1
+- Rotate slider
+  - min -15
+  - max 15
+  - default 0
+- Reset photo
+- Remove photo
+
+Important:
+No pinch/rotate gesture required in Phase 2.
+Use drag + sliders for reliability.
+
+PHOTO DRAG TECHNICAL RULE
+The card state must store photo.x and photo.y in logical 1086 × 1448 coordinates, not screen pixels.
+
+If using pointer/client coordinates or drag deltas from the scaled preview:
+- convert screen pixels back to logical coordinates by dividing by previewScale before updating cardState.photo.x and cardState.photo.y
+
+If using Konva node.x() / node.y() and the values are already in Stage logical coordinates:
+- do NOT divide again
+
+The final saved cardState.photo.x and photo.y must always be logical offsets relative to the 1086 × 1448 canvas.
+
+This avoids photo jumping or incorrect movement on mobile.
+
+PHOTO RENDERING RULE
+The photo must be:
+- clipped to the layout.photo rectangle
+- rendered before the masked overlay
+- positioned using logical coordinates
+- scaled using cardState.photo.scale
+- rotated using cardState.photo.rotation
+- exported exactly as previewed
+
+Use the existing masked overlay engine from Phase 1.5.
+
+Do not break the current overlay mask.
+
+INFO EDITING
+Info button opens Info Sheet.
+
+Fields:
+1. Name
+2. Rating
+3. Position
+4. Country
+
+Name:
+- text input
+- max 18 characters
+- render uppercase on card
+- default LUCAS MOREAU
+
+Rating:
+- number 1 to 99
+- slider + number input if simple
+- clamp values to 1–99
+
+Position:
+Use existing positions from lib/cardCreator/positions.ts
+Expected list:
+GK, CB, LB, RB, LWB, RWB, CDM, CM, CAM, LM, RM, LW, RW, ST, CF
+
+Show as compact selectable chips/grid.
+
+Country:
+Use lib/cardCreator/countries.ts
+Show:
+- country name
+- flag path if renderable
+- search/filter if simple
+- default France
+
+If flag SVG fails in Konva:
+- show country code fallback
+- do not block editor
+
+BADGE EDITING
+Badge button opens Badge Sheet.
+
+V1 badge options:
+1. Generic badges
+2. Upload custom badge
+
+Generic badges:
+Do not require external SVG files for V1.
+Render 6 generic badges directly with Konva primitives/placeholders:
+- Lion
+- Crown
+- Star
+- Shield
+- Ball
+- Lightning
+
+Use simple clean visual representations using Konva shapes:
+- Circle
+- RegularPolygon
+- Star
+- Line
+- Text/icon fallback if needed
+
+Badge area position and size must come from the JSON badge zone.
+
+Upload badge:
+- allow user to upload an image
+- convert to dataURL
+- render inside badge zone using contain-fit
+- no badge move/zoom needed in Phase 2
+- add Remove badge
+
+Do not use official club logos.
+
+STATS EDITING
+Stats button opens Stats Sheet.
+
+Stats:
+- PAC
+- SHO
+- PAS
+- DRI
+- DEF
+- PHY
+
+Each stat:
+- value 1–99
+- slider + number input if simple
+- clamp 1–99
+
+Add one useful quick action:
+- Randomize stats
+
+Optional if simple:
+- Attacker preset
+- Midfielder preset
+- Defender preset
+But do not overbuild.
+
+PREVIEW RENDERING
+Keep using Konva.
+
+Render order must remain:
+1. background.png
+2. user photo or placeholder clipped to photo zone
+3. masked overlay.png
+4. rating / position / flag / badge / name / stats
+5. debug boxes if enabled
+
+Do not render the original opaque overlay over the photo.
+Use masked overlay only.
+
+EXPORT
+Keep Download PNG.
+
+Add Share PNG.
+
+Download:
+- exports at minimum 1086 × 1448
+- filename:
+  fangirl-fc-player-card-{templateId}.png
+
+Share:
+- use Web Share API with image file if supported
+- fallback:
+  - download PNG
+  - or open generated image in a modal/new view for long press save
+- do not share only a link in Phase 2
+
+Export must match preview.
+
+MOBILE UX DETAILS
+The UI must be touch-friendly:
+- large buttons
+- bottom sheets
+- no tiny desktop controls
+- preview centered
+- sticky action controls if useful
+- avoid page becoming too long
+
+The user should always understand:
+Template → Photo → Info → Badge → Stats → Download/Share
+
+FILES TO CREATE OR UPDATE
+You may rename CreatorPreviewScreen to CreatorScreen if cleaner.
+
+Expected updates/new files:
+
+components/cardCreator/CreatorScreen.tsx
+components/cardCreator/CardCanvas.tsx
+components/cardCreator/TemplateSelector.tsx
+components/cardCreator/BottomSheet.tsx
+components/cardCreator/PhotoEditorSheet.tsx
+components/cardCreator/InfoEditorSheet.tsx
+components/cardCreator/BadgeEditorSheet.tsx
+components/cardCreator/StatsEditorSheet.tsx
+components/cardCreator/ExportActions.tsx
+
+lib/cardCreator/creatorState.ts
+lib/cardCreator/localStorage.ts
+lib/cardCreator/exportCard.ts
+lib/cardCreator/renderUtils.ts
+
+Keep existing DebugPanel if useful.
+
+If fewer files are cleaner, that is acceptable, but do not create one huge unmaintainable component.
+
+IMPORTANT TECHNICAL REQUIREMENTS
+- Keep Konva client-only
+- Preserve Next.js build compatibility
+- Do not break SSR
+- Continue using use-image for local images
+- Keep all template config usage centralized
+- Keep photo transforms in logical 1086 × 1448 coordinate system
+- Keep export high-resolution
+- Keep existing render engine working
+
+VALIDATION
+Run:
+npm run typecheck
+
+Then:
+npm run build
+
+If no typecheck script exists, use the existing validation command.
+
+MANUAL CHECKS
+After build, open /creator and verify:
+
+1. Page loads
+2. Template selector works
+3. Template change preserves card data
+4. Upload photo works
+5. Uploaded photo appears in card
+6. Drag photo works without jumping
+7. Zoom slider works
+8. Rotate slider works
+9. Reset photo works
+10. Name edit updates preview
+11. Rating edit updates preview
+12. Position edit updates preview
+13. Country edit updates preview
+14. Generic badge selection works
+15. Upload badge works if implemented
+16. Stats edit updates preview
+17. Randomize stats works
+18. Autosave works after refresh
+19. Reset card works with confirmation
+20. Download PNG works
+21. Share PNG works or fallback works
+22. Export matches preview
+23. Existing Fangirl features are not affected
+24. Typecheck passes
+25. Build passes
+
+FINAL REPORT
+Report clearly:
+
+1. Files created/updated
+2. State model implemented
+3. How local autosave works
+4. How photo upload works
+5. How photo drag stores logical coordinates
+6. How zoom/rotate are applied
+7. How badges are rendered
+8. How generic badges are handled without SVG assets
+9. How country/flags are handled
+10. How stats editor works
+11. How Download PNG works
+12. How Share PNG/fallback works
+13. Any known limitations
+14. Typecheck result
+15. Build result
+
+REMINDER
+This is Phase 2 only:
+real one-card mobile editor.
+
+Do not add My Cards, databases, squad builder, pack opening, cloud save, login requirement, ads, or payments.
