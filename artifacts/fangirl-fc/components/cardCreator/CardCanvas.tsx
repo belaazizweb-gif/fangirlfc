@@ -7,6 +7,7 @@ import type Konva from "konva";
 import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
 import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
+import { useMaskedOverlay } from "./useMaskedOverlay";
 
 // ── Sample card data ──────────────────────────────────────────
 export const SAMPLE_DATA = {
@@ -46,7 +47,7 @@ const DEBUG_COLORS: Record<string, string> = {
 
 // ── Photo placeholder silhouette ─────────────────────────────
 function PhotoPlaceholder({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  const headR = w * 0.16;
+  const headR  = w * 0.16;
   const headCX = x + w * 0.5;
   const headCY = y + h * 0.28;
   const bodyW  = w * 0.55;
@@ -100,21 +101,14 @@ function FlagZone({
   if (status === "loaded" && img) {
     return <KImage image={img} x={x} y={y} width={w} height={h} />;
   }
-
-  // Fallback: coloured rect + country code text
   return (
     <Group>
       <Rect x={x} y={y} width={w} height={h} fill="#1a3a6a" cornerRadius={3} />
       <Text
-        x={x} y={y}
-        width={w} height={h}
+        x={x} y={y} width={w} height={h}
         text={countryCode}
-        fontSize={h * 0.45}
-        fontFamily="D-DIN Condensed"
-        fontStyle="bold"
-        fill="#ffffff"
-        align="center"
-        verticalAlign="middle"
+        fontSize={h * 0.45} fontFamily="D-DIN Condensed" fontStyle="bold"
+        fill="#ffffff" align="center" verticalAlign="middle"
       />
     </Group>
   );
@@ -138,7 +132,7 @@ export default function CardCanvas({
   const [containerWidth, setContainerWidth] = useState(320);
   const [flagStatus, setFlagStatus] = useState<string>("loading");
 
-  // container width observer
+  // Container width observer — drives mobile preview scaling
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -152,26 +146,11 @@ export default function CardCanvas({
     return () => ro.disconnect();
   }, []);
 
-  // load template images
+  // Load raw template images
   const [bgImage,      bgStatus]      = useImage(template.assets.background, "anonymous");
-  const [overlayImage, overlayStatus] = useImage(template.assets.overlay, "anonymous");
+  const [overlayImage, overlayStatus] = useImage(template.assets.overlay,    "anonymous");
 
-  // Report load status
-  useEffect(() => {
-    const s: LoadStatus = {
-      background: bgStatus,
-      overlay:    overlayStatus,
-      flag:       flagStatus,
-    };
-    onLoadStatusChange?.(s);
-  }, [bgStatus, overlayStatus, flagStatus, onLoadStatusChange]);
-
-  const previewScale = containerWidth / TEMPLATE_W;
-  const stageW = TEMPLATE_W * previewScale;
-  const stageH = TEMPLATE_H * previewScale;
-
-  if (previewScaleRef) previewScaleRef.current = previewScale;
-
+  // Resolved layout + pixel coordinates
   const layout = resolveLayout(template);
   const style  = template.style;
 
@@ -180,6 +159,34 @@ export default function CardCanvas({
   const photoW = nW(layout.photo.w);
   const photoH = nH(layout.photo.h);
 
+  // ── Masked overlay ───────────────────────────────────────────
+  // overlay.png is 100% opaque in the photo zone (baked checkerboard).
+  // useMaskedOverlay punches a transparent hole at the photo zone rect
+  // using an offscreen canvas + destination-out composite operation.
+  const maskedOverlay = useMaskedOverlay(
+    overlayImage,
+    overlayStatus,
+    template.id,
+    photoX, photoY, photoW, photoH,
+  );
+
+  // Report load status to parent
+  const maskedOverlayStatus = maskedOverlay ? "loaded" : overlayStatus === "loaded" ? "masking" : overlayStatus;
+  useEffect(() => {
+    onLoadStatusChange?.({
+      background: bgStatus,
+      overlay:    maskedOverlayStatus,
+      flag:       flagStatus,
+    });
+  }, [bgStatus, maskedOverlayStatus, flagStatus, onLoadStatusChange]);
+
+  // Preview scale — stage is scaled down to fit container
+  const previewScale = containerWidth / TEMPLATE_W;
+  const stageW = TEMPLATE_W * previewScale;
+  const stageH = TEMPLATE_H * previewScale;
+  if (previewScaleRef) previewScaleRef.current = previewScale;
+
+  // Remaining pixel zones
   const ratingX = nX(layout.rating.x);
   const ratingY = nY(layout.rating.y);
   const ratingW = nW(layout.rating.w);
@@ -205,9 +212,9 @@ export default function CardCanvas({
   const nameW = nW(layout.name.w);
   const nameH = nH(layout.name.h);
 
-  const ratingFontSize  = ratingH * 0.75;
-  const posFontSize     = posH    * 0.65;
-  const nameFontSize    = nameH   * 0.7;
+  const ratingFontSize = ratingH * 0.75;
+  const posFontSize    = posH    * 0.65;
+  const nameFontSize   = nameH   * 0.7;
 
   return (
     <div ref={containerRef} className="w-full">
@@ -218,22 +225,62 @@ export default function CardCanvas({
         scaleX={previewScale}
         scaleY={previewScale}
       >
-        {/* ── Layer 1: Background + photo placeholder ── */}
+        {/* ═══════════════════════════════════════════════════
+            LAYER 1 — Base card composite
+            Render order:
+              a) background.png (transparent placeholder)
+              b) photo placeholder CLIPPED to layout.photo zone
+              c) masked overlay (overlay.png with photo zone = transparent)
+            The clipped photo shows through the transparent hole in the overlay.
+        ═══════════════════════════════════════════════════ */}
         <Layer>
+          {/* a) Background */}
           {bgImage ? (
             <KImage image={bgImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
           ) : (
             <Rect x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} fill="#111122" />
           )}
-          <PhotoPlaceholder x={photoX} y={photoY} w={photoW} h={photoH} />
+
+          {/* b) Photo placeholder — hard-clipped to the photo zone rect */}
+          <Group
+            clipX={photoX}
+            clipY={photoY}
+            clipWidth={photoW}
+            clipHeight={photoH}
+          >
+            <PhotoPlaceholder x={photoX} y={photoY} w={photoW} h={photoH} />
+          </Group>
+
+          {/* c) Masked overlay — transparent at photo zone, opaque everywhere else */}
+          {maskedOverlay ? (
+            <KImage
+              key={`masked-${template.id}`}
+              image={maskedOverlay}
+              x={0} y={0}
+              width={TEMPLATE_W}
+              height={TEMPLATE_H}
+            />
+          ) : overlayImage ? (
+            // Fallback while mask is generating: show raw overlay (photo hidden)
+            <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
+          ) : null}
         </Layer>
 
-        {/* ── Layer 2: Overlay + all card elements (render order per config) ── */}
+        {/* ═══════════════════════════════════════════════════
+            LAYER 2 — Card content (always above the card art)
+            Render order matches renderOrder from config:
+              flag → badge → rating → position → playerName → stats
+        ═══════════════════════════════════════════════════ */}
         <Layer>
-          {/* overlay.png sits on top of the photo */}
-          {overlayImage && (
-            <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
-          )}
+          {/* Flag */}
+          <FlagZone
+            flagUrl={SAMPLE_DATA.flag} countryCode={SAMPLE_DATA.countryCode}
+            x={flagX} y={flagY} w={flagW} h={flagH}
+            onStatus={setFlagStatus}
+          />
+
+          {/* Badge placeholder */}
+          <BadgePlaceholder x={badgeX} y={badgeY} w={badgeW} h={badgeH} />
 
           {/* Rating */}
           <Text
@@ -253,16 +300,6 @@ export default function CardCanvas({
             shadowEnabled={style.shadow} shadowBlur={style.shadow ? 4 : 0} shadowColor="rgba(0,0,0,0.6)"
           />
 
-          {/* Flag */}
-          <FlagZone
-            flagUrl={SAMPLE_DATA.flag} countryCode={SAMPLE_DATA.countryCode}
-            x={flagX} y={flagY} w={flagW} h={flagH}
-            onStatus={setFlagStatus}
-          />
-
-          {/* Badge placeholder */}
-          <BadgePlaceholder x={badgeX} y={badgeY} w={badgeW} h={badgeH} />
-
           {/* Player name */}
           <Text
             x={nameX} y={nameY} width={nameW} height={nameH}
@@ -272,7 +309,7 @@ export default function CardCanvas({
             shadowEnabled={style.shadow} shadowBlur={style.shadow ? 6 : 0} shadowColor="rgba(0,0,0,0.7)"
           />
 
-          {/* Stats */}
+          {/* Stats — six values in two columns from layout.stats.left / .right */}
           {[...layout.stats.left, ...layout.stats.right].map((s) => {
             const sx      = nX(s.x);
             const sy      = nY(s.y);
@@ -303,7 +340,10 @@ export default function CardCanvas({
           })}
         </Layer>
 
-        {/* ── Layer 3: Debug boxes (optional) ── */}
+        {/* ═══════════════════════════════════════════════════
+            LAYER 3 — Debug boxes (conditional)
+            One coloured outline per zone, same coordinates as real render.
+        ═══════════════════════════════════════════════════ */}
         {showDebugBoxes && (
           <Layer>
             <DebugBox x={photoX}  y={photoY}  w={photoW}  h={photoH}  color={DEBUG_COLORS.photo} />

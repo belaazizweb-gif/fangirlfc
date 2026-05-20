@@ -1,0 +1,73 @@
+TASK: FUT Card Creator — Phase 1.5 Overlay Mask Engine
+
+Context:
+Phase 1 /creator render engine is working, but technical QA confirmed that overlay.png files are 100% opaque in the photo zone.
+The sample photo layer is currently hidden behind the overlay.
+
+Do NOT start Phase 2 yet.
+Do NOT add photo upload yet.
+Do NOT add edit forms yet.
+Do NOT modify existing Fangirl features.
+
+Goal:
+Update the /creator render engine so the photo placeholder becomes visible through each card template.
+
+Use code-based masking only.
+Do NOT manually edit image files.
+
+Required strategy:
+Create a masked overlay in memory using an offscreen canvas.
+
+For each selected template:
+1. Load overlay.png
+2. Draw it into an offscreen canvas at 1086 × 1448
+3. Use the layout.photo zone from the real config
+4. Convert normalized photo coordinates to pixels:
+   photoX = layout.photo.x * 1086
+   photoY = layout.photo.y * 1448
+   photoW = layout.photo.w * 1086
+   photoH = layout.photo.h * 1448
+5. Set:
+   ctx.globalCompositeOperation = "destination-out"
+6. Punch a transparent rectangle in the photo zone:
+   ctx.fillRect(photoX, photoY, photoW, photoH)
+7. Convert the offscreen canvas to an image usable by Konva
+8. Cache masked overlays by templateId + photo layout dimensions
+
+Final render order must be:
+
+1. background.png
+2. sample photo placeholder clipped to layout.photo zone
+3. masked overlay image
+4. rating / position / flag / badge / name / stats
+5. debug boxes if enabled
+
+Important:
+The user photo placeholder must be clipped to the exact layout.photo rectangle.
+The overlay must have a transparent hole in that same rectangle.
+Do not render the original opaque overlay above the photo.
+Do not render the masked overlay twice.
+
+Files likely to update:
+- components/cardCreator/CardCanvas.tsx
+- lib/cardCreator/renderUtils.ts
+- possibly components/cardCreator/useKonvaImage.ts
+
+Validation:
+Open /creator and verify:
+- photo placeholder is visible on all enabled templates
+- card frame/design still appears
+- text/stats remain above the card
+- debug boxes still align
+- Download PNG includes the visible photo placeholder
+- usa_host_2026 remains disabled by default
+
+Run:
+npm run typecheck
+npm run build
+
+Final report:
+- explain how the masked overlay is generated
+- confirm photo placeholder visibility template by template
+- confirm PNG export includes visible photo placeholder
+- confirm typecheck/build passed
