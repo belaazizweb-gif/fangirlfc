@@ -1,26 +1,154 @@
 {
   "id": "gold_elite_2026",
   "name": "Gold Elite 2026",
-  "category": "elite",
+  "category": "classic",
+  "family": "premium_gold",
   "enabled": true,
+  "layoutId": "goldElite",
   "canvas": {
     "width": 1086,
-    "height": 1448
+    "height": 1448,
+    "aspectRatio": "1086/1448",
+    "normalizedCoordinates": true
   },
   "assets": {
-    "source": "/templates/gold_elite_2026/source.png",
     "background": "/templates/gold_elite_2026/background.png",
     "overlay": "/templates/gold_elite_2026/overlay.png",
-    "thumbnail": "/templates/gold_elite_2026/thumbnail.png"
+    "thumbnail": "/templates/gold_elite_2026/thumbnail.png",
+    "source": "/templates/gold_elite_2026/source.png"
   },
-  "textColor": "#FFFFFF",
-  "shadow": true,
-  "renderingOrder": [
+  "style": {
+    "textColor": "#5C4300",
+    "ratingColor": "#5C4300",
+    "nameColor": "#5C4300",
+    "statsColor": "#5C4300",
+    "shadow": false
+  },
+  "layout": {
+    "rating": {
+      "x": 0.12,
+      "y": 0.095,
+      "w": 0.18,
+      "h": 0.11,
+      "align": "center"
+    },
+    "position": {
+      "x": 0.125,
+      "y": 0.215,
+      "w": 0.155,
+      "h": 0.05,
+      "align": "center"
+    },
+    "flag": {
+      "x": 0.115,
+      "y": 0.295,
+      "w": 0.165,
+      "h": 0.065
+    },
+    "badge": {
+      "x": 0.105,
+      "y": 0.38,
+      "w": 0.175,
+      "h": 0.115
+    },
+    "photo": {
+      "x": 0.245,
+      "y": 0.045,
+      "w": 0.68,
+      "h": 0.555,
+      "clip": "photoBox",
+      "defaultScale": 1.0,
+      "minScale": 0.75,
+      "maxScale": 2.5,
+      "rotationMin": -15,
+      "rotationMax": 15
+    },
+    "name": {
+      "x": 0.1,
+      "y": 0.6,
+      "w": 0.8,
+      "h": 0.07,
+      "align": "center"
+    },
+    "stats": {
+      "mode": "twoColumnThreeRows",
+      "divider": {
+        "x": 0.5,
+        "y": 0.715,
+        "w": 0.002,
+        "h": 0.18
+      },
+      "left": [
+        {
+          "key": "PAC",
+          "x": 0.135,
+          "y": 0.715,
+          "w": 0.3,
+          "h": 0.052
+        },
+        {
+          "key": "SHO",
+          "x": 0.135,
+          "y": 0.78,
+          "w": 0.3,
+          "h": 0.052
+        },
+        {
+          "key": "PAS",
+          "x": 0.135,
+          "y": 0.845,
+          "w": 0.3,
+          "h": 0.052
+        }
+      ],
+      "right": [
+        {
+          "key": "DRI",
+          "x": 0.565,
+          "y": 0.715,
+          "w": 0.3,
+          "h": 0.052
+        },
+        {
+          "key": "DEF",
+          "x": 0.565,
+          "y": 0.78,
+          "w": 0.3,
+          "h": 0.052
+        },
+        {
+          "key": "PHY",
+          "x": 0.565,
+          "y": 0.845,
+          "w": 0.3,
+          "h": 0.052
+        }
+      ]
+    }
+  },
+  "renderOrder": [
     "background",
-    "photo",
+    "userPhoto",
     "overlay",
-    "rating_position_flag_badge",
-    "player_name",
+    "flag",
+    "badge",
+    "rating",
+    "position",
+    "playerName",
     "stats"
-  ]
+  ],
+  "source": {
+    "fileName": "ChatGPT Image 19 mai 2026, 22_31_05.png",
+    "originalWidth": 1086,
+    "originalHeight": 1448,
+    "transparencyStatus": "opaque_or_checkerboard_baked"
+  },
+  "processing": {
+    "mustNormalizeToCanvas": true,
+    "targetWidth": 1086,
+    "targetHeight": 1448,
+    "fitMode": "contain-center",
+    "removeCheckerboardIfBaked": true,
+    "recommendedExport": "PNG"
+  }
 }

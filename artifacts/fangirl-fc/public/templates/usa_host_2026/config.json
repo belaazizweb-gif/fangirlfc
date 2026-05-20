@@ -2,25 +2,153 @@
   "id": "usa_host_2026",
   "name": "USA Host 2026",
   "category": "host",
+  "family": "world_cup_host",
   "enabled": false,
+  "layoutId": "worldCup",
   "canvas": {
     "width": 1086,
-    "height": 1448
+    "height": 1448,
+    "aspectRatio": "1086/1448",
+    "normalizedCoordinates": true
   },
   "assets": {
-    "source": "/templates/usa_host_2026/source.png",
     "background": "/templates/usa_host_2026/background.png",
     "overlay": "/templates/usa_host_2026/overlay.png",
-    "thumbnail": "/templates/usa_host_2026/thumbnail.png"
+    "thumbnail": "/templates/usa_host_2026/thumbnail.png",
+    "source": "/templates/usa_host_2026/source.png"
   },
-  "textColor": "#FFFFFF",
-  "shadow": true,
-  "renderingOrder": [
+  "style": {
+    "textColor": "#1A1A3E",
+    "ratingColor": "#8B6914",
+    "nameColor": "#1A1A3E",
+    "statsColor": "#1A1A3E",
+    "shadow": false
+  },
+  "layout": {
+    "rating": {
+      "x": 0.12,
+      "y": 0.115,
+      "w": 0.17,
+      "h": 0.1,
+      "align": "center"
+    },
+    "position": {
+      "x": 0.125,
+      "y": 0.22,
+      "w": 0.155,
+      "h": 0.05,
+      "align": "center"
+    },
+    "flag": {
+      "x": 0.12,
+      "y": 0.295,
+      "w": 0.16,
+      "h": 0.065
+    },
+    "badge": {
+      "x": 0.11,
+      "y": 0.385,
+      "w": 0.17,
+      "h": 0.115
+    },
+    "photo": {
+      "x": 0.25,
+      "y": 0.045,
+      "w": 0.66,
+      "h": 0.56,
+      "clip": "photoBox",
+      "defaultScale": 1.0,
+      "minScale": 0.75,
+      "maxScale": 2.5,
+      "rotationMin": -15,
+      "rotationMax": 15
+    },
+    "name": {
+      "x": 0.09,
+      "y": 0.625,
+      "w": 0.82,
+      "h": 0.07,
+      "align": "center"
+    },
+    "stats": {
+      "mode": "twoColumnThreeRows",
+      "divider": {
+        "x": 0.5,
+        "y": 0.72,
+        "w": 0.002,
+        "h": 0.18
+      },
+      "left": [
+        {
+          "key": "PAC",
+          "x": 0.13,
+          "y": 0.72,
+          "w": 0.31,
+          "h": 0.052
+        },
+        {
+          "key": "SHO",
+          "x": 0.13,
+          "y": 0.785,
+          "w": 0.31,
+          "h": 0.052
+        },
+        {
+          "key": "PAS",
+          "x": 0.13,
+          "y": 0.85,
+          "w": 0.31,
+          "h": 0.052
+        }
+      ],
+      "right": [
+        {
+          "key": "DRI",
+          "x": 0.56,
+          "y": 0.72,
+          "w": 0.31,
+          "h": 0.052
+        },
+        {
+          "key": "DEF",
+          "x": 0.56,
+          "y": 0.785,
+          "w": 0.31,
+          "h": 0.052
+        },
+        {
+          "key": "PHY",
+          "x": 0.56,
+          "y": 0.85,
+          "w": 0.31,
+          "h": 0.052
+        }
+      ]
+    }
+  },
+  "renderOrder": [
     "background",
-    "photo",
+    "userPhoto",
     "overlay",
-    "rating_position_flag_badge",
-    "player_name",
+    "flag",
+    "badge",
+    "rating",
+    "position",
+    "playerName",
     "stats"
-  ]
+  ],
+  "source": {
+    "fileName": "ChatGPT Image 19 mai 2026, 23_22_04.png",
+    "originalWidth": 1024,
+    "originalHeight": 1536,
+    "transparencyStatus": "actual_alpha"
+  },
+  "processing": {
+    "mustNormalizeToCanvas": true,
+    "targetWidth": 1086,
+    "targetHeight": 1448,
+    "fitMode": "contain-center",
+    "removeCheckerboardIfBaked": true,
+    "recommendedExport": "PNG"
+  }
 }

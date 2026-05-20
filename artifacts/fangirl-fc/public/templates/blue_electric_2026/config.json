@@ -1,26 +1,154 @@
 {
   "id": "blue_electric_2026",
   "name": "Blue Electric 2026",
-  "category": "electric",
+  "category": "special",
+  "family": "standard_frame_family",
   "enabled": true,
+  "layoutId": "standardFrame",
   "canvas": {
     "width": 1086,
-    "height": 1448
+    "height": 1448,
+    "aspectRatio": "1086/1448",
+    "normalizedCoordinates": true
   },
   "assets": {
-    "source": "/templates/blue_electric_2026/source.png",
     "background": "/templates/blue_electric_2026/background.png",
     "overlay": "/templates/blue_electric_2026/overlay.png",
-    "thumbnail": "/templates/blue_electric_2026/thumbnail.png"
+    "thumbnail": "/templates/blue_electric_2026/thumbnail.png",
+    "source": "/templates/blue_electric_2026/source.png"
   },
-  "textColor": "#FFFFFF",
-  "shadow": true,
-  "renderingOrder": [
+  "style": {
+    "textColor": "#EAF7FF",
+    "ratingColor": "#EAF7FF",
+    "nameColor": "#EAF7FF",
+    "statsColor": "#EAF7FF",
+    "shadow": true
+  },
+  "layout": {
+    "rating": {
+      "x": 0.115,
+      "y": 0.11,
+      "w": 0.165,
+      "h": 0.095,
+      "align": "center"
+    },
+    "position": {
+      "x": 0.125,
+      "y": 0.21,
+      "w": 0.145,
+      "h": 0.05,
+      "align": "center"
+    },
+    "flag": {
+      "x": 0.122,
+      "y": 0.285,
+      "w": 0.145,
+      "h": 0.062
+    },
+    "badge": {
+      "x": 0.11,
+      "y": 0.37,
+      "w": 0.17,
+      "h": 0.115
+    },
+    "photo": {
+      "x": 0.22,
+      "y": 0.045,
+      "w": 0.7,
+      "h": 0.56,
+      "clip": "photoBox",
+      "defaultScale": 1.0,
+      "minScale": 0.75,
+      "maxScale": 2.5,
+      "rotationMin": -15,
+      "rotationMax": 15
+    },
+    "name": {
+      "x": 0.11,
+      "y": 0.625,
+      "w": 0.78,
+      "h": 0.07,
+      "align": "center"
+    },
+    "stats": {
+      "mode": "twoColumnThreeRows",
+      "divider": {
+        "x": 0.5,
+        "y": 0.715,
+        "w": 0.002,
+        "h": 0.18
+      },
+      "left": [
+        {
+          "key": "PAC",
+          "x": 0.13,
+          "y": 0.72,
+          "w": 0.3,
+          "h": 0.05
+        },
+        {
+          "key": "SHO",
+          "x": 0.13,
+          "y": 0.785,
+          "w": 0.3,
+          "h": 0.05
+        },
+        {
+          "key": "PAS",
+          "x": 0.13,
+          "y": 0.85,
+          "w": 0.3,
+          "h": 0.05
+        }
+      ],
+      "right": [
+        {
+          "key": "DRI",
+          "x": 0.56,
+          "y": 0.72,
+          "w": 0.3,
+          "h": 0.05
+        },
+        {
+          "key": "DEF",
+          "x": 0.56,
+          "y": 0.785,
+          "w": 0.3,
+          "h": 0.05
+        },
+        {
+          "key": "PHY",
+          "x": 0.56,
+          "y": 0.85,
+          "w": 0.3,
+          "h": 0.05
+        }
+      ]
+    }
+  },
+  "renderOrder": [
     "background",
-    "photo",
+    "userPhoto",
     "overlay",
-    "rating_position_flag_badge",
-    "player_name",
+    "flag",
+    "badge",
+    "rating",
+    "position",
+    "playerName",
     "stats"
-  ]
+  ],
+  "source": {
+    "fileName": "ChatGPT Image 19 mai 2026, 23_08_55.png",
+    "originalWidth": 1060,
+    "originalHeight": 1484,
+    "transparencyStatus": "opaque_or_checkerboard_baked"
+  },
+  "processing": {
+    "mustNormalizeToCanvas": true,
+    "targetWidth": 1086,
+    "targetHeight": 1448,
+    "fitMode": "contain-center",
+    "removeCheckerboardIfBaked": true,
+    "recommendedExport": "PNG"
+  }
 }
