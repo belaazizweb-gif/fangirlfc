@@ -1,0 +1,534 @@
+TASK: FUT / Player Card Creator — Phase 1 Render Engine Preview
+
+ROLE
+Act as a senior frontend engineer.
+Build this as a mobile-first foundation for a future Play Store app, not as a simple web demo.
+
+PROJECT CONTEXT
+Fangirl FC will have two main sections:
+
+1. Fangirl Section
+- Quiz
+- Fangirl Card
+- Learn
+- Penalty Queen
+
+2. FUT / Player Card Creator Section
+- Choose template
+- Upload photo
+- Move / zoom / rotate photo
+- Edit name, rating, position, country, badge, stats
+- Download PNG
+- Share PNG
+
+This task is Phase 1 only.
+
+PHASE 1 OBJECTIVE
+Create the first working render engine for the FUT / Player Card Creator.
+
+The /creator route must render the real card templates with sample data using Konva.
+
+This phase validates:
+- template loading
+- config usage
+- normalized coordinate conversion
+- render order
+- mobile preview scaling
+- PNG export
+- photo layer visibility behind overlays
+
+STRICT SCOPE
+Do NOT build:
+- photo upload
+- drag / zoom / rotate controls
+- editable forms
+- bottom sheets
+- My Cards
+- local save
+- player database
+- club database
+- real player images
+- real club logos
+- squad builder
+- pack opening
+- ads
+- payments
+- login requirement
+
+Do NOT modify:
+- Landing
+- Dashboard
+- Quiz
+- Learn
+- Penalty
+- Auth
+- existing Fangirl Card logic
+- existing navigation
+- existing progression logic
+- existing share/download flow
+
+Only work on the new Creator render foundation.
+
+CURRENT ASSETS ALREADY AVAILABLE
+
+Fonts:
+- public/fonts/d-din/
+- D-DIN fonts are already registered in globals.css
+
+Flags:
+- public/flags/
+- Current flags are SVG files.
+
+Config:
+- lib/cardCreator/positions.ts
+- lib/cardCreator/countries.ts
+- lib/cardCreator/templates.ts
+- lib/cardCreator/templateConfig.ts
+- public/templates/card_templates_config_pro_v4.json
+
+Template folders:
+Each folder contains:
+- source.png
+- background.png
+- overlay.png
+- thumbnail.png
+- config.json
+
+Template IDs:
+- gold_crystal_2026
+- silver_classic_2026
+- gold_elite_2026
+- silver_chrome_2026
+- black_elite_2026
+- blue_electric_2026
+- purple_holo_2026
+- red_fire_2026
+- green_stadium_2026
+- usa_host_2026
+- world_edition_2026
+- fangirl_pink_2026
+
+Important:
+usa_host_2026 must stay disabled if the config says enabled: false.
+
+INSTALL
+Install:
+npm install konva react-konva use-image
+
+Use:
+- Konva
+- react-konva
+- use-image for loading local PNG template assets into Konva.Image
+
+Do NOT use:
+- html2canvas
+- CSS-only export
+- DOM screenshot export
+
+ROUTE
+Create:
+/creator
+
+This is a temporary internal render preview page for the Card Creator.
+Do not add /creator to the main navigation yet.
+Direct URL access is enough for Phase 1.
+
+CANVAS SYSTEM
+Use fixed logical canvas dimensions:
+TEMPLATE_W = 1086
+TEMPLATE_H = 1448
+
+The JSON config uses normalized coordinates from 0.0 to 1.0.
+
+Create helpers:
+nX(value) = value * TEMPLATE_W
+nY(value) = value * TEMPLATE_H
+nW(value) = value * TEMPLATE_W
+nH(value) = value * TEMPLATE_H
+
+All element positions must come from the real config.
+
+Do not hardcode random positions for:
+- photo
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+MOBILE PREVIEW SCALING
+The internal render coordinate system must remain 1086 × 1448.
+
+For mobile display:
+- calculate previewScale based on available width
+- visually scale the Konva Stage
+- keep all internal coordinates based on 1086 × 1448
+
+Example principle:
+const previewScale = availableWidth / TEMPLATE_W;
+
+Stage:
+width = TEMPLATE_W * previewScale
+height = TEMPLATE_H * previewScale
+scaleX = previewScale
+scaleY = previewScale
+
+Do not render the actual scene at 300 × 400.
+Small dimensions are only visual display scaling, not the real render coordinate system.
+
+RENDER ORDER
+Render exactly in this order:
+
+1. background.png
+2. sample photo placeholder
+3. overlay.png
+4. rating / position / flag / badge
+5. player name
+6. stats
+
+Do not change this order.
+
+SAMPLE DATA
+Use this fixed sample data:
+
+rating: 91
+position: ST
+country: France
+countryCode: FR
+flag: /flags/fr.svg
+name: LUCAS MOREAU
+
+stats:
+PAC: 89
+SHO: 86
+PAS: 82
+DRI: 88
+DEF: 45
+PHY: 84
+
+Badge:
+Use a simple generic Konva badge placeholder.
+Do not use official club logos.
+
+Photo:
+Use a neutral placeholder photo/silhouette.
+No photo upload yet.
+
+FLAG RENDERING RULE FOR PHASE 1
+Current flags are SVG files in public/flags/.
+
+SVG in canvas/Konva can be inconsistent across browsers.
+For Phase 1, do NOT block the render engine because of flags.
+
+Implement one of these safe approaches:
+
+Preferred Phase 1 approach:
+- Try to load the SVG flag with use-image.
+- If it renders correctly, show it.
+- If it fails or causes issues, show a simple fallback:
+  - colored rectangle placeholder
+  - country code text, e.g. "FR"
+
+Do NOT spend time converting all SVG flags to PNG in Phase 1.
+Do NOT let SVG flag rendering break typecheck/build/export.
+Do NOT use external remote flag URLs.
+
+CONFIG USAGE
+Use the real existing config:
+- lib/cardCreator/templateConfig.ts
+- lib/cardCreator/templates.ts
+- public/templates/{templateId}/config.json
+
+If the config uses named layouts:
+- read the template layout key
+- resolve the layout from CARD_TEMPLATE_CONFIG.layouts
+
+Use template-specific values when available:
+- textColor
+- ratingColor
+- nameColor
+- statsColor
+- shadow
+- enabled
+- category / family
+- layout
+
+Do not create a parallel config system.
+
+FONT
+Use D-DIN fonts already registered in globals.css.
+
+Preferred:
+- rating: D-DIN Condensed Bold
+- position: D-DIN Condensed Bold
+- name: D-DIN Condensed Bold
+- stats: D-DIN Condensed Bold
+
+If exact registered font-family names differ, inspect globals.css and use the correct names.
+
+TEMPLATE SELECTOR
+Create a horizontal mobile-friendly template selector.
+
+Requirements:
+- use thumbnail.png
+- show enabled templates only by default
+- hide usa_host_2026 by default if disabled
+- add toggle: Show disabled templates
+- disabled templates must be visually marked when shown
+- selecting a template updates preview immediately
+
+CARD PREVIEW
+Render selected template with:
+- background
+- placeholder photo
+- overlay
+- rating
+- position
+- flag or flag fallback
+- badge placeholder
+- name
+- six stats
+
+The preview must be centered and mobile-first.
+
+DEBUG MODE
+Add toggle:
+Show debug boxes
+
+When enabled, show thin semi-transparent boxes around:
+- photo
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+The debug boxes must use the same JSON-derived coordinates as the real render.
+
+DEBUG PANEL
+Show:
+- template id
+- template name
+- enabled status
+- family/category
+- layout name
+- canvas 1086 × 1448
+- background path
+- overlay path
+- thumbnail path
+- background loaded: yes/no
+- overlay loaded: yes/no
+- thumbnail loaded: yes/no
+- flag loaded: yes/no/fallback
+
+Add this note:
+Visual validation required for photo transparency.
+
+Do not over-engineer automatic alpha detection.
+
+IMAGE LOADING
+Use use-image for:
+- background.png
+- overlay.png
+- thumbnail.png if needed inside Konva
+- flag SVG only if used directly in Konva
+
+Use local assets only.
+No remote URLs.
+
+If an image fails:
+- show fallback
+- report in DebugPanel
+- do not crash /creator
+
+PNG EXPORT
+Add button:
+Download PNG
+
+Requirements:
+- use Konva stage.toDataURL()
+- exported image must be at least 1086 × 1448
+- exported layout must match preview
+- do not export low-resolution scaled preview
+- do not use html2canvas
+
+If preview Stage is scaled, handle export properly using:
+- full-resolution logical canvas export
+- proper pixelRatio / scale handling
+- or a hidden/offscreen export stage if needed
+
+NEXT.JS / SSR
+Konva must be client-only.
+
+Use:
+"use client"
+
+If SSR issues appear, use dynamic import with ssr: false for Konva-dependent components.
+
+Build must not fail because of Konva SSR issues.
+
+FILES TO CREATE
+
+Create:
+app/creator/page.tsx
+
+components/cardCreator/CreatorPreviewScreen.tsx
+components/cardCreator/CardCanvas.tsx
+components/cardCreator/TemplateSelector.tsx
+components/cardCreator/DebugPanel.tsx
+
+lib/cardCreator/renderUtils.ts
+lib/cardCreator/exportCard.ts
+
+Optional if useful:
+components/cardCreator/useKonvaImage.ts
+
+FILE RESPONSIBILITIES
+
+app/creator/page.tsx
+- route entry
+- loads CreatorPreviewScreen only
+
+CreatorPreviewScreen.tsx
+- main state
+- selectedTemplateId
+- showDebugBoxes
+- showDisabledTemplates
+- sample card data
+- download handler
+- mobile-first page layout
+
+CardCanvas.tsx
+- Konva Stage rendering
+- resolve selected template config
+- resolve layout
+- convert normalized coordinates to 1086 × 1448 pixels
+- render all layers in correct order
+- support debug boxes
+- expose stage ref or export method
+- handle SVG flag fallback safely
+
+TemplateSelector.tsx
+- render template thumbnails
+- filter enabled/disabled templates
+- update selected template
+
+DebugPanel.tsx
+- render selected template technical info
+- image load status if available
+- flag status/fallback status
+
+renderUtils.ts
+- TEMPLATE_W
+- TEMPLATE_H
+- nX
+- nY
+- nW
+- nH
+- resolveLayout
+- getTemplateColors if useful
+
+exportCard.ts
+- downloadCardPng function
+- use Konva stage.toDataURL()
+- ensure high-quality export
+
+UI STRUCTURE
+
+/creator page should be simple and mobile-first.
+
+Header:
+Card Creator Preview
+
+Subtitle:
+Render engine test — editor coming next
+
+Then:
+- horizontal template selector
+- centered card preview
+- controls:
+  - Download PNG
+  - Show debug boxes
+  - Show disabled templates
+- debug info panel
+
+Do not make it look like the final public editor yet.
+This is a technical preview screen.
+
+EXPECTED TEMPLATE ISSUE
+Some overlays may have fake checkerboard baked into the pixels instead of real transparency.
+
+Do not fix image assets in this phase.
+Just show the issue visually.
+
+If the photo placeholder is hidden by overlay.png, report it clearly.
+
+VALIDATION
+Run:
+npm run typecheck
+
+Then:
+npm run build
+
+If typecheck script does not exist, use the project’s existing validation command.
+
+MANUAL CHECKS
+After build, open:
+/creator
+
+Verify:
+1. page loads
+2. template selector appears
+3. enabled templates appear
+4. usa_host_2026 hidden by default
+5. disabled toggle works
+6. selecting template updates preview
+7. render order is correct
+8. rating appears
+9. position appears
+10. flag appears or safe fallback appears
+11. badge placeholder appears
+12. name appears
+13. stats appear
+14. debug boxes work
+15. download PNG works
+16. export matches preview
+17. existing Fangirl features are not affected
+
+FINAL REPORT
+Report:
+1. packages installed
+2. files created
+3. route created
+4. whether Konva is client-only
+5. how normalized coordinates are converted
+6. how mobile scaling works
+7. how template selection works
+8. how disabled templates are handled
+9. how render order is implemented
+10. how PNG export works
+11. how flags are handled, SVG or fallback
+12. whether enabled templates render
+13. any overlay/photo visibility issues
+14. typecheck result
+15. build result
+
+REMINDER
+This is Phase 1 only.
+
+Do not build the real editor yet.
+Phase 2 will add:
+- upload photo
+- drag photo
+- zoom photo
+- rotate photo
+- edit name
+- edit rating
+- edit position
+- edit country
+- edit badge
+- edit stats
+- share flow
+- local save
