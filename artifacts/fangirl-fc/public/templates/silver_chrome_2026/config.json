@@ -1,0 +1,26 @@
+{
+  "id": "silver_chrome_2026",
+  "name": "Silver Chrome 2026",
+  "category": "elite",
+  "enabled": true,
+  "canvas": {
+    "width": 1086,
+    "height": 1448
+  },
+  "assets": {
+    "source": "/templates/silver_chrome_2026/source.png",
+    "background": "/templates/silver_chrome_2026/background.png",
+    "overlay": "/templates/silver_chrome_2026/overlay.png",
+    "thumbnail": "/templates/silver_chrome_2026/thumbnail.png"
+  },
+  "textColor": "#FFFFFF",
+  "shadow": true,
+  "renderingOrder": [
+    "background",
+    "photo",
+    "overlay",
+    "rating_position_flag_badge",
+    "player_name",
+    "stats"
+  ]
+}

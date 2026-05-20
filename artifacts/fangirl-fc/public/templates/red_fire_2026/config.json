@@ -1,0 +1,26 @@
+{
+  "id": "red_fire_2026",
+  "name": "Red Fire 2026",
+  "category": "fire",
+  "enabled": true,
+  "canvas": {
+    "width": 1086,
+    "height": 1448
+  },
+  "assets": {
+    "source": "/templates/red_fire_2026/source.png",
+    "background": "/templates/red_fire_2026/background.png",
+    "overlay": "/templates/red_fire_2026/overlay.png",
+    "thumbnail": "/templates/red_fire_2026/thumbnail.png"
+  },
+  "textColor": "#FFFFFF",
+  "shadow": true,
+  "renderingOrder": [
+    "background",
+    "photo",
+    "overlay",
+    "rating_position_flag_badge",
+    "player_name",
+    "stats"
+  ]
+}

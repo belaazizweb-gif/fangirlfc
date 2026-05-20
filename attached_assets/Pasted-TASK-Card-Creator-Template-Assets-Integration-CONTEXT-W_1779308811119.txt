@@ -1,0 +1,260 @@
+TASK: Card Creator Template Assets Integration
+
+CONTEXT
+We are preparing the assets for the future Player Card Creator module in Fangirl FC.
+
+Do NOT build the Card Creator UI yet.
+Do NOT add any new route.
+Do NOT modify the existing app UX.
+Do NOT touch Landing, Dashboard, Quiz, Learn, Penalty, Auth, Navigation, or existing Fangirl Card logic.
+
+This task is only for backend/assets/config preparation.
+
+I will upload:
+1. card_templates_config_pro_v4.json
+2. The selected template PNG images
+
+The goal is to place these assets correctly inside the project so the next phase can build the actual Card Creator.
+
+CURRENT PROJECT STATE
+The project already has:
+- D-DIN fonts in public/fonts/d-din/
+- Country flags in public/flags/
+- lib/cardCreator/positions.ts
+- lib/cardCreator/countries.ts
+- lib/cardCreator/templates.ts
+- public/templates/ folders already prepared
+
+TARGET CANVAS
+All templates must use the same canvas:
+
+width: 1086
+height: 1448
+
+The future rendering order must remain:
+
+1. background.png
+2. user photo layer
+3. overlay.png
+4. rating / position / flag / badge
+5. player name
+6. stats
+
+Do not change this order.
+
+TEMPLATE IDS TO SUPPORT
+
+gold_crystal_2026
+silver_classic_2026
+gold_elite_2026
+silver_chrome_2026
+black_elite_2026
+blue_electric_2026
+purple_holo_2026
+red_fire_2026
+green_stadium_2026
+usa_host_2026
+world_edition_2026
+fangirl_pink_2026
+
+IMAGE MAPPING RULES
+
+Map the uploaded images to the correct template folders.
+
+Use filename if clear.
+If filename is not clear, inspect visually and map like this:
+
+- white/gold crystal template → gold_crystal_2026
+- silver classic template → silver_classic_2026
+- gold elite template → gold_elite_2026
+- silver chrome template → silver_chrome_2026
+- black template → black_elite_2026
+- blue electric template → blue_electric_2026
+- purple holographic template → purple_holo_2026
+- red fire template → red_fire_2026
+- green stadium template → green_stadium_2026
+- USA red/white/blue host template → usa_host_2026
+- multi-country World Cup template → world_edition_2026
+- pink feminine template → fangirl_pink_2026
+
+Do not invent missing images.
+If an image is missing, keep the folder and config, but report it as missing.
+
+FOLDER STRUCTURE TO CREATE / UPDATE
+
+For each template, the final structure must be:
+
+public/templates/{templateId}/
+  source.png
+  background.png
+  overlay.png
+  thumbnail.png
+  config.json
+
+ASSET RULES
+
+For each uploaded template image:
+
+1. Copy the original uploaded file to:
+
+public/templates/{templateId}/source.png
+
+2. Create overlay.png
+
+For now, overlay.png can be the normalized version of source.png.
+
+Do not redesign it.
+Do not change colors.
+Do not add text.
+Do not add player photos.
+Do not add logos.
+Do not add stats.
+
+3. Create background.png
+
+For now, background.png should be a transparent 1086 × 1448 PNG.
+
+Reason:
+The current template images are mostly frame/overlay assets.
+The user photo will be rendered behind overlay.png later.
+
+4. Create thumbnail.png
+
+Generate thumbnail.png from overlay.png.
+
+Recommended size:
+300 × 400 px or similar vertical ratio.
+
+Keep aspect ratio.
+Do not crop important parts.
+
+DIMENSION RULES
+
+Target size for overlay.png:
+
+1086 × 1448
+
+If source image is already 1086 × 1448, keep it.
+If source image is not 1086 × 1448:
+- normalize it to 1086 × 1448
+- use contain-center on transparent background
+- do not stretch badly
+- keep source.png unchanged
+
+Report original dimensions and final overlay dimensions.
+
+TRANSPARENCY RULES
+
+If image has real alpha transparency:
+- preserve it
+
+If image has fake checkerboard baked into the pixels:
+- do not damage the template
+- try safe cleanup only if reliable
+- if not reliable, keep it as-is and report:
+  “checkerboard appears baked, manual cleanup may be needed”
+
+CONFIG INTEGRATION
+
+Use card_templates_config_pro_v4.json as the source of truth.
+
+Copy it to:
+
+public/templates/card_templates_config_pro_v4.json
+
+Create or update:
+
+lib/cardCreator/templateConfig.ts
+
+This file should export the config as a typed constant:
+
+export const CARD_TEMPLATE_CONFIG = { ... } as const;
+
+Also export useful types if simple:
+- CardTemplateId
+- CardTemplateDefinition
+- CardLayoutDefinition
+
+Do not over-engineer.
+
+PER-TEMPLATE CONFIG
+
+For each template folder, create:
+
+public/templates/{templateId}/config.json
+
+Each config.json must include:
+
+- id
+- name
+- category
+- enabled
+- canvas
+- asset paths:
+  - source
+  - background
+  - overlay
+  - thumbnail
+- layout reference or resolved layout
+- text colors
+- shadow setting
+- rendering order note
+
+Keep the same canvas, same editable zones, same rendering order.
+
+UPDATE TEMPLATES FILE
+
+Update:
+
+lib/cardCreator/templates.ts
+
+It must reflect the same 12 template IDs and asset paths.
+
+Each template should include:
+
+id
+name
+category
+enabled
+thumbnail
+background
+overlay
+
+IMPORTANT ABOUT usa_host_2026
+
+If card_templates_config_pro_v4.json sets usa_host_2026 as enabled: false, keep it disabled.
+Do not activate it unless the config says enabled: true.
+
+VALIDATION
+
+After all files are created/updated, run:
+
+npm run typecheck
+
+Then run:
+
+npm run build
+
+If typecheck does not exist, use the existing project validation command.
+
+FINAL REPORT REQUIRED
+
+At the end, report clearly:
+
+1. Which uploaded image was mapped to which template ID
+2. Which folders were updated
+3. Original dimensions of each source image
+4. Final dimensions of each overlay.png
+5. Whether background.png was generated for each template
+6. Whether thumbnail.png was generated for each template
+7. Any checkerboard / transparency issue detected
+8. Whether templateConfig.ts was created or updated
+9. Whether templates.ts was updated
+10. Whether typecheck passed
+11. Whether build passed
+
+REMINDER
+
+This is not the Card Creator build phase.
+This is only the template assets/config integration phase.
+The actual editor will be built in the next phase.

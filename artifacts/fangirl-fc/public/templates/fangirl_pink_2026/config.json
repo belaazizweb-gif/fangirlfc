@@ -1,0 +1,26 @@
+{
+  "id": "fangirl_pink_2026",
+  "name": "Fangirl Pink 2026",
+  "category": "fangirl",
+  "enabled": true,
+  "canvas": {
+    "width": 1086,
+    "height": 1448
+  },
+  "assets": {
+    "source": "/templates/fangirl_pink_2026/source.png",
+    "background": "/templates/fangirl_pink_2026/background.png",
+    "overlay": "/templates/fangirl_pink_2026/overlay.png",
+    "thumbnail": "/templates/fangirl_pink_2026/thumbnail.png"
+  },
+  "textColor": "#FFFFFF",
+  "shadow": true,
+  "renderingOrder": [
+    "background",
+    "photo",
+    "overlay",
+    "rating_position_flag_badge",
+    "player_name",
+    "stats"
+  ]
+}
