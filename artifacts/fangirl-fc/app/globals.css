@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* ── D-DIN font family (used by Card Creator) ── */
+@font-face {
+  font-family: "D-DIN";
+  src: url("/fonts/d-din/D-DIN.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "D-DIN";
+  src: url("/fonts/d-din/D-DIN-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "D-DIN Condensed";
+  src: url("/fonts/d-din/D-DINCondensed.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "D-DIN Condensed";
+  src: url("/fonts/d-din/D-DINCondensed-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   color-scheme: dark;
   --bg: #0b0613;

@@ -1,0 +1,260 @@
+Asset preparation phase for Fangirl FC Card Creator.
+
+Do NOT build the Player Card Creator module yet.
+Do NOT modify existing app UX, routes, dashboard, quiz, Learn, Penalty, auth, or export logic.
+This task is only to prepare reusable assets for the upcoming Card Creator.
+
+Context:
+We are preparing the new Player Card Creator module.
+Before coding the module, we need:
+1. D-DIN fonts installed locally in the project
+2. All country flags copied locally into public/flags
+3. Basic card creator asset structure prepared
+4. Basic countries/positions config files prepared
+
+Important:
+I will upload a file named d-din.zip into the Replit project root before you start.
+Use shell commands where appropriate.
+
+Tasks:
+
+1. Extract D-DIN font zip
+
+There will be a file in project root:
+
+d-din.zip
+
+Extract it and copy these fonts into:
+
+public/fonts/d-din/
+
+Required font files:
+- D-DIN.otf
+- D-DIN-Bold.otf
+- D-DINCondensed.otf
+- D-DINCondensed-Bold.otf
+
+Keep the license file if present:
+- SIL Open Font License.txt
+
+If the zip contains additional D-DIN variants, keep them only if easy, but the four files above are mandatory.
+
+2. Register D-DIN fonts in global CSS
+
+Add @font-face definitions for:
+
+- D-DIN
+- D-DIN Bold
+- D-DIN Condensed
+- D-DIN Condensed Bold
+
+Use local paths:
+
+/fonts/d-din/D-DIN.otf
+/fonts/d-din/D-DIN-Bold.otf
+/fonts/d-din/D-DINCondensed.otf
+/fonts/d-din/D-DINCondensed-Bold.otf
+
+Do not apply the font globally to the whole app yet.
+Only register the fonts so the future Card Creator can use them.
+
+3. Install and copy all country flags
+
+Use the GitHub package/source:
+
+flag-icons by lipis
+
+Preferred method:
+
+npm install flag-icons
+mkdir -p public/flags
+cp -r node_modules/flag-icons/flags/4x3/* public/flags/
+
+After copying, the app should have files like:
+
+public/flags/fr.svg
+public/flags/us.svg
+public/flags/ma.svg
+public/flags/br.svg
+public/flags/ar.svg
+public/flags/es.svg
+public/flags/de.svg
+public/flags/pt.svg
+public/flags/gb-eng.svg
+
+If the package is only used to copy assets, you may leave it installed or uninstall it after copying. Prefer the safest option for the current project.
+
+4. Create card creator config folder
+
+Create:
+
+lib/cardCreator/
+
+Inside it, create:
+
+lib/cardCreator/positions.ts
+lib/cardCreator/countries.ts
+lib/cardCreator/templates.ts
+
+5. positions.ts
+
+Create a positions array for the future card creator:
+
+GK
+CB
+LB
+RB
+LWB
+RWB
+CDM
+CM
+CAM
+LM
+RM
+LW
+RW
+ST
+CF
+
+Export it cleanly.
+
+6. countries.ts
+
+Create a clean initial country list using local SVG paths.
+
+Include at minimum:
+
+France
+Morocco
+United States
+Canada
+Mexico
+Brazil
+Argentina
+England
+Spain
+Portugal
+Germany
+Italy
+Netherlands
+Belgium
+Croatia
+Japan
+South Korea
+Australia
+Saudi Arabia
+Egypt
+Senegal
+Ivory Coast
+Ghana
+Nigeria
+Uruguay
+Colombia
+Chile
+Switzerland
+Denmark
+Sweden
+Norway
+Poland
+Turkey
+Ukraine
+Austria
+Czech Republic
+Serbia
+Algeria
+Tunisia
+Qatar
+UAE
+
+Use this structure:
+
+{
+  code: "FR",
+  name: "France",
+  flag: "/flags/fr.svg"
+}
+
+For England, use:
+{
+  code: "GB-ENG",
+  name: "England",
+  flag: "/flags/gb-eng.svg"
+}
+
+Make sure file paths match existing copied SVG filenames.
+
+7. templates.ts
+
+Prepare template metadata only. Do not add actual images yet unless files already exist.
+
+Create the future template IDs:
+
+gold_elite_2026
+silver_chrome_2026
+black_elite_2026
+blue_electric_2026
+purple_holo_2026
+red_fire_2026
+world_edition_2026
+fangirl_pink_2026
+
+Each template should have:
+
+id
+name
+category
+thumbnail
+background
+overlay
+
+Use paths like:
+
+/templates/gold_elite_2026/thumbnail.png
+/templates/gold_elite_2026/background.png
+/templates/gold_elite_2026/overlay.png
+
+8. Prepare public template directories
+
+Create these folders:
+
+public/templates/gold_elite_2026/
+public/templates/silver_chrome_2026/
+public/templates/black_elite_2026/
+public/templates/blue_electric_2026/
+public/templates/purple_holo_2026/
+public/templates/red_fire_2026/
+public/templates/world_edition_2026/
+public/templates/fangirl_pink_2026/
+
+Inside each folder, add a README.md explaining that this folder will contain:
+
+background.png
+overlay.png
+thumbnail.png
+config.json
+
+Do not create fake image files.
+
+9. Verification
+
+Run:
+
+npm run typecheck
+
+If the project does not have typecheck, run the existing check command.
+
+Then run:
+
+npm run build
+
+10. Report
+
+When done, report:
+
+- exact files created
+- exact folders created
+- whether D-DIN was extracted successfully
+- how many flag SVG files were copied
+- whether countries.ts paths match copied flags
+- whether typecheck/build passed
+- any problem encountered

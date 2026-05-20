@@ -218,6 +218,9 @@ importers:
       firebase:
         specifier: ^11.10.0
         version: 11.10.0
+      flag-icons:
+        specifier: ^7.5.0
+        version: 7.5.0
       html-to-image:
         specifier: ^1.11.13
         version: 1.11.13
@@ -2562,6 +2565,9 @@ packages:
 
   firebase@11.10.0:
     resolution: {integrity: sha512-nKBXoDzF0DrXTBQJlZa+sbC5By99ysYU1D6PkMRYknm0nCW7rJly47q492Ht7Ndz5MeYSBuboKuhS1e6mFC03w==}
+
+  flag-icons@7.5.0:
+    resolution: {integrity: sha512-kd+MNXviFIg5hijH766tt+3x76ele1AXlo4zDdCxIvqWZhKt4T83bOtxUOOMlTx/EcFdUMH5yvQgYlFh1EqqFg==}
 
   forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -5838,6 +5844,8 @@ snapshots:
       '@firebase/util': 1.12.1
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
+
+  flag-icons@7.5.0: {}
 
   forwarded@0.2.0: {}
 
