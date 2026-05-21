@@ -37,10 +37,9 @@ const H_PADDING         = 24;
 
 function computeCardW(): number {
   if (typeof window === "undefined") return 340;
-  const aw = window.innerWidth  - H_PADDING;
-  const ah = window.innerHeight - TOP_BOTTOM_CHROME;
-  // Width-fill unless the card height would overflow the available height
-  return ah * CARD_RATIO < aw ? Math.round(ah * CARD_RATIO) : aw;
+  // 86 vw — matches the spec (82–88vw) and prevents any left-side clipping.
+  // Capped at 380px so the card doesn't grow too large on tablets/desktop.
+  return Math.min(Math.round(window.innerWidth * 0.86), 380);
 }
 
 export default function CreatorScreen() {
@@ -203,7 +202,8 @@ export default function CreatorScreen() {
             height: Math.round(cardW / CARD_RATIO),
           }}
         >
-          {/* Konva canvas */}
+          {/* Konva canvas — displayWidth bypasses the ResizeObserver race so
+              the stage is sized correctly on the first render frame.          */}
           <CardCanvas
             template={selectedTemplate}
             cardState={cardState}
@@ -212,6 +212,7 @@ export default function CreatorScreen() {
             onLoadStatusChange={setLoadStatus}
             previewScaleRef={previewScaleRef}
             onPhotoDrag={handlePhotoDrag}
+            displayWidth={cardW}
           />
 
           {/* DOM hotspot overlay — NOT exported (pure DOM, outside Konva stage) */}

@@ -25,6 +25,9 @@ interface CardCanvasProps {
   onLoadStatusChange?: (s: LoadStatus) => void;
   previewScaleRef?: React.MutableRefObject<number>;
   onPhotoDrag?: (pos: { x: number; y: number }) => void;
+  /** Explicit display width in CSS px. When provided, skips the ResizeObserver
+   *  so the stage is sized correctly on the very first render with no flash. */
+  displayWidth?: number;
 }
 
 // ── Debug box colours by zone ────────────────────────────────
@@ -38,21 +41,45 @@ const DEBUG_COLORS: Record<string, string> = {
   stats:    "rgba(255,80,80,0.55)",
 };
 
-// ── Photo placeholder silhouette ─────────────────────────────
-function PhotoPlaceholder({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  const headR  = w * 0.16;
-  const headCX = x + w * 0.5;
-  const headCY = y + h * 0.28;
-  const bodyW  = w * 0.55;
-  const bodyH  = h * 0.42;
-  const bodyX  = x + (w - bodyW) / 2;
-  const bodyY  = y + h * 0.48;
+// ── Professional player silhouette placeholder ────────────────
+// Inline SVG — no external assets required.
+// Head + neck + shoulders + upper body + arms, transparent background.
+const _SILHOUETTE_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280">',
+  // Head
+  '<ellipse cx="100" cy="52" rx="38" ry="44" fill="#1a1830"/>',
+  // Neck
+  '<ellipse cx="100" cy="95" rx="18" ry="14" fill="#1a1830"/>',
+  // Torso + shoulders
+  '<path d="M16 152 C26 108 66 98 100 99 C134 98 174 108 184 152 L190 248 Q100 274 10 248 Z" fill="#1a1830"/>',
+  // Left arm
+  '<path d="M16 152 C2 176 0 214 6 234 C11 246 28 242 33 230 C36 210 42 182 52 158 Z" fill="#1a1830"/>',
+  // Right arm
+  '<path d="M184 152 C198 176 200 214 194 234 C189 246 172 242 167 230 C164 210 158 182 148 158 Z" fill="#1a1830"/>',
+  '</svg>',
+].join("");
+
+const SILHOUETTE_URL = `data:image/svg+xml,${encodeURIComponent(_SILHOUETTE_SVG)}`;
+
+function PlayerSilhouette({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  const [img] = useImage(SILHOUETTE_URL);
+  if (!img) return null;
+  // Render the silhouette centered and filling about 70% of the portrait zone
+  // so it looks like a real FUT card placeholder (not a dev rectangle).
+  const sw = w * 0.70;
+  const sh = sw * (280 / 200); // maintain SVG viewBox aspect ratio
+  const sx = x + (w - sw) / 2;
+  const sy = y + (h - sh) / 2 + h * 0.06; // slightly top-weighted like real cards
   return (
-    <Group>
-      <Rect x={x} y={y} width={w} height={h} fill="#1e1e30" />
-      <Circle x={headCX} y={headCY} radius={headR} fill="#5a5a7a" />
-      <Rect x={bodyX} y={bodyY} width={bodyW} height={bodyH} fill="#5a5a7a" cornerRadius={8} />
-    </Group>
+    <KImage
+      image={img}
+      x={sx}
+      y={sy}
+      width={sw}
+      height={Math.min(sh, h)}
+      listening={false}
+      opacity={0.80}
+    />
   );
 }
 
@@ -152,14 +179,21 @@ function DebugBox({ x, y, w, h, color }: { x: number; y: number; w: number; h: n
 
 // ── Main component ────────────────────────────────────────────
 export default function CardCanvas({
-  template, cardState, showDebugBoxes, stageRef, onLoadStatusChange, previewScaleRef, onPhotoDrag,
+  template, cardState, showDebugBoxes, stageRef, onLoadStatusChange,
+  previewScaleRef, onPhotoDrag, displayWidth,
 }: CardCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(320);
+  // Initialise directly from displayWidth when provided so there is no
+  // single-frame flash at the wrong size before the ResizeObserver fires.
+  const [containerWidth, setContainerWidth] = useState(displayWidth ?? 320);
   const [flagStatus, setFlagStatus] = useState<string>("loading");
 
-  // Container width observer
+  // Container width observer — skipped when displayWidth is supplied.
   useEffect(() => {
+    if (displayWidth && displayWidth > 0) {
+      setContainerWidth(displayWidth);
+      return; // no ResizeObserver needed; parent owns the size
+    }
     const el = containerRef.current;
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
@@ -170,7 +204,7 @@ export default function CardCanvas({
     const w = el.clientWidth;
     if (w > 0) setContainerWidth(w);
     return () => ro.disconnect();
-  }, []);
+  }, [displayWidth]);
 
   // Load template base images
   const [bgImage,      bgStatus]      = useImage(template.assets.background, "anonymous");
@@ -278,6 +312,9 @@ export default function CardCanvas({
                * Drag stores new x/y via onDragEnd — Konva returns
                * values already in logical (pre-scale) coordinates,
                * so no manual division is needed.
+               *
+               * TODO: background removal service will provide a transparent
+               * PNG cutout here — replace photo.src with the cutout URL.
                */
               <KImage
                 image={photoImg}
@@ -294,7 +331,7 @@ export default function CardCanvas({
                 }}
               />
             ) : (
-              <PhotoPlaceholder x={photoX} y={photoY} w={photoW} h={photoH} />
+              <PlayerSilhouette x={photoX} y={photoY} w={photoW} h={photoH} />
             )}
           </Group>
 

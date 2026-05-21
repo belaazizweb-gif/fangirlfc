@@ -1,0 +1,330 @@
+TASK: Critical Fix — /creator must become a real fullscreen FUT card editor
+
+ROLE
+Act as a senior Next.js + mobile-first frontend engineer.
+Do not add new features. Fix the current broken creator UX.
+
+CURRENT PROBLEMS CONFIRMED ON REAL MOBILE
+1. Fangirl navigation is still visible on /creator:
+   - Dashboard
+   - Card
+   - Learn
+   - Penalty
+   This means the creator route is not correctly isolated.
+
+2. The card preview is still badly positioned:
+   - card is clipped/cut on the left
+   - previewScale/card sizing is still wrong on real mobile
+
+3. The photo placeholder is not professional:
+   - current circle + rectangle grey placeholder looks like a dev placeholder
+   - it must look like a real FUT/player silhouette
+
+4. Debug button is visible on the main editor screen.
+   It must be hidden from normal users.
+
+STRICT SCOPE
+Do NOT build new product features.
+Do NOT add My Cards.
+Do NOT add player database.
+Do NOT add club database.
+Do NOT add squad builder.
+Do NOT add pack opening.
+Do NOT add ads/payments.
+Do NOT redesign unrelated Fangirl pages.
+
+Fix only /creator.
+
+CRITICAL FIX 1 — TRUE ROUTE ISOLATION
+
+ROUTE ISOLATION PRIORITY ORDER — CRITICAL
+
+Before changing files, inspect where the Fangirl navigation is rendered.
+
+Use this priority order:
+
+Option A — Preferred clean architecture:
+- Move Fangirl navigation out of app/layout.tsx if it is there.
+- Keep app/layout.tsx minimal:
+  html/body/providers only.
+- Create:
+  app/(main)/layout.tsx
+- Move normal Fangirl pages under app/(main)/ so they keep the Fangirl navigation.
+- Keep creator isolated under:
+  app/(creator)/creator/page.tsx
+  app/(creator)/creator/layout.tsx if needed
+
+Option B — Fallback only:
+- Keep app/layout.tsx as-is.
+- Hide navigation on /creator inside the nav/shell component using pathname.
+- Use this only if Option A risks breaking current routes or requires a large unsafe refactor.
+
+Important:
+- Prefer Option A.
+- Use Option B only as a safe emergency fallback.
+- Do not break existing Fangirl routes.
+- After the change, normal routes must still show Fangirl navigation and /creator must not.
+
+First inspect app/layout.tsx.
+
+If the Fangirl navigation is rendered from app/layout.tsx, then app/creator/layout.tsx cannot remove it.
+Nested layouts in Next.js App Router are additive; a child layout cannot cancel the parent layout.
+
+Do NOT try to hide nav by route conditions inside app/layout.tsx.
+Do NOT add pathname exceptions in the global layout.
+
+Correct architecture:
+- Keep app/layout.tsx minimal:
+  html/body/providers only
+  no Fangirl navigation in the root layout
+
+- Move Fangirl navigation into a route group layout:
+  app/(main)/layout.tsx
+
+- Keep the creator route isolated:
+  app/(creator)/creator/page.tsx
+  app/(creator)/creator/layout.tsx if needed
+
+Expected behavior:
+- All normal Fangirl routes keep the Fangirl navigation.
+- /creator has no Fangirl navigation.
+- /creator is a standalone fullscreen editor.
+
+If moving every route is risky, do the smallest safe route-group refactor required by the current codebase.
+Do not break existing routes.
+
+CRITICAL FIX 2 — FULLSCREEN MOBILE CREATOR
+
+/creator must fill the mobile viewport.
+
+It must not appear inside the Fangirl page shell.
+
+Use:
+- min-height: 100dvh
+- width: 100vw
+- overflow hidden or controlled
+- standalone dark football/editor background
+
+Top:
+- centered title: Créateur de cartes FC
+- right: FR indicator
+- no Fangirl nav
+
+Center:
+- large centered card
+- edit hotspots around the card
+
+Bottom:
+- two large buttons:
+  Carte
+  Sauvegarder
+
+No visible:
+- Dashboard/Card/Learn/Penalty nav
+- Card Creator Preview
+- Render engine test
+- horizontal template selector
+- debug panel
+- debug button
+
+CRITICAL FIX 3 — CARD SIZE / PREVIEWSCALE
+
+The card must not be cut on the left.
+
+On a 390px wide mobile viewport:
+- card visual width should be around 82–88vw
+- card must be horizontally centered
+- no negative horizontal overflow
+- no clipping of the card art
+
+Implement one single sizing source of truth.
+
+Recommended:
+const viewportW = window.innerWidth;
+const viewportH = window.innerHeight;
+const cardDisplayW = Math.min(viewportW * 0.86, 390);
+const cardDisplayH = cardDisplayW * (1448 / 1086);
+const previewScale = cardDisplayW / 1086;
+
+Stage:
+width = cardDisplayW
+height = cardDisplayH
+scaleX = previewScale
+scaleY = previewScale
+
+The Stage wrapper:
+- width: cardDisplayW
+- height: cardDisplayH
+- margin-left/right auto
+- position relative
+- overflow visible unless intentionally clipped by card only
+
+All Konva elements stay in logical 1086×1448 coordinates.
+
+Do not rely on initial ResizeObserver timing for first paint.
+Initialize from window size because /creator must be client-only.
+
+Test on 390×844.
+
+CRITICAL FIX 4 — PROFESSIONAL SILHOUETTE PLACEHOLDER
+
+SILHOUETTE IMPLEMENTATION — PRECISE REQUIREMENT
+
+Do not improvise a bad placeholder.
+
+For the no-photo placeholder, create a clean player silhouette using this exact approach:
+
+1. Create a simple inline SVG string in code.
+   The SVG should contain a head + upper-body/shoulders player silhouette.
+   It should be dark/black with transparent background.
+
+2. Convert the SVG string to base64:
+   btoa(svgString)
+
+3. Load it as a Konva image:
+   data:image/svg+xml;base64,{base64}
+
+4. Render it as a Konva Image inside the photo/portrait zone.
+
+5. Position and scale it using the photo zone coordinates from the JSON config or the centralized portrait layout override.
+
+6. Do not use external files.
+7. Do not render a grey circle + rectangle.
+8. Do not render a large rectangle background.
+9. The silhouette must look like a football player placeholder, not a dev placeholder.
+
+The silhouette must be exported as part of the card only when no user photo is uploaded.
+Edit icons and “add image” UI must not be exported.
+
+Remove the current grey circle + grey rectangle placeholder.
+
+When no photo is uploaded, render a clean football-player silhouette similar to real card creator apps:
+- black/dark full-body or upper-body player silhouette
+- centered in upper card area
+- transparent background around silhouette
+- no giant rectangular block
+- subtle add/edit image icon can appear as UI hotspot, but must not export
+
+The placeholder must look like part of a FUT card, not a dev rectangle.
+
+Implementation:
+- Use a Konva.Path silhouette or a local inline SVG converted to image.
+- Do not require external assets.
+- Do not render a background rectangle behind the silhouette.
+- The silhouette must be clipped/positioned in the portrait zone.
+
+Important:
+The silhouette should appear as the player portrait placeholder.
+It should not cover name/stats.
+It should not look like a card-sized rectangle.
+
+CRITICAL FIX 5 — UPLOADED PHOTO MODE
+
+For now, if a user uploads a normal photo with a background, do not pretend it is a professional cutout.
+
+Phase for now:
+- render uploaded photo clipped to the portrait zone
+- allow drag/zoom/rotate
+- no giant photo rectangle beyond portrait zone
+- keep it visually contained
+
+Prepare the code so a future background-removal output can replace photo.src with a transparent PNG cutout.
+
+Add a code comment:
+TODO: background removal service will provide transparent PNG cutout here.
+
+Do NOT integrate background removal API now unless explicitly requested later.
+
+CRITICAL FIX 6 — STATS LAYOUT
+
+Stats must look like real FUT stats.
+
+Use two columns:
+Left:
+89 PAC
+86 SHO
+82 PAS
+
+Right:
+88 DRI
+45 DEF
+84 PHY
+
+For default creator mode, use:
+99 PAC
+99 SHO
+99 PAS
+99 DRI
+99 DEF
+99 PHY
+
+Do not render stats as a messy horizontal row.
+Do not let stats overlap template decorative lines.
+Make text large enough and readable on mobile.
+
+If JSON stat zones are poor, create a centralized stats layout override:
+- in renderUtils.ts or creatorState/template layout handling
+- not scattered hardcoded values inside CardCanvas
+
+CRITICAL FIX 7 — HIDE DEBUG
+
+Remove Debug button from main UI.
+Debug can remain available only by internal constant or dev-only flag.
+
+Normal users must not see Debug.
+
+EXPORT RULES
+Export must include:
+- template
+- silhouette or uploaded photo
+- rating
+- position
+- flag/country fallback
+- badge
+- name
+- stats
+
+Export must NOT include:
+- edit hotspots
+- debug elements
+- UI buttons
+- browser background
+- sheets
+
+VALIDATION
+Run:
+npm run typecheck
+npm run build
+
+Then test /creator at 390×844.
+
+Manual checks:
+1. Fangirl nav is not visible.
+2. Title shows: Créateur de cartes FC.
+3. Card is centered and not cut left.
+4. Silhouette placeholder is professional and not rectangular.
+5. Debug button is not visible.
+6. Carte opens template selector.
+7. Sauvegarder opens save/download/share.
+8. Hotspots open correct sheets.
+9. Uploaded photo stays contained in portrait zone.
+10. Export excludes hotspots/UI.
+11. Existing non-creator Fangirl pages still show their navigation.
+12. Typecheck passes.
+13. Build passes.
+
+FINAL REPORT
+Report:
+1. Whether app/layout.tsx had nav and how route isolation was fixed.
+2. Files moved/created/updated for route groups.
+3. Confirmation /creator has no Fangirl nav.
+4. Confirmation normal routes still have Fangirl nav.
+5. How card sizing/previewScale is now computed.
+6. Confirmation card is centered at 390×844.
+7. How the silhouette placeholder is rendered.
+8. Confirmation debug button is hidden.
+9. Confirmation stats layout is fixed.
+10. Confirmation export excludes UI.
+11. Typecheck result.
+12. Build result.
+13. Mobile screenshot summary.

@@ -1,18 +1,23 @@
 /**
- * Isolated layout for the /creator route.
+ * Creator route layout — fullscreen standalone editor.
  *
- * Uses fixed inset-0 z-50 to create a full-viewport overlay that visually
- * covers the global Fangirl layout (nav, header, footer) without modifying
- * app/layout.tsx or any other route.  All other routes keep their layout
- * untouched.
+ * After the route-group refactor the root layout (app/layout.tsx) is minimal
+ * (html/body/providers only) so there is no Fangirl nav to fight against.
+ * This layout simply gives the creator a true full-viewport canvas.
  */
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Créateur de cartes — Fangirl FC",
+};
+
 export default function CreatorLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-[#0b0613]">
+    <div className="h-dvh overflow-hidden bg-[#0b0613]">
       {children}
     </div>
   );
