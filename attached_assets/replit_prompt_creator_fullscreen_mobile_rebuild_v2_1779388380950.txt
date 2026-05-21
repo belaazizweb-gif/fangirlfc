@@ -1,0 +1,403 @@
+TASK: /creator Fullscreen Mobile Editor Rebuild
+
+ROLE
+Act as a senior mobile-first frontend engineer.
+
+CONTEXT
+The current /creator screen is technically functional but the UX is wrong.
+It still feels like a web preview/editor page, while the target is a real mobile football card creator.
+
+We are not rebuilding the Konva engine from scratch.
+We are rebuilding the visible /creator experience.
+
+INSPIRATION
+Use the UX logic of simple mobile football card creator apps:
+- fullscreen mobile editor
+- central large card
+- edit icons directly on card zones
+- simple template/card selection opened from a button
+- large save/download button
+- no web-style navigation
+- no developer preview UI
+- no horizontal template selector on the main screen
+
+STRICT GOAL
+Turn /creator into a fullscreen mobile card editor.
+
+LAYOUT ISOLATION — CRITICAL
+To remove Fangirl navigation from /creator, do NOT modify the global layout.
+
+Create:
+app/creator/layout.tsx
+
+This route-specific layout must:
+- NOT import the global Fangirl navigation
+- NOT render the global Fangirl navigation
+- render only {children}
+- be standalone for the /creator route only
+
+Do NOT modify:
+- app/layout.tsx
+
+Do NOT:
+- conditionally hide navigation in the global layout
+- add route-based exceptions to the global layout
+- change existing Fangirl navigation behavior for the rest of the app
+
+Use Next.js App Router nested layout isolation.
+Only /creator should use this isolated layout.
+All other app routes must keep their current layout and navigation.
+
+The first visible screen must show:
+- title: Créateur de cartes FC
+- large centered football card
+- edit hotspots around the card
+- large Carte button
+- large Sauvegarder button
+
+The first visible screen must NOT show:
+- Fangirl top navigation
+- Dashboard / Card / Learn / Penalty navigation
+- Card Creator Preview
+- Render engine test — editor coming next
+- horizontal template selector on main screen
+- debug panel by default
+
+DO NOT MODIFY
+Do not modify:
+- Landing
+- Dashboard
+- Quiz
+- Learn
+- Penalty
+- Auth
+- existing Fangirl Card logic
+- existing Fangirl progression
+- unrelated app navigation
+
+DO NOT ADD
+Do not add:
+- My Cards gallery
+- player database
+- club database
+- official logos
+- official player images
+- squad builder
+- pack opening
+- login requirement
+- cloud save
+- ads
+- payments
+
+KEEP
+Keep and preserve:
+- Konva render engine
+- masked overlay engine
+- photo clipping
+- template config system
+- local autosave
+- download/export logic
+- bottom sheet components if useful
+- existing photo upload / zoom / rotate / reset logic if already implemented
+- existing info/stats/badge editing logic if already implemented
+
+MAIN UX STRUCTURE
+
+1. Fullscreen editor route
+/creator must behave like a standalone mobile editor.
+
+2. Top bar
+- Center title: Créateur de cartes FC
+- Right side: FR language indicator
+- Optional small back/reset button
+- No Fangirl public nav
+
+3. Card area
+- Card must be centered
+- Card must be large
+- Card should be the main visual element
+- No template thumbnails above it
+- No developer/debug content visible by default
+
+4. Edit hotspots
+Add visible circular edit buttons on/around the card zones.
+
+Hotspots:
+- photo zone
+- rating
+- position
+- flag/country
+- badge
+- name
+- stats
+- optional template/card hotspot
+
+Each hotspot must:
+- be touch-friendly
+- open the correct editing sheet
+- be visible on mobile
+- not appear in exported PNG
+
+Important:
+Hotspots can be DOM overlays positioned over the scaled card, or a Konva layer that is excluded from export.
+Do not include edit icons in the exported PNG.
+
+5. Bottom primary actions
+At the bottom, show two large buttons:
+- Carte
+- Sauvegarder
+
+Carte:
+- opens template selection sheet/modal
+
+Sauvegarder:
+- opens export/share actions or directly shows Download PNG / Share PNG options
+
+TEMPLATE SELECTION
+Remove the horizontal template selector from the main screen.
+
+Template selection should only open from:
+- Carte button
+- optional card/template hotspot
+
+Template sheet:
+- show templates in a grid/list
+- use thumbnail.png
+- show template names only inside this sheet
+- categories if simple: All / Classic / Special / World / Fangirl
+- hide usa_host_2026 if enabled=false
+- selecting template updates preview
+- preserve current card data
+- include close/done button
+
+PHOTO PLACEHOLDER FIX
+The current huge dark rectangle placeholder is unacceptable.
+
+If no photo is uploaded:
+- do not render a huge dark block
+- show a clean silhouette inside the photo zone
+- add subtle “Your image” or image-add icon
+- make it look like part of a polished card editor
+- keep it inside the photo zone
+
+When a real photo is uploaded:
+- render photo clipped to layout.photo
+- allow drag
+- allow zoom
+- allow rotate
+- keep masked overlay above photo
+- prevent bleeding outside photo zone
+
+PHOTO ZONE
+The photo zone must look natural for a football card.
+
+It should:
+- sit in the upper central part of the card
+- not cover the name zone
+- not cover stats
+- not be an oversized debug rectangle
+
+If current layout.photo coordinates are bad:
+- fix through centralized config/layout override
+- do not scatter hardcoded values in CardCanvas
+
+STATS DISPLAY FIX
+Stats must be organized like a real football card.
+
+Use:
+Left column:
+- PAC
+- SHO
+- PAS
+
+Right column:
+- DRI
+- DEF
+- PHY
+
+Each row should display:
+value + label
+
+Example:
+89 PAC
+86 SHO
+82 PAS
+
+Do not render stats as one messy horizontal row.
+Do not overlap stats with decorative template lines.
+Stats must be readable on all templates.
+
+If current JSON stat zones are poor:
+- add a centralized normalized stats layout override per layout/template
+- keep changes in renderUtils or config handling
+- avoid random hardcoding inside components
+
+DEFAULT CARD DATA
+Prefer clean default:
+- name: YOUR NAME
+- rating: 99
+- position: POS
+- stats: all 99
+
+Current data can be migrated, but the visible default should feel like a card creator app, not a test sample.
+
+All fields must remain editable.
+
+EDITOR SHEETS
+Use existing sheets if already implemented.
+
+Sheets:
+- Template sheet
+- Photo sheet
+- Info sheet
+- Country/flag sheet if separate
+- Badge sheet
+- Stats sheet
+- Save/export sheet if needed
+
+Only one sheet should exist in the DOM at a time.
+
+PHOTO SHEET
+Must include:
+- Upload / Replace photo
+- Zoom slider
+- Rotate slider
+- Reset position
+- Remove photo
+- Done
+
+INFO SHEET
+Must include:
+- Name
+- Rating
+- Position
+
+COUNTRY / FLAG
+Can be inside Info sheet or a separate sheet.
+Must allow changing country/flag.
+
+BADGE SHEET
+Must include:
+- generic badges rendered with Konva/simple shapes
+- upload custom badge if already implemented
+- no official club logos
+
+STATS SHEET
+Must include:
+- PAC
+- SHO
+- PAS
+- DRI
+- DEF
+- PHY
+- slider/number controls
+- Randomize action if already implemented
+
+EXPORT / SAVE
+Sauvegarder must provide:
+- Download PNG
+- Share PNG if supported
+- fallback if share is unsupported
+
+Export must include:
+- template
+- photo
+- rating
+- position
+- flag/country fallback
+- badge
+- name
+- stats
+
+Export must NOT include:
+- edit hotspots
+- UI controls
+- bottom sheets
+- debug boxes
+- browser/app background
+
+TECHNICAL RULES
+Preserve render order:
+1. background.png
+2. user photo or clean placeholder clipped to photo zone
+3. masked overlay.png
+4. rating / position / flag / badge / name / stats
+5. optional editor hotspots visually above preview but excluded from export
+
+Do not render the original opaque overlay over the photo.
+Use masked overlay only.
+
+Keep card state in logical 1086×1448 coordinates.
+If pointer/drag values come from scaled preview, convert back to logical coordinates.
+Do not break photo drag.
+
+Keep:
+- local autosave
+- template switching
+- download PNG
+- share fallback
+- typecheck/build
+
+FILES LIKELY TO UPDATE
+- app/creator/page.tsx
+- components/cardCreator/CreatorScreen.tsx
+- components/cardCreator/CardCanvas.tsx
+- components/cardCreator/TemplateSelector.tsx
+- components/cardCreator/BottomSheet.tsx
+- components/cardCreator/PhotoEditorSheet.tsx
+- components/cardCreator/InfoEditorSheet.tsx
+- components/cardCreator/BadgeEditorSheet.tsx
+- components/cardCreator/StatsEditorSheet.tsx
+- components/cardCreator/ExportActions.tsx
+- lib/cardCreator/renderUtils.ts
+- lib/cardCreator/creatorState.ts
+
+Create if useful:
+- components/cardCreator/EditHotspots.tsx
+- components/cardCreator/TemplateSheet.tsx
+- components/cardCreator/SaveSheet.tsx
+
+MOBILE TARGET
+Test at 390×844.
+
+The first screen must show:
+- fullscreen editor
+- title “Créateur de cartes FC”
+- central large card
+- edit hotspots
+- Carte button
+- Sauvegarder button
+
+The first screen must not show:
+- Fangirl nav
+- Card Creator Preview
+- Render engine test
+- horizontal template selector
+- debug panel
+
+VALIDATION
+Run:
+npm run typecheck
+npm run build
+
+Manual check:
+Open /creator at 390×844.
+
+FINAL REPORT
+Report:
+1. Files changed
+2. Whether /creator no longer shows old preview UI
+3. Whether Fangirl nav is removed from /creator
+4. Whether template selector is now opened from Carte
+5. Whether edit hotspots are visible
+6. Which hotspot opens which sheet
+7. Whether photo placeholder is redesigned
+8. Whether stats layout is fixed
+9. Whether export excludes hotspots/UI
+10. Whether download/share still works
+11. Whether local autosave still works
+12. Typecheck result
+13. Build result
+14. Mobile screenshot summary at 390×844
+
+Do not claim complete unless /creator visually matches the fullscreen mobile editor direction.

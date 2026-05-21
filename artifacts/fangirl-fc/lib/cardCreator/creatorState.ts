@@ -46,12 +46,12 @@ export const DEFAULT_CARD_STATE: CreatorCardState = {
     naturalHeight: 0,
   },
   player: {
-    name: "LUCAS MOREAU",
-    rating: 91,
-    position: "ST",
+    name: "YOUR NAME",
+    rating: 99,
+    position: "POS",
     countryCode: "FR",
     flagPath: "/flags/fr.svg",
   },
   badge: { type: "generic", id: "shield" },
-  stats: { PAC: 89, SHO: 86, PAS: 82, DRI: 88, DEF: 45, PHY: 84 },
+  stats: { PAC: 99, SHO: 99, PAS: 99, DRI: 99, DEF: 99, PHY: 99 },
 };
