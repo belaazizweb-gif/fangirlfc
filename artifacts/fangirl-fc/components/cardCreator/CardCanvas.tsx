@@ -5,7 +5,7 @@ import { Stage, Layer, Image as KImage, Rect, Text, Circle, Group } from "react-
 import useImage from "use-image";
 import type Konva from "konva";
 import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
-import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H } from "@/lib/cardCreator/renderUtils";
+import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getPortraitBox } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
 import { useMaskedOverlay } from "./useMaskedOverlay";
 import type { CreatorCardState, BadgeState, BadgeId } from "@/lib/cardCreator/creatorState";
@@ -41,47 +41,21 @@ const DEBUG_COLORS: Record<string, string> = {
   stats:    "rgba(255,80,80,0.55)",
 };
 
-// ── Professional player silhouette placeholder ────────────────
-// Inline SVG — no external assets required.
-// Head + neck + shoulders + upper body + arms, transparent background.
-const _SILHOUETTE_SVG = [
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 280">',
-  // Head
-  '<ellipse cx="100" cy="52" rx="38" ry="44" fill="#1a1830"/>',
-  // Neck
-  '<ellipse cx="100" cy="95" rx="18" ry="14" fill="#1a1830"/>',
-  // Torso + shoulders
-  '<path d="M16 152 C26 108 66 98 100 99 C134 98 174 108 184 152 L190 248 Q100 274 10 248 Z" fill="#1a1830"/>',
-  // Left arm
-  '<path d="M16 152 C2 176 0 214 6 234 C11 246 28 242 33 230 C36 210 42 182 52 158 Z" fill="#1a1830"/>',
-  // Right arm
-  '<path d="M184 152 C198 176 200 214 194 234 C189 246 172 242 167 230 C164 210 158 182 148 158 Z" fill="#1a1830"/>',
-  '</svg>',
-].join("");
+// ── Player silhouette — FUT-style portrait placeholder ────────
+// Inline SVG: head (ellipse) + neck (rect) + torso/shoulders (path) + arms (paths).
+// viewBox 400×560 — aspect ratio used for correct silhouette sizing below.
+// No background rectangle; transparent around the player shape.
+const _PLAYER_SILHOUETTE_SVG =
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">` +
+  `<ellipse cx="200" cy="95" rx="62" ry="70" fill="#1a1a2e"/>` +
+  `<rect x="177" y="158" width="46" height="35" fill="#1a1a2e"/>` +
+  `<path d="M200 193L108 230L68 290L58 420L342 420L332 290L292 230Z" fill="#1a1a2e"/>` +
+  `<path d="M108 230L55 240L32 320L50 340L72 280L100 250Z" fill="#1a1a2e"/>` +
+  `<path d="M292 230L345 240L368 320L350 340L328 280L300 250Z" fill="#1a1a2e"/>` +
+  `</svg>`;
 
-const SILHOUETTE_URL = `data:image/svg+xml,${encodeURIComponent(_SILHOUETTE_SVG)}`;
-
-function PlayerSilhouette({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  const [img] = useImage(SILHOUETTE_URL);
-  if (!img) return null;
-  // Render the silhouette centered and filling about 70% of the portrait zone
-  // so it looks like a real FUT card placeholder (not a dev rectangle).
-  const sw = w * 0.70;
-  const sh = sw * (280 / 200); // maintain SVG viewBox aspect ratio
-  const sx = x + (w - sw) / 2;
-  const sy = y + (h - sh) / 2 + h * 0.06; // slightly top-weighted like real cards
-  return (
-    <KImage
-      image={img}
-      x={sx}
-      y={sy}
-      width={sw}
-      height={Math.min(sh, h)}
-      listening={false}
-      opacity={0.80}
-    />
-  );
-}
+// Pre-encoded once at module load — no runtime cost per render.
+const PLAYER_SILHOUETTE = `data:image/svg+xml,${encodeURIComponent(_PLAYER_SILHOUETTE_SVG)}`;
 
 // ── Badge zone — supports generic (emoji) + upload + none ────
 function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
@@ -213,19 +187,27 @@ export default function CardCanvas({
   // Load user photo (data URL — never leaves browser)
   const [photoImg] = useImage(cardState.photo.src || "");
 
+  // Load the FUT-style player silhouette (shown when no photo is uploaded)
+  const [silhouetteImage] = useImage(PLAYER_SILHOUETTE);
+
   // Resolved layout + pixel coordinates
   const layout = resolveLayout(template);
   const style  = template.style;
 
-  const photoX = nX(layout.photo.x);
-  const photoY = nY(layout.photo.y);
-  const photoW = nW(layout.photo.w);
-  const photoH = nH(layout.photo.h);
+  // ── Portrait box — single source of truth for all photo/silhouette geometry
+  // Uses getPortraitBox so future per-template overrides require only one line
+  // in PORTRAIT_OVERRIDES (renderUtils.ts) rather than changes here.
+  const portraitBox = getPortraitBox(layout, template.id);
+  const pX = nX(portraitBox.x);
+  const pY = nY(portraitBox.y);
+  const pW = nW(portraitBox.w);
+  const pH = nH(portraitBox.h);
 
   // ── Masked overlay (Phase 1.5 engine) ───────────────────────
+  // Hole is cut at the portrait box so it always matches the photo/silhouette.
   const maskedOverlay = useMaskedOverlay(
     overlayImage, overlayStatus, template.id,
-    photoX, photoY, photoW, photoH,
+    pX, pY, pW, pH,
   );
 
   const maskedOverlayStatus = maskedOverlay
@@ -300,21 +282,20 @@ export default function CardCanvas({
             <Rect x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} fill="#111122" />
           )}
 
-          {/* b) Photo zone — clipped to exact zone rect */}
-          <Group clipX={photoX} clipY={photoY} clipWidth={photoW} clipHeight={photoH}>
+          {/* b) Portrait layer — clipped to portrait box (getPortraitBox)
+               State 1 (no photo): FUT-style player silhouette
+               State 2 (photo uploaded): user photo, drag/zoom/rotate
+               These are two strictly separate states — never combined.     */}
+          <Group clipX={pX} clipY={pY} clipWidth={pW} clipHeight={pH}>
             {photo.src && photoImg ? (
               /*
-               * User photo — positioned with logical coordinates.
-               * x/y = center of the photo on the canvas (logical).
+               * UPLOADED PHOTO — contained within portrait box.
+               * x/y = center of photo in logical canvas coordinates.
                * offsetX/offsetY = pivot at natural image center.
-               * scaleX/scaleY applied around that center.
+               * scaleX/scaleY rotate around that center pivot.
                *
-               * Drag stores new x/y via onDragEnd — Konva returns
-               * values already in logical (pre-scale) coordinates,
-               * so no manual division is needed.
-               *
-               * TODO: background removal service will provide a transparent
-               * PNG cutout here — replace photo.src with the cutout URL.
+               * TODO: background removal service will replace photo.src
+               * with a transparent PNG cutout (cardState.photo.cutoutSrc).
                */
               <KImage
                 image={photoImg}
@@ -331,7 +312,25 @@ export default function CardCanvas({
                 }}
               />
             ) : (
-              <PlayerSilhouette x={photoX} y={photoY} w={photoW} h={photoH} />
+              // NO PHOTO — render FUT-style player silhouette
+              // SVG aspect ratio: 400 / 560
+              // Silhouette height = portrait height × 0.92, centered both axes
+              silhouetteImage && (() => {
+                const svgAspect = 400 / 560;
+                const silH = pH * 0.92;
+                const silW = silH * svgAspect;
+                return (
+                  <KImage
+                    image={silhouetteImage}
+                    x={pX + (pW - silW) / 2}
+                    y={pY + (pH - silH) / 2}
+                    width={silW}
+                    height={silH}
+                    opacity={0.82}
+                    listening={false}
+                  />
+                );
+              })()
             )}
           </Group>
 
@@ -431,7 +430,7 @@ export default function CardCanvas({
         ═══════════════════════════════════════════════════ */}
         {showDebugBoxes && (
           <Layer>
-            <DebugBox x={photoX}  y={photoY}  w={photoW}  h={photoH}  color={DEBUG_COLORS.photo} />
+            <DebugBox x={pX}  y={pY}  w={pW}  h={pH}  color={DEBUG_COLORS.photo} />
             <DebugBox x={ratingX} y={ratingY} w={ratingW} h={ratingH} color={DEBUG_COLORS.rating} />
             <DebugBox x={posX}    y={posY}    w={posW}    h={posH}    color={DEBUG_COLORS.position} />
             <DebugBox x={flagX}   y={flagY}   w={flagW}   h={flagH}   color={DEBUG_COLORS.flag} />

@@ -1,0 +1,290 @@
+TASK: Fix Photo System — Build FUT Portrait Engine
+
+ROLE
+Act as a senior frontend engineer specialized in mobile football card editors.
+Do not add new features. Fix only the current photo/portrait rendering problem inside /creator.
+
+CONTEXT
+The current /creator photo rendering is visually wrong.
+It still shows a grey circle + grey rectangle / dark rectangular photo placeholder.
+This makes the card look like a web editor, not a real FUT-style card creator.
+
+The goal is NOT to integrate background removal yet.
+The goal is to replace the current rectangular placeholder/photo system with a clean FUT-style portrait engine.
+
+STRICT SCOPE
+Do NOT add background removal API yet.
+Do NOT add new product features.
+Do NOT modify unrelated Fangirl pages.
+Do NOT rebuild the whole creator.
+Do NOT modify template image assets manually.
+Do NOT add player database, club database, squad builder, pack opening, login requirement, ads, payments, or cloud save.
+
+Fix only:
+- photo placeholder
+- portrait area
+- uploaded photo containment
+- render order consistency
+- export correctness
+
+CURRENT PROBLEMS
+1. Current photo placeholder looks like a dev rectangle.
+2. layout.photo is too large / badly placed for a FUT portrait.
+3. Uploaded photo appears as a rectangle and does not feel like a player portrait.
+4. The card does not look like a real football/FUT card.
+5. We need a clean player silhouette like real card creator apps.
+6. The photo/portrait system must be ready for future background-removal cutout PNGs.
+
+REQUIRED ARCHITECTURE
+
+Create a centralized portrait box helper.
+
+In:
+lib/cardCreator/renderUtils.ts
+
+Add:
+
+getPortraitBox(layout, templateId): NormRect
+
+Requirements:
+- return normalized coordinates
+- use the same default portrait box for all templates for now
+- keep templateId as a parameter for future per-template tuning
+- structure the function so future template-specific overrides are easy
+- do NOT hardcode portrait coordinates inside CardCanvas.tsx
+
+Default portrait box:
+x: 0.26
+y: 0.10
+w: 0.48
+h: 0.43
+
+Recommended structure:
+
+type NormRect = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+const DEFAULT_PORTRAIT_BOX: NormRect = {
+  x: 0.26,
+  y: 0.10,
+  w: 0.48,
+  h: 0.43,
+};
+
+const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // Future examples:
+  // gold_elite_2026: { x: 0.25, y: 0.10, w: 0.50, h: 0.44 },
+};
+
+export function getPortraitBox(layout: any, templateId: string): NormRect {
+  return PORTRAIT_OVERRIDES[templateId] ?? DEFAULT_PORTRAIT_BOX;
+}
+
+Important:
+Do not remove the layout parameter from the function signature. Keep it for future compatibility even if it is not used immediately.
+
+PLAYER SILHOUETTE
+
+In:
+components/cardCreator/CardCanvas.tsx
+
+Add this constant after imports:
+
+const PLAYER_SILHOUETTE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNTYwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjU2MCI+CiAgPGVsbGlwc2UgY3g9IjIwMCIgY3k9Ijk1IiByeD0iNjIiIHJ5PSI3MCIgZmlsbD0iIzFhMWEyZSIvPgogIDxyZWN0IHg9IjE3NyIgeT0iMTU4IiB3aWR0aD0iNDYiIGhlaWdodD0iMzUiIGZpbGw9IiMxYTFhMmUiLz4KICA8cGF0aCBkPSJNIDIwMCAxOTMgTCAxMDggMjMwIEwgNjggMjkwIEwgNTggNDIwIEwgMzQyIDQyMCBMIDMzMiAyOTAgTCAyOTIgMjMwIFoiIGZpbGw9IiMxYTFhMmUiLz4KICA8cGF0aCBkPSJNIDEwOCAyMzAgTCA1OCAyOTAgTCA0MiAzODAgTCA4MCAzOTAgTCA5NSAzMTAgTCAxMzUgMjU1IFoiIGZpbGw9IiMxYTFhMmUiLz4KICA8cGF0aCBkPSJNIDI5MiAyMzAgTCAzNDIgMjkwIEwgMzU4IDM4MCBMIDMyMCAzOTAgTCAzMDUgMzEwIEwgMjY1IDI1NSBaIiBmaWxsPSIjMWExYTJlIi8+Cjwvc3ZnPg==";
+
+Load it with useImage:
+
+const [silhouetteImage] = useImage(PLAYER_SILHOUETTE);
+
+REMOVE OLD PLACEHOLDER COMPLETELY
+
+Remove all old no-photo placeholder elements:
+- grey circle placeholder
+- grey rectangle placeholder
+- dark rectangular block
+- transparent Rect used only for placeholder/debug
+- any visible photo-zone rectangle
+
+The no-photo state must no longer display a rectangle.
+
+NEW NO-PHOTO RENDERING
+
+When cardState.photo.src is null:
+
+1. Compute the portrait box:
+   const portraitBox = getPortraitBox(layout, templateId);
+
+2. Convert portraitBox to pixels using existing normalized helpers:
+   pX = nX(portraitBox.x)
+   pY = nY(portraitBox.y)
+   pW = nW(portraitBox.w)
+   pH = nH(portraitBox.h)
+
+3. Render an optional subtle portrait backdrop:
+   - no visible rectangular border
+   - no obvious debug block
+   - low opacity only
+   - it must feel integrated into the card
+   - if it looks like a rectangle, remove it
+
+4. Render PLAYER_SILHOUETTE centered inside portraitBox.
+
+Silhouette sizing:
+- original SVG aspect ratio = 400 / 560
+- silhouette height = portraitBox height × 0.92
+- silhouette width = silhouette height × SVG aspect ratio
+- centered horizontally and vertically
+- opacity between 0.75 and 0.85
+- listening={false}
+
+Example rendering logic:
+
+{!cardState.photo.src && silhouetteImage && (() => {
+  const portraitBox = getPortraitBox(layout, templateId);
+
+  const pX = nX(portraitBox.x);
+  const pY = nY(portraitBox.y);
+  const pW = nW(portraitBox.w);
+  const pH = nH(portraitBox.h);
+
+  const svgAspect = 400 / 560;
+  const silH = pH * 0.92;
+  const silW = silH * svgAspect;
+
+  return (
+    <KonvaImage
+      image={silhouetteImage}
+      x={pX + (pW - silW) / 2}
+      y={pY + (pH - silH) / 2}
+      width={silW}
+      height={silH}
+      opacity={0.82}
+      listening={false}
+    />
+  );
+})()}
+
+Important:
+- Do not render a grey background rectangle.
+- Do not render a visible photo box.
+- Do not cover name/stats.
+- The silhouette must feel like a real football-player placeholder.
+- The camera/edit icon can remain as DOM UI, but it must not be exported.
+
+UPLOADED PHOTO MODE
+
+For now, if user uploads a normal photo:
+- render it contained/clipped inside portraitBox
+- allow drag/zoom/rotate as currently implemented
+- keep photo transforms in logical 1086×1448 coordinate system
+- do not let the photo bleed outside portraitBox
+- do not render a giant rectangle beyond portraitBox
+
+Add a code comment near uploaded photo rendering:
+
+// TODO: background removal service will replace uploaded photo with a transparent PNG cutout.
+
+Do NOT integrate background removal API now.
+
+FUTURE CUTOUT COMPATIBILITY
+
+Prepare the code structure so that later we can support:
+
+cardState.photo.cutoutSrc
+cardState.photo.isCutout
+
+But do not implement the full background removal workflow now unless it is already trivial and does not affect current stability.
+
+RENDER ORDER
+
+Keep this exact order:
+
+1. background/template base
+2. portrait backdrop if no photo and only if it does not look rectangular
+3. portrait layer:
+   - render silhouette if cardState.photo.src is null
+   - render uploaded photo if cardState.photo.src exists
+4. masked overlay/template frame
+5. rating / position / flag / badge / name / stats
+6. DOM edit hotspots excluded from export
+
+Important:
+Do not use the ambiguous phrase “silhouette if no photo OR uploaded photo.”
+These are two separate states:
+- no photo => silhouette
+- photo exists => uploaded photo
+
+STATS
+Do not change stats logic unless necessary.
+Stats should remain FUT-style two columns:
+
+Left:
+PAC
+SHO
+PAS
+
+Right:
+DRI
+DEF
+PHY
+
+Do not let portrait changes cover stats.
+
+EXPORT RULES
+
+Export must include:
+- template
+- silhouette if no photo
+- uploaded photo if photo exists
+- rating
+- position
+- flag/country fallback
+- badge
+- name
+- stats
+
+Export must NOT include:
+- edit hotspots
+- camera/edit icons
+- UI buttons
+- bottom sheets
+- debug elements
+- browser/app background
+
+VALIDATION
+
+Run:
+npm run typecheck
+npm run build
+
+Then test /creator at 390×844.
+
+Manual check:
+1. No grey circle + rectangle placeholder.
+2. No dark photo rectangle.
+3. Clean player silhouette appears.
+4. Silhouette is centered and looks FUT-like.
+5. Name/stats are not covered.
+6. Uploaded photo stays contained in portraitBox.
+7. Export PNG includes silhouette/photo but not edit icons.
+8. Typecheck passes.
+9. Build passes.
+
+FINAL REPORT
+
+Report:
+1. Files changed.
+2. getPortraitBox implementation.
+3. Confirmation templateId parameter is kept for future per-template overrides.
+4. Confirmation old placeholder removed.
+5. Confirmation silhouette is rendered from inline SVG.
+6. Confirmation no visible rectangle remains.
+7. Confirmation uploaded photo is contained in portraitBox.
+8. Confirmation render order uses separate no-photo/photo states.
+9. Confirmation export excludes edit icons/UI.
+10. Typecheck result.
+11. Build result.

@@ -3,6 +3,7 @@ import {
   type CardTemplateDefinition,
   type CardLayoutDefinition,
   type CardTemplateStyle,
+  type NormRect,
 } from "./templateConfig";
 
 // ── Canvas logical dimensions (never changes) ──────────────────
@@ -28,3 +29,33 @@ export function getTemplateColors(template: CardTemplateDefinition): CardTemplat
 // ── Stat key order ─────────────────────────────────────────────
 export const STAT_KEYS = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
+
+// ── Portrait box — centralized per-template override system ────
+//
+// All portrait/silhouette/photo positioning goes through getPortraitBox so
+// that future per-template tuning requires only one entry in PORTRAIT_OVERRIDES
+// rather than changes inside CardCanvas.
+//
+// Coordinates are normalized (0–1) relative to the 1086×1448 canvas.
+
+const DEFAULT_PORTRAIT_BOX: NormRect = {
+  x: 0.26,
+  y: 0.10,
+  w: 0.48,
+  h: 0.43,
+};
+
+const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // Future per-template tuning goes here, e.g.:
+  // gold_elite_2026: { x: 0.25, y: 0.10, w: 0.50, h: 0.44 },
+};
+
+/**
+ * Returns the portrait bounding box for a given template.
+ *
+ * @param layout   - Resolved card layout (kept for future layout-aware logic).
+ * @param templateId - Template identifier; used to look up per-template overrides.
+ */
+export function getPortraitBox(layout: CardLayoutDefinition, templateId: string): NormRect {
+  return PORTRAIT_OVERRIDES[templateId] ?? DEFAULT_PORTRAIT_BOX;
+}
