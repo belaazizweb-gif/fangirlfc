@@ -287,57 +287,56 @@ export default function CardCanvas({
             <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
           )}
 
-          {/* b) Portrait layer — clipped to portrait box (getPortraitBox)
-               State 1 (no photo): FUT-style player silhouette
-               State 2 (photo uploaded): user photo, drag/zoom/rotate
-               These are two strictly separate states — never combined.     */}
-          <Group clipX={pX} clipY={pY} clipWidth={pW} clipHeight={pH}>
-            {photo.src && photoImg ? (
-              /*
-               * UPLOADED PHOTO — contained within portrait box.
-               * x/y = center of photo in logical canvas coordinates.
-               * offsetX/offsetY = pivot at natural image center.
-               * scaleX/scaleY rotate around that center pivot.
-               *
-               * TODO: background removal service will replace photo.src
-               * with a transparent PNG cutout (cardState.photo.cutoutSrc).
-               */
+          {/* b-1) NO PHOTO — player silhouette rendered directly in the Layer.
+               IMPORTANT: do NOT wrap this in a clip Group.
+               A Konva clip Group clears its rectangular region on the canvas
+               before drawing, which punches a black hole through the overlay
+               base drawn in step (a). The silhouette SVG is already
+               transparent everywhere outside the player shape, so no clip
+               is needed — it blends directly over the card artwork.
+               SVG aspect ratio: 400 / 560                                   */}
+          {!photo.src && silhouetteImage && (() => {
+            const svgAspect = 400 / 560;
+            const silH = pH * 1.05;
+            const silW = silH * svgAspect;
+            return (
               <KImage
-                image={photoImg}
-                x={photo.x}
-                y={photo.y}
-                scaleX={photo.scale}
-                scaleY={photo.scale}
-                rotation={photo.rotation}
-                offsetX={photoOffsetX}
-                offsetY={photoOffsetY}
-                draggable
-                onDragEnd={(e) => {
-                  onPhotoDrag?.({ x: e.target.x(), y: e.target.y() });
-                }}
+                image={silhouetteImage}
+                x={pX + (pW - silW) / 2}
+                y={pY + (pH - silH) / 2}
+                width={silW}
+                height={silH}
+                opacity={0.58}
+                listening={false}
               />
-            ) : (
-              // NO PHOTO — render FUT-style player silhouette
-              // SVG aspect ratio: 400 / 560
-              // Silhouette height = portrait height × 0.92, centered both axes
-              silhouetteImage && (() => {
-                const svgAspect = 400 / 560;
-                const silH = pH * 0.92;
-                const silW = silH * svgAspect;
-                return (
-                  <KImage
-                    image={silhouetteImage}
-                    x={pX + (pW - silW) / 2}
-                    y={pY + (pH - silH) / 2}
-                    width={silW}
-                    height={silH}
-                    opacity={0.82}
-                    listening={false}
-                  />
-                );
-              })()
-            )}
-          </Group>
+            );
+          })()}
+
+          {/* b-2) UPLOADED PHOTO — clip Group keeps photo inside portrait box.
+               Clip is correct here because the photo has an opaque background
+               and must not bleed outside the portrait zone.
+               TODO: background removal service will replace photo.src with a
+               transparent PNG cutout (cardState.photo.cutoutSrc).           */}
+          {photo.src && (
+            <Group clipX={pX} clipY={pY} clipWidth={pW} clipHeight={pH}>
+              {photoImg && (
+                <KImage
+                  image={photoImg}
+                  x={photo.x}
+                  y={photo.y}
+                  scaleX={photo.scale}
+                  scaleY={photo.scale}
+                  rotation={photo.rotation}
+                  offsetX={photoOffsetX}
+                  offsetY={photoOffsetY}
+                  draggable
+                  onDragEnd={(e) => {
+                    onPhotoDrag?.({ x: e.target.x(), y: e.target.y() });
+                  }}
+                />
+              )}
+            </Group>
+          )}
 
           {/* c) Masked overlay */}
           {maskedOverlay ? (

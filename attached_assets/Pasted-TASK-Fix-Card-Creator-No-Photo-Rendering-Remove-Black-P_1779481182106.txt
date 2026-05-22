@@ -1,0 +1,333 @@
+TASK: Fix Card Creator No-Photo Rendering — Remove Black Portrait Box Permanently
+
+OBJECTIVE
+Fix the /creator card rendering so the no-photo placeholder looks like the reference app:
+a large player silhouette blended directly into the FUT card artwork, with NO visible rectangular portrait box.
+
+This is a targeted rendering fix only.
+
+DO NOT:
+- do not add background remover
+- do not add new features
+- do not rebuild the editor
+- do not change routes/layouts/navigation
+- do not change template assets on disk
+- do not edit PNG files
+- do not modify template config JSON unless absolutely required
+- do not touch authentication, dashboard, Fangirl routes, or non-creator pages
+- do not hide the bug with a new black/dark background
+- do not add any visible placeholder rectangle
+
+CURRENT STATE
+The previous fix rendered overlay.png as a full unmasked base.
+That improved the card base, but a black rectangle is still visible in the portrait zone.
+
+This means there is still an actual rectangular backdrop being rendered somewhere in the portrait/no-photo layer.
+
+The bug is not fully fixed until the black rectangle is completely gone.
+
+REFERENCE BEHAVIOR
+The reference app shows:
+- no portrait rectangle
+- no black box
+- no grey box
+- no photo placeholder frame
+- a large black/semi-transparent player silhouette
+- silhouette sits directly on top of the card artwork
+- the card artwork remains visible behind/through the silhouette
+- edit hotspots float above the card as UI only
+
+STEP 1 — DIAGNOSE BEFORE EDITING
+Before changing code, inspect the relevant files:
+
+- CardCanvas.tsx
+- renderUtils.ts
+- any silhouette/player placeholder utility/component
+- any canvas wrapper/background styles used by /creator
+
+Search specifically for:
+
+- Rect
+- fill="#000"
+- fill="#111"
+- fill="#070"
+- portrait background
+- placeholder background
+- fallback background
+- checkerboard
+- photo backdrop
+- clipFunc
+- Group around portrait
+- PLAYER_SILHOUETTE
+- data:image/svg
+- backgroundImage
+- transparent checkerboard CSS
+
+You must identify the exact source of the visible black rectangle before modifying.
+
+Likely causes:
+1. A Konva <Rect> inside the portrait/photo placeholder group.
+2. A dark fallback rectangle rendered behind the silhouette.
+3. The silhouette SVG itself contains a <rect> or background fill.
+4. A clipped Group has a background Rect.
+5. The card preview wrapper has a checkerboard/solid background that appears through transparent template zones.
+
+Do not proceed blindly.
+
+STEP 2 — REMOVE THE ACTUAL BLACK RECTANGLE
+In no-photo mode:
+
+There must be NO:
+- portrait backdrop Rect
+- black Rect
+- dark Rect
+- grey Rect
+- placeholder box
+- canvas rectangle inside portraitBox
+- SVG <rect> background
+- CSS background that creates a portrait square
+
+The silhouette must be the only thing rendered in the portrait layer.
+
+If the current silhouette asset/data URL includes a background rectangle, replace it with a transparent SVG or a Konva vector Path.
+
+The silhouette source must contain:
+- transparent background
+- no <rect>
+- only player silhouette shape/path
+- black or near-black fill
+- controlled opacity in Konva or SVG
+
+STEP 3 — LOCK THE CORRECT RENDER ORDER
+Keep the final render order exactly like this:
+
+Layer A — Full card base:
+- render overlay.png full-size, unmasked
+- x = 0
+- y = 0
+- width = CANVAS_WIDTH
+- height = CANVAS_HEIGHT
+- listening={false}
+
+Layer B — Portrait content:
+If no uploaded photo:
+- render ONLY the transparent player silhouette
+- no background
+- no rectangle
+- no placeholder container fill
+- no checkerboard
+- no clipping background
+
+If uploaded photo exists:
+- render uploaded photo
+- allow existing drag / zoom / rotate
+- clip photo to portraitBox
+- no black background behind photo
+- no fallback rectangle behind photo
+
+Layer C — Masked overlay:
+- render overlay.png again
+- same full-size dimensions
+- masked with portrait cutout
+- goes above silhouette/photo
+- should frame the portrait area without creating a visible rectangle
+
+Layer D — Text/content:
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Layer E — DOM hotspots:
+- UI only
+- excluded from export
+
+Do not change this architecture.
+
+STEP 4 — SILHOUETTE REQUIREMENTS
+The current silhouette looks too small and icon-like.
+
+Update the no-photo silhouette to behave like a real FUT placeholder:
+
+Visual requirements:
+- large football-player bust
+- black or near-black
+- opacity between 0.50 and 0.65
+- card artwork must remain visible behind it
+- no visible bounding box
+- no background
+- no rectangle
+- head and shoulders must feel centered in upper card
+- must not cover the name
+- must not cover stats
+
+Sizing logic:
+- use getPortraitBox(layout, templateId)
+- do not hardcode coordinates directly in CardCanvas
+- portraitBox remains the positioning reference only
+
+Suggested default portrait box:
+
+const DEFAULT_PORTRAIT_BOX = {
+  x: 0.18,
+  y: 0.045,
+  w: 0.64,
+  h: 0.56,
+};
+
+Keep this structure:
+
+const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getPortraitBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return PORTRAIT_OVERRIDES[templateId] ?? DEFAULT_PORTRAIT_BOX;
+}
+
+Silhouette placement:
+- silhouette height = portraitBox height * CANVAS_HEIGHT * 1.05
+- preserve aspect ratio
+- center horizontally inside portraitBox
+- y should place the head in the upper-middle of the card
+- silhouette bottom may approach the name area but must not overlap the name
+- listening={false}
+
+IMPORTANT:
+If using SVG data URL:
+- verify the SVG has no <rect>
+- verify no background fill
+- verify viewBox is correct
+- encode safely
+
+If using Konva Path:
+- use a transparent group
+- Path fill only
+- no group background
+- no Rect behind it
+
+STEP 5 — EDITOR BACKGROUND CLEANUP
+Some templates still show checkerboard/white transparent areas in the editor preview.
+
+This must be fixed as editor UI only.
+
+In the editor preview:
+- remove checkerboard background from the canvas wrapper
+- transparent template areas should reveal a premium dark editor background
+- use a dark/green-black radial or subtle gradient background behind the card preview
+- do not include this editor background in PNG export
+
+Do not change the actual exported card composition just to fix editor background.
+
+Export must stay clean:
+- no editor background
+- no UI
+- no hotspots
+- no bottom buttons
+- no browser elements
+
+STEP 6 — HOTSPOT SAFETY
+Do not rebuild hotspots in this task.
+
+Only if the changes are very small and isolated:
+- reduce filled grey button look
+- make hotspots smaller
+- use transparent/dark glass circle
+- white outline
+- white edit icon
+
+If this risks touching too much code, skip hotspot cleanup.
+
+The main priority is rendering correctness.
+
+STEP 7 — UPLOAD PHOTO MUST NOT REGRESS
+After the fix:
+- uploading a photo must still work
+- drag must still work
+- zoom must still work
+- rotate must still work if currently supported
+- photo must stay clipped to portraitBox
+- no black background behind uploaded photo
+- export must include uploaded photo correctly
+
+Do not add background removal yet.
+
+STEP 8 — EXPORT RULES
+Export PNG must include:
+- full overlay base
+- silhouette OR uploaded photo
+- masked overlay
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export PNG must NOT include:
+- editor background
+- hotspots
+- bottom buttons
+- language button
+- browser UI
+- template selector UI
+- debug elements
+
+STEP 9 — REQUIRED VALIDATION
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at mobile viewport 390×844:
+
+No-photo mode:
+1. black portrait rectangle is completely gone
+2. no square/box exists around silhouette
+3. silhouette sits directly over card artwork
+4. card artwork is visible behind/through silhouette
+5. silhouette looks larger and more like a FUT player placeholder
+6. silhouette does not cover name
+7. silhouette does not cover stats
+8. gold template looks correct
+9. silver/transparent template does not show checkerboard in editor preview
+
+Photo mode:
+10. uploaded photo still appears
+11. photo remains clipped to portrait area
+12. no black backdrop behind uploaded photo
+13. drag/zoom/rotate still work
+
+Export:
+14. PNG export excludes hotspots
+15. PNG export excludes editor background
+16. PNG export includes silhouette/photo and card content
+
+Build:
+17. typecheck passes
+18. build passes
+
+STEP 10 — FINAL REPORT REQUIRED
+Report exactly:
+
+1. Files inspected
+2. Exact source of the black rectangle
+3. Files changed
+4. What code was removed or replaced
+5. Confirmation no portrait Rect/backdrop remains in no-photo mode
+6. Confirmation silhouette source has transparent background and no <rect>
+7. Confirmation silhouette size/opacity updated
+8. Confirmation editor checkerboard removed from preview
+9. Confirmation uploaded photo still works
+10. Typecheck result
+11. Build result
+12. Git commit hash after push
+
+IMPORTANT SUCCESS CRITERIA
+This task is successful only if the visible black portrait box is gone.
+Do not mark it fixed if the silhouette still appears inside a rectangle.
