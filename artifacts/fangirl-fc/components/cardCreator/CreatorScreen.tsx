@@ -7,7 +7,7 @@ import type Konva from "konva";
 import { CARD_TEMPLATE_CONFIG, type CardTemplateId } from "@/lib/cardCreator/templateConfig";
 import { type CreatorCardState, DEFAULT_CARD_STATE } from "@/lib/cardCreator/creatorState";
 import { loadCardState, saveCardState, clearCardState } from "@/lib/cardCreator/localStorage";
-import { resolveLayout, nX, nY, nW, nH } from "@/lib/cardCreator/renderUtils";
+import { resolveLayout, nX, nY, nW, nH, getPhotoBox } from "@/lib/cardCreator/renderUtils";
 import { downloadCardPng, shareCardPng } from "@/lib/cardCreator/exportCard";
 import BottomSheet from "./BottomSheet";
 import PhotoEditorSheet from "./PhotoEditorSheet";
@@ -101,18 +101,22 @@ export default function CreatorScreen() {
 
   const handlePhotoSelect = useCallback(
     (src: string, naturalWidth: number, naturalHeight: number) => {
-      const pX = nX(layout.photo.x);
-      const pY = nY(layout.photo.y);
-      const pW = nW(layout.photo.w);
-      const pH = nH(layout.photo.h);
-      const rawScale = Math.max(pW / naturalWidth, pH / naturalHeight);
-      const scale    = Math.min(3, Math.max(0.5, rawScale));
+      const photoBox = getPhotoBox(layout, selectedTemplate.id);
+      const pX = nX(photoBox.x);
+      const pY = nY(photoBox.y);
+      const pW = nW(photoBox.w);
+      const pH = nH(photoBox.h);
+      // Contain scale: image fits inside photo box without cropping.
+      // Multiplied by 0.92 so the initial crop has a small margin —
+      // prevents the photo from filling the full card on first load.
+      const rawScale = Math.min(pW / naturalWidth, pH / naturalHeight) * 0.92;
+      const scale    = Math.min(3, Math.max(0.2, rawScale));
       setCardState((prev) => ({
         ...prev,
         photo: { src, x: pX + pW / 2, y: pY + pH / 2, scale, rotation: 0, naturalWidth, naturalHeight },
       }));
     },
-    [layout],
+    [layout, selectedTemplate.id],
   );
 
   const handleResetConfirm = useCallback(() => {

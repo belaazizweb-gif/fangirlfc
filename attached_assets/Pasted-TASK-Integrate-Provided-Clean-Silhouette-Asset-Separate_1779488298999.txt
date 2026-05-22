@@ -1,0 +1,249 @@
+TASK: Integrate Provided Clean Silhouette Asset + Separate Silhouette Box From Photo Box
+
+CONTEXT
+I am providing a ZIP file that contains the final clean silhouette asset.
+
+Use the provided asset.
+Do NOT search the web.
+Do NOT download any new silhouette.
+Do NOT generate a new silhouette.
+Do NOT use the old Wikimedia silhouette as default.
+Do NOT touch template assets.
+Do NOT touch route/layout/navigation.
+Do NOT touch hotspots.
+Do NOT add background remover.
+Do NOT refactor the editor.
+Do NOT run a full audit.
+
+Current state:
+- black portrait box is fixed
+- card layering works
+- hotspots are acceptable for now
+- current silhouette shape is now closer to the target
+- but silhouette placement is too large/high
+- uploaded photo/selfie can appear too large and does not feel like a FUT card
+
+GOAL
+Use the provided clean transparent silhouette asset and fix the rendering zones:
+
+1. No-photo silhouette:
+   - use the provided silhouette PNG
+   - large FUT-style placeholder
+   - centered
+   - slightly lower than current screenshot
+   - not touching the top crown/frame
+   - not covering the name
+   - not covering stats
+
+2. Uploaded photo:
+   - use a separate smaller photo box
+   - photo must never cover the full card
+   - photo must remain clipped inside the photo box
+   - drag/zoom/rotate must remain working
+   - default selfie fit must be more controlled
+
+FILES FROM ZIP
+Use this file from the uploaded ZIP:
+
+fut_player_silhouette_clean_transparent.png
+
+Copy it to:
+
+public/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png
+
+Do not use:
+- fut_player_silhouette_clean_wrapper.svg
+- old Wikimedia footballer-silhouette.svg
+- previous inline SVG placeholder
+
+EXPECTED ASSET DETAILS
+The clean PNG has:
+- transparent background
+- near-black silhouette
+- dimensions approximately 1046 × 1279
+- ratio approximately 0.817826
+
+Use this ratio:
+
+const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
+
+PART 1 — RENDER UTILS
+
+In lib/cardCreator/renderUtils.ts, create separate boxes.
+
+Add:
+
+export const DEFAULT_SILHOUETTE_BOX: NormRect = {
+  x: 0.07,
+  y: 0.005,
+  w: 0.86,
+  h: 0.64,
+};
+
+export const DEFAULT_PHOTO_BOX: NormRect = {
+  x: 0.18,
+  y: 0.055,
+  w: 0.64,
+  h: 0.50,
+};
+
+export const SILHOUETTE_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export const PHOTO_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getSilhouetteBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return SILHOUETTE_OVERRIDES[templateId] ?? DEFAULT_SILHOUETTE_BOX;
+}
+
+export function getPhotoBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return PHOTO_OVERRIDES[templateId] ?? DEFAULT_PHOTO_BOX;
+}
+
+Keep getPortraitBox only if other code still imports it.
+But CardCanvas must use:
+- getSilhouetteBox for no-photo mode
+- getPhotoBox for uploaded photo mode
+
+PART 2 — SILHOUETTE RENDERING
+
+In components/cardCreator/CardCanvas.tsx:
+
+Replace current no-photo silhouette source with:
+
+const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png";
+const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
+
+No-photo mode rules:
+- render silhouette directly in the Konva Layer
+- no clip Group
+- no Rect behind it
+- no placeholder background
+- no grey box
+- no black box
+
+Sizing:
+- use getSilhouetteBox(layout, templateId)
+- silhouetteBoxWidth = silhouetteBox.w * CANVAS_WIDTH
+- silhouetteBoxHeight = silhouetteBox.h * CANVAS_HEIGHT
+- silhouetteHeight = silhouetteBoxHeight * 0.98
+- silhouetteWidth = silhouetteHeight * CLEAN_SILHOUETTE_RATIO
+- center horizontally inside silhouetteBox
+- vertical position should be slightly lower than current screenshot
+- top of head must not touch the crown/top frame
+- bottom of torso must approach the name band but not overlap it
+
+Opacity:
+- start with opacity = 0.66
+- acceptable range if needed: 0.62 to 0.72
+
+PART 3 — PHOTO MODE
+
+Uploaded photo must use getPhotoBox, not getSilhouetteBox and not the old oversized portrait box.
+
+Photo mode rules:
+- keep existing clipped Group for photo only
+- use getPhotoBox(layout, templateId)
+- no silhouette when photo exists
+- no background Rect behind photo
+- no placeholder background
+- photo must never render outside the photo box
+- drag/zoom/rotate must remain working
+
+Default photo fit:
+When a new photo is uploaded:
+- reset photo x/y/scale/rotation to fit the DEFAULT_PHOTO_BOX
+- center image inside the photo box
+- use a conservative default scale
+- do not zoom the image so much that it fills the full card
+- tall selfie should show face/upper body area inside the photo box
+- user can still manually drag/zoom after upload
+
+Important:
+Without background removal, uploaded selfie will still be rectangular.
+This task only fixes sizing and clipping.
+Do not add background remover.
+
+PART 4 — EXPORT SAFETY
+
+Do not change export function unless absolutely required.
+
+Export must include:
+- card base
+- silhouette OR uploaded photo
+- overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export must exclude:
+- hotspots
+- bottom buttons
+- editor background
+- browser UI
+- debug UI
+
+PART 5 — VALIDATION
+
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at 390 × 844:
+
+No-photo mode:
+1. provided PNG silhouette appears
+2. old Wikimedia silhouette is no longer used
+3. no black box
+4. no grey box
+5. no visible bounding rectangle
+6. silhouette is large but not touching top crown/frame
+7. silhouette does not cover name
+8. silhouette does not cover stats
+9. gold template looks correct
+10. black template looks correct
+
+Photo mode:
+11. upload a selfie
+12. uploaded image stays inside photo box
+13. uploaded image does not cover the full card
+14. uploaded image does not cover name/stats
+15. drag works
+16. zoom works
+17. rotate works if currently supported
+
+Export:
+18. export excludes hotspots/UI
+19. export includes silhouette/photo correctly
+
+Build:
+20. typecheck passes
+21. build passes
+
+FINAL REPORT
+Report only:
+1. files changed
+2. confirmation provided PNG was copied and used
+3. confirmation old Wikimedia silhouette is no longer default
+4. final silhouetteBox values
+5. final photoBox values
+6. final silhouette opacity
+7. confirmation no clip Group in no-photo mode
+8. confirmation photo mode uses clipped Group
+9. confirmation uploaded photo default fit improved
+10. typecheck result
+11. build result
+12. git commit hash

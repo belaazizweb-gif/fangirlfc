@@ -30,13 +30,50 @@ export function getTemplateColors(template: CardTemplateDefinition): CardTemplat
 export const STAT_KEYS = ["PAC", "SHO", "PAS", "DRI", "DEF", "PHY"] as const;
 export type StatKey = (typeof STAT_KEYS)[number];
 
-// ── Portrait box — centralized per-template override system ────
+// ── Silhouette box — no-photo placeholder zone ─────────────────
 //
-// All portrait/silhouette/photo positioning goes through getPortraitBox so
-// that future per-template tuning requires only one entry in PORTRAIT_OVERRIDES
-// rather than changes inside CardCanvas.
-//
+// Larger than the photo box so the full-body silhouette fits comfortably.
 // Coordinates are normalized (0–1) relative to the 1086×1448 canvas.
+
+export const DEFAULT_SILHOUETTE_BOX: NormRect = {
+  x: 0.07,
+  y: 0.005,
+  w: 0.86,
+  h: 0.64,
+};
+
+export const SILHOUETTE_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getSilhouetteBox(layout: CardLayoutDefinition, templateId: string): NormRect {
+  return SILHOUETTE_OVERRIDES[templateId] ?? DEFAULT_SILHOUETTE_BOX;
+}
+
+// ── Photo box — uploaded selfie/photo zone ─────────────────────
+//
+// Smaller than the silhouette box — photo must not cover name/stats.
+// Drag/zoom/rotate stay functional inside this clipped region.
+
+export const DEFAULT_PHOTO_BOX: NormRect = {
+  x: 0.18,
+  y: 0.055,
+  w: 0.64,
+  h: 0.50,
+};
+
+export const PHOTO_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getPhotoBox(layout: CardLayoutDefinition, templateId: string): NormRect {
+  return PHOTO_OVERRIDES[templateId] ?? DEFAULT_PHOTO_BOX;
+}
+
+// ── Portrait box — kept for backward compatibility ─────────────
+//
+// Legacy alias used by any code not yet migrated to the separate
+// getSilhouetteBox / getPhotoBox API above.
 
 const DEFAULT_PORTRAIT_BOX: NormRect = {
   x: 0.08,
@@ -45,17 +82,8 @@ const DEFAULT_PORTRAIT_BOX: NormRect = {
   h: 0.68,
 };
 
-const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {
-  // Future per-template tuning goes here, e.g.:
-  // gold_elite_2026: { x: 0.25, y: 0.10, w: 0.50, h: 0.44 },
-};
+const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {};
 
-/**
- * Returns the portrait bounding box for a given template.
- *
- * @param layout   - Resolved card layout (kept for future layout-aware logic).
- * @param templateId - Template identifier; used to look up per-template overrides.
- */
 export function getPortraitBox(layout: CardLayoutDefinition, templateId: string): NormRect {
   return PORTRAIT_OVERRIDES[templateId] ?? DEFAULT_PORTRAIT_BOX;
 }

@@ -5,7 +5,7 @@ import { Stage, Layer, Image as KImage, Rect, Text, Circle, Group } from "react-
 import useImage from "use-image";
 import type Konva from "konva";
 import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
-import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getPortraitBox } from "@/lib/cardCreator/renderUtils";
+import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getSilhouetteBox, getPhotoBox } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
 import { useMaskedOverlay } from "./useMaskedOverlay";
 import type { CreatorCardState, BadgeState, BadgeId } from "@/lib/cardCreator/creatorState";
@@ -41,20 +41,19 @@ const DEBUG_COLORS: Record<string, string> = {
   stats:    "rgba(255,80,80,0.55)",
 };
 
-// ── Player silhouette — real footballer SVG from Wikimedia Commons ────────
+// ── Player silhouette — provided clean transparent PNG ────────────────────
 //
-// Source:  https://commons.wikimedia.org/wiki/File:Footballer_Silhouette.svg
-// License: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
-// Saved:   public/assets/player-silhouettes/footballer-silhouette.svg
-// Ratio:   400 / 700 (nominal SVG dimensions 400×700)
+// Source:  fut_player_silhouette_clean_transparent.png (provided via ZIP)
+// Format:  RGBA PNG, 1046 × 1279 px, transparent background
+// Ratio:   1046 / 1279 ≈ 0.8178
 //
 // Layer stacking note (CardCanvas Layer 1):
 //   Rendered DIRECTLY in the Layer with NO clip Group — a clip Group would
-//   clear the canvas region to black before drawing, punching a hole through
-//   the overlay.png base beneath it.
-const PLAYER_SILHOUETTE = "/assets/player-silhouettes/footballer-silhouette.svg";
-// Aspect ratio of the downloaded SVG (width / height)
-const FOOTBALLER_SVG_RATIO = 400 / 700;
+//   clear its rectangular region on the canvas before drawing, punching a
+//   black hole through the overlay.png base drawn beneath it.
+const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png";
+// Aspect ratio of the clean silhouette PNG (width / height)
+const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
 
 // ── Badge zone — supports generic (emoji) + upload + none ────
 function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
@@ -193,20 +192,27 @@ export default function CardCanvas({
   const layout = resolveLayout(template);
   const style  = template.style;
 
-  // ── Portrait box — single source of truth for all photo/silhouette geometry
-  // Uses getPortraitBox so future per-template overrides require only one line
-  // in PORTRAIT_OVERRIDES (renderUtils.ts) rather than changes here.
-  const portraitBox = getPortraitBox(layout, template.id);
-  const pX = nX(portraitBox.x);
-  const pY = nY(portraitBox.y);
-  const pW = nW(portraitBox.w);
-  const pH = nH(portraitBox.h);
+  // ── Silhouette box — used when no photo is uploaded ──────────
+  const silhouetteBox = getSilhouetteBox(layout, template.id);
+  const sbX = nX(silhouetteBox.x);
+  const sbY = nY(silhouetteBox.y);
+  const sbW = nW(silhouetteBox.w);
+  const sbH = nH(silhouetteBox.h);
+
+  // ── Photo box — used when a photo is uploaded ─────────────────
+  const photoBox = getPhotoBox(layout, template.id);
+  const pbX = nX(photoBox.x);
+  const pbY = nY(photoBox.y);
+  const pbW = nW(photoBox.w);
+  const pbH = nH(photoBox.h);
 
   // ── Masked overlay (Phase 1.5 engine) ───────────────────────
-  // Hole is cut at the portrait box so it always matches the photo/silhouette.
+  // Hole is cut at the silhouette box (the larger of the two zones) so
+  // both silhouette and uploaded-photo content are fully visible
+  // through the card frame overlay.
   const maskedOverlay = useMaskedOverlay(
     overlayImage, overlayStatus, template.id,
-    pX, pY, pW, pH,
+    sbX, sbY, sbW, sbH,
   );
 
   const maskedOverlayStatus = maskedOverlay
@@ -286,37 +292,42 @@ export default function CardCanvas({
             <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
           )}
 
-          {/* b-1) NO PHOTO — player silhouette rendered directly in the Layer.
+          {/* b-1) NO PHOTO — silhouette rendered directly in the Layer.
                IMPORTANT: do NOT wrap this in a clip Group.
-               A Konva clip Group clears its rectangular region on the canvas
-               before drawing, which punches a black hole through the overlay
-               base drawn in step (a). The silhouette SVG is already
-               transparent everywhere outside the player shape, so no clip
-               is needed — it blends directly over the card artwork.
-               Ratio: FOOTBALLER_SVG_RATIO = 400/700 (Wikimedia asset)      */}
+               A Konva clip Group clears its rectangular region before drawing,
+               which punches a black hole through the overlay base in step (a).
+               The clean PNG has a transparent background, so no clip needed.
+               Asset: fut_player_silhouette_clean_transparent.png
+               Ratio: CLEAN_SILHOUETTE_RATIO = 1046/1279                     */}
           {!photo.src && silhouetteImage && (() => {
-            const silH = pH * 1.08;
-            const silW = silH * FOOTBALLER_SVG_RATIO;
+            const silH = sbH * 0.98;
+            const silW = silH * CLEAN_SILHOUETTE_RATIO;
+            // Push silhouette slightly below box top to prevent
+            // the head from touching the crown/top card frame.
+            const silX = sbX + (sbW - silW) / 2;
+            const silY = sbY + sbH * 0.025;
             return (
               <KImage
                 image={silhouetteImage}
-                x={pX + (pW - silW) / 2}
-                y={pY + (pH - silH) / 2}
+                x={silX}
+                y={silY}
                 width={silW}
                 height={silH}
-                opacity={0.64}
+                opacity={0.66}
                 listening={false}
               />
             );
           })()}
 
-          {/* b-2) UPLOADED PHOTO — clip Group keeps photo inside portrait box.
-               Clip is correct here because the photo has an opaque background
-               and must not bleed outside the portrait zone.
-               TODO: background removal service will replace photo.src with a
-               transparent PNG cutout (cardState.photo.cutoutSrc).           */}
+          {/* b-2) UPLOADED PHOTO — clip Group keeps photo inside photo box.
+               Clip is correct here: photo has an opaque background and must
+               not bleed outside the photo zone.
+               Photo box is smaller than the silhouette box so the photo
+               never covers name or stats.
+               TODO: background removal will replace photo.src with a
+               transparent cutout (cardState.photo.cutoutSrc).               */}
           {photo.src && (
-            <Group clipX={pX} clipY={pY} clipWidth={pW} clipHeight={pH}>
+            <Group clipX={pbX} clipY={pbY} clipWidth={pbW} clipHeight={pbH}>
               {photoImg && (
                 <KImage
                   image={photoImg}
@@ -432,7 +443,8 @@ export default function CardCanvas({
         ═══════════════════════════════════════════════════ */}
         {showDebugBoxes && (
           <Layer>
-            <DebugBox x={pX}  y={pY}  w={pW}  h={pH}  color={DEBUG_COLORS.photo} />
+            <DebugBox x={sbX} y={sbY} w={sbW} h={sbH} color={DEBUG_COLORS.photo} />
+            <DebugBox x={pbX} y={pbY} w={pbW} h={pbH} color={DEBUG_COLORS.photo} />
             <DebugBox x={ratingX} y={ratingY} w={ratingW} h={ratingH} color={DEBUG_COLORS.rating} />
             <DebugBox x={posX}    y={posY}    w={posW}    h={posH}    color={DEBUG_COLORS.position} />
             <DebugBox x={flagX}   y={flagY}   w={flagW}   h={flagH}   color={DEBUG_COLORS.flag} />
