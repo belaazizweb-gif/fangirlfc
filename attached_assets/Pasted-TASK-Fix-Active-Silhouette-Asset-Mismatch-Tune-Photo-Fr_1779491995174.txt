@@ -1,0 +1,290 @@
+TASK: Fix Active Silhouette Asset Mismatch + Tune Photo Framing — No New Features
+
+CONTEXT
+The current screenshots show that the no-photo silhouette is still a full-body/running footballer silhouette.
+This is NOT the provided clean bust silhouette asset.
+
+I uploaded a ZIP with the intended asset:
+fut_player_silhouette_clean_transparent.png
+
+Expected asset:
+- transparent PNG
+- 1046 × 1279
+- ratio 0.817826
+- front athletic bust / upper body
+- no full running legs
+- no old Wikimedia full-body footballer
+- no generic avatar
+
+Current problem:
+Even after integration, the visible card still shows a running/full-body silhouette.
+This means the active rendered asset is wrong, stale, cached, or still referencing the old Wikimedia file somewhere.
+
+This task is NOT a design rebuild.
+This task is to:
+1. prove the active no-photo silhouette source,
+2. replace all active references with the provided PNG,
+3. tune the silhouette position,
+4. improve uploaded photo framing.
+
+DO NOT:
+- do not search the web
+- do not download new assets
+- do not generate new assets
+- do not modify template assets
+- do not touch routes/layout/navigation
+- do not touch hotspots
+- do not add background remover
+- do not refactor the editor
+- do not run a broad unrelated audit
+- do not use the old Wikimedia silhouette
+- do not use the wrapper SVG
+- do not use any inline SVG placeholder
+
+FILES TO TOUCH ONLY IF NEEDED:
+1. components/cardCreator/CardCanvas.tsx
+2. components/cardCreator/CreatorScreen.tsx
+3. lib/cardCreator/renderUtils.ts
+4. public/assets/player-silhouettes/*
+No unrelated files.
+
+PHASE 1 — VERIFY ACTIVE SILHOUETTE SOURCE BEFORE EDITING
+
+Before changing anything, inspect and report:
+
+1. All references to:
+   - footballer-silhouette.svg
+   - fut_player_silhouette_clean_transparent.png
+   - fut_player_silhouette_clean_wrapper.svg
+   - PLAYER_SILHOUETTE
+   - useImage
+   - silhouette
+
+2. Confirm which exact file is currently rendered in CardCanvas no-photo mode.
+
+3. Confirm whether the old Wikimedia file is still referenced anywhere in active code.
+
+4. Confirm whether preview and export use the same CardCanvas / same Konva stage source.
+
+Important:
+If the screenshot shows a running/full-body player, then the intended PNG is NOT actually the active rendered asset.
+Do not proceed to tuning until this mismatch is fixed.
+
+PHASE 2 — FORCE THE CORRECT PROVIDED PNG AS THE ONLY ACTIVE PLACEHOLDER
+
+Use ONLY:
+
+public/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png
+
+Expected dimensions:
+1046 × 1279
+ratio:
+1046 / 1279 = 0.817826
+
+In CardCanvas.tsx, use:
+
+const PLAYER_SILHOUETTE =
+  "/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png?v=2";
+
+const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
+
+Reason for `?v=2`:
+Avoid browser/CDN stale cache while testing the replacement.
+
+Rules:
+- do not use old Wikimedia SVG
+- do not use wrapper SVG
+- do not use inline SVG
+- do not render any other placeholder
+- no clip Group in no-photo mode
+- no Rect behind silhouette
+- no placeholder background
+
+If old Wikimedia asset is still referenced:
+- remove that reference
+- leave file on disk if needed, but active code must not use it
+
+PHASE 3 — SILHOUETTE BOX TUNING
+
+In renderUtils.ts, keep separate boxes.
+
+Use:
+
+export const DEFAULT_SILHOUETTE_BOX: NormRect = {
+  x: 0.10,
+  y: 0.015,
+  w: 0.80,
+  h: 0.58,
+};
+
+export const DEFAULT_PHOTO_BOX: NormRect = {
+  x: 0.22,
+  y: 0.06,
+  w: 0.56,
+  h: 0.40,
+};
+
+Keep override maps:
+
+export const SILHOUETTE_OVERRIDES: Partial<Record<string, NormRect>> = {};
+export const PHOTO_OVERRIDES: Partial<Record<string, NormRect>> = {};
+
+CardCanvas must use:
+- getSilhouetteBox(layout, templateId) for no-photo mode
+- getPhotoBox(layout, templateId) for uploaded photo mode
+
+Do NOT use one shared portrait box for both.
+
+PHASE 4 — SILHOUETTE RENDERING RULES
+
+No-photo mode:
+- use the provided PNG only
+- render directly in Layer
+- no clip Group
+- no Rect
+- no background
+
+Sizing:
+- silhouetteHeight = silhouetteBoxHeight * 0.98
+- silhouetteWidth = silhouetteHeight * CLEAN_SILHOUETTE_RATIO
+- center horizontally inside silhouetteBox
+- y = silhouetteBoxY + silhouetteBoxHeight * 0.02
+
+Visual requirements:
+- head must stay below top crown/frame
+- torso must stop above the name band
+- silhouette must not cover the name
+- silhouette must not cover stats
+- no legs should appear
+- no running pose should appear
+
+Opacity:
+- opacity = 0.62
+
+Acceptable range after visual test:
+0.58 to 0.66
+
+PHASE 5 — PHOTO MODE TUNING
+
+Current uploaded selfie still looks like a giant rectangle pasted on the card.
+
+Do not add background removal yet.
+But reduce the damage by making default photo framing smaller and controlled.
+
+Use getPhotoBox only.
+
+Photo mode:
+- keep clipped Group for uploaded photo only
+- no silhouette when photo exists
+- no Rect behind photo
+- photo must not cover name
+- photo must not cover stats
+- photo must stay inside photoBox
+- drag / zoom / rotate must remain working
+
+In CreatorScreen.tsx handlePhotoSelect:
+- use getPhotoBox layout values
+- initialize photo with contain fit, not cover
+- use contain scale × 0.78
+- center inside photoBox
+- rotation = 0
+
+Important:
+For tall selfies, default should show the face/upper body inside the photo box.
+The user can manually zoom/drag after upload.
+
+PHASE 6 — MASKED OVERLAY SAFETY
+
+Do not break existing layering.
+
+Render order remains:
+1. full card base
+2. silhouette OR uploaded photo
+3. masked overlay/frame
+4. text/content
+5. DOM hotspots outside export
+
+If masked overlay currently uses a portrait cutout:
+- verify it uses the correct box for uploaded photo mode
+- for no-photo mode, do not create a visible clipping rectangle
+- do not reintroduce the old black rectangle bug
+
+PHASE 7 — EXPORT SAFETY
+
+Do not change export function unless absolutely required.
+
+Export must include:
+- card base
+- active provided silhouette OR uploaded photo
+- overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export must exclude:
+- hotspots
+- bottom buttons
+- editor background
+- browser UI
+- debug UI
+
+PHASE 8 — VALIDATION
+
+Run:
+npm run typecheck
+npm run build
+
+Manual validation at 390 × 844:
+
+No-photo:
+1. provided PNG bust appears
+2. old running/full-body silhouette is gone
+3. no legs appear
+4. no Wikimedia silhouette appears
+5. no black box
+6. no grey box
+7. no bounding rectangle
+8. head below crown/frame
+9. torso above name band
+10. name readable
+11. stats readable
+
+Photo:
+12. upload selfie
+13. selfie is smaller than previous screenshot
+14. selfie stays inside upper card area
+15. selfie does not cover name
+16. selfie does not cover stats
+17. drag works
+18. zoom works
+19. rotate works if currently supported
+
+Export:
+20. export uses same active silhouette/photo
+21. export excludes hotspots/UI
+22. export still downloads
+
+Build:
+23. typecheck passes
+24. build passes
+
+FINAL REPORT
+Report only:
+1. all active silhouette references found
+2. exact active silhouette path before fix
+3. exact active silhouette path after fix
+4. confirmation old Wikimedia silhouette is not referenced in active code
+5. confirmation provided PNG is used with cache-busting path
+6. final silhouetteBox values
+7. final photoBox values
+8. final silhouette opacity
+9. final initial photo fit logic
+10. confirmation photo mode uses clipped Group
+11. confirmation no-photo mode uses no clip Group
+12. confirmation export unchanged
+13. typecheck result
+14. build result
+15. git commit hash

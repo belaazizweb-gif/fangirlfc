@@ -109,7 +109,7 @@ export default function CreatorScreen() {
       // Contain scale: image fits inside photo box without cropping.
       // Multiplied by 0.92 so the initial crop has a small margin —
       // prevents the photo from filling the full card on first load.
-      const rawScale = Math.min(pW / naturalWidth, pH / naturalHeight) * 0.92;
+      const rawScale = Math.min(pW / naturalWidth, pH / naturalHeight) * 0.78;
       const scale    = Math.min(3, Math.max(0.2, rawScale));
       setCardState((prev) => ({
         ...prev,

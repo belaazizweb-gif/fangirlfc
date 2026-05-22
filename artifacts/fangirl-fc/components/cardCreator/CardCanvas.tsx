@@ -51,7 +51,7 @@ const DEBUG_COLORS: Record<string, string> = {
 //   Rendered DIRECTLY in the Layer with NO clip Group — a clip Group would
 //   clear its rectangular region on the canvas before drawing, punching a
 //   black hole through the overlay.png base drawn beneath it.
-const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png";
+const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png?v=2";
 // Aspect ratio of the clean silhouette PNG (width / height)
 const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
 
@@ -302,10 +302,9 @@ export default function CardCanvas({
           {!photo.src && silhouetteImage && (() => {
             const silH = sbH * 0.98;
             const silW = silH * CLEAN_SILHOUETTE_RATIO;
-            // Push silhouette slightly below box top to prevent
-            // the head from touching the crown/top card frame.
+            // y offset: 2% of box height keeps head below crown/top frame
             const silX = sbX + (sbW - silW) / 2;
-            const silY = sbY + sbH * 0.025;
+            const silY = sbY + sbH * 0.02;
             return (
               <KImage
                 image={silhouetteImage}
@@ -313,7 +312,7 @@ export default function CardCanvas({
                 y={silY}
                 width={silW}
                 height={silH}
-                opacity={0.66}
+                opacity={0.62}
                 listening={false}
               />
             );
