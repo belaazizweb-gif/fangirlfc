@@ -1,0 +1,236 @@
+TASK: Replace Generic Placeholder With Real Downloaded Footballer SVG Asset
+
+CONTEXT
+The /creator card rendering is now stable:
+- black portrait box is fixed
+- no-photo silhouette renders without clipped Group
+- card layering works
+- upload photo mode works
+- hotspots are improved
+
+But the current no-photo silhouette is still visually bad.
+It looks like a generic avatar, not a football player.
+
+This task is ONLY about replacing the no-photo silhouette with a real footballer SVG asset.
+
+DO NOT:
+- do not run a full template audit
+- do not modify template base logic
+- do not modify overlay/background/source image logic
+- do not touch hotspots
+- do not touch export logic
+- do not change routes/layout/navigation
+- do not add background remover
+- do not refactor the editor
+- do not change photo upload behavior
+- do not modify unrelated files
+
+GOAL
+Download a real footballer silhouette SVG, store it locally, and use it as the no-photo placeholder.
+
+SOURCE
+Use this source:
+
+Wikimedia Commons:
+https://commons.wikimedia.org/wiki/File:Footballer_Silhouette.svg
+
+Use the “Original file” SVG from that page.
+
+Known source details:
+- File name: Footballer Silhouette.svg
+- Original SVG nominal dimensions: 400 × 700 px
+- Ratio: 400 / 700 = 0.5714285714
+- License: CC BY-SA 3.0
+
+IMPORTANT LICENSE NOTE
+Add a small attribution note in a local README or code comment.
+
+Create if missing:
+public/assets/player-silhouettes/README.md
+
+Add:
+Footballer Silhouette.svg
+Source: Wikimedia Commons — File:Footballer_Silhouette.svg
+License: CC BY-SA 3.0
+Temporary development placeholder. Replace with proprietary commercial asset before final production if needed.
+
+DOWNLOAD RULES
+1. Download the original SVG file.
+2. Save it locally as:
+
+public/assets/player-silhouettes/footballer-silhouette.svg
+
+3. Do not rasterize it.
+4. Do not convert it to PNG.
+5. Keep it as SVG.
+
+IF DOWNLOAD FAILS
+Stop.
+Do not invent a new placeholder.
+Do not modify CardCanvas.
+Report that the SVG download failed and ask for manual upload.
+
+SVG INSPECTION
+After download, inspect the SVG.
+
+Confirm:
+- it has a valid viewBox or dimensions
+- transparent background
+- no visible background rectangle
+- no visible bounding box
+- no embedded raster image
+- usable as a silhouette
+
+If the SVG has no viewBox but has width/height 400×700:
+- add a safe viewBox="0 0 400 700"
+- do not distort the path
+- preserve aspect ratio
+
+If the SVG contains unnecessary metadata, keep it unless it breaks rendering.
+Do not aggressively minify if risky.
+
+INTEGRATION
+In CardCanvas.tsx:
+- replace the current generic inline silhouette with the downloaded local SVG asset.
+- keep no-photo mode rendering directly in the Konva Layer.
+- do NOT put the no-photo silhouette inside a Konva clipped Group.
+- do NOT render any Rect behind the silhouette.
+- do NOT add any placeholder background.
+- uploaded photo mode must remain unchanged.
+
+Use the SVG as a local asset URL, for example:
+const PLAYER_SILHOUETTE = "/assets/player-silhouettes/footballer-silhouette.svg";
+
+If the existing useImage setup requires data URL and local SVG path fails:
+- read/encode the local SVG safely using the existing project pattern.
+- prefer the simplest stable approach.
+
+SIZING RULES
+Use the real known ratio:
+
+const FOOTBALLER_SVG_RATIO = 400 / 700;
+
+Do not guess random width/height.
+
+Keep using:
+getPortraitBox(layout, templateId)
+
+Do not hardcode template-specific coordinates inside CardCanvas.
+
+Start with:
+
+const DEFAULT_PORTRAIT_BOX = {
+  x: 0.08,
+  y: 0.00,
+  w: 0.84,
+  h: 0.68,
+};
+
+Only change renderUtils.ts if needed for this exact portrait box adjustment.
+Keep PORTRAIT_OVERRIDES unchanged.
+
+Render sizing:
+- portraitBoxWidth = portraitBox.w * CANVAS_WIDTH
+- portraitBoxHeight = portraitBox.h * CANVAS_HEIGHT
+- silhouetteHeight = portraitBoxHeight * 1.08
+- silhouetteWidth = silhouetteHeight * FOOTBALLER_SVG_RATIO
+- center horizontally inside portraitBox
+- y position should place the footballer head near the upper-middle of the card
+- silhouette bottom may approach the name band
+- must not cover name
+- must not cover stats
+- listening={false}
+
+OPACITY
+The current silhouette is too grey and weak.
+
+Set:
+opacity = 0.64
+
+Acceptable after visual test:
+- minimum 0.58
+- maximum 0.72
+
+The silhouette should look near-black, not pale grey.
+
+IMPORTANT VISUAL TARGET
+The final no-photo placeholder should look like:
+- real football player silhouette
+- not generic avatar
+- not circle head + block torso
+- no box
+- no grey background
+- no clipped rectangle
+- no visible SVG bounds
+- integrated into the card like the reference app
+
+PHOTO MODE SAFETY
+Do not change photo mode.
+
+After the change:
+- uploaded photo still appears
+- drag still works
+- zoom still works
+- rotate still works if currently supported
+- photo remains clipped to portraitBox
+- silhouette is hidden when photo exists
+
+EXPORT SAFETY
+Do not change export logic.
+
+Export PNG must still include:
+- selected card base
+- silhouette OR uploaded photo
+- masked overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export PNG must still exclude:
+- hotspots
+- bottom buttons
+- editor background
+- browser UI
+- debug UI
+
+VALIDATION
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at 390×844:
+
+1. downloaded footballer SVG appears in no-photo mode
+2. silhouette clearly looks like a football player
+3. no generic avatar remains
+4. no black box
+5. no grey box
+6. no visible SVG bounding box
+7. silhouette is near-black and integrated
+8. name remains readable
+9. stats remain readable
+10. photo upload still works
+11. export still excludes hotspots/UI
+12. typecheck passes
+13. build passes
+
+FINAL REPORT
+Report only:
+
+1. SVG source URL used
+2. whether download succeeded
+3. saved file path
+4. license note file added/updated
+5. SVG dimensions/viewBox found
+6. files changed
+7. final portraitBox values
+8. final opacity
+9. confirmation no clip Group is used for no-photo silhouette
+10. confirmation photo mode unchanged
+11. typecheck result
+12. build result
+13. git commit hash

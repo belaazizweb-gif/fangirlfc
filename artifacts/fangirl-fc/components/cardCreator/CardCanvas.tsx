@@ -41,39 +41,20 @@ const DEBUG_COLORS: Record<string, string> = {
   stats:    "rgba(255,80,80,0.55)",
 };
 
-// ── Player silhouette — FUT-style football player bust ────────
+// ── Player silhouette — real footballer SVG from Wikimedia Commons ────────
 //
-// Design rationale:
-//   A real FUT card placeholder shows a wide-shouldered athletic bust,
-//   NOT a round-headed generic account icon. The torso spans ~70% of the
-//   viewBox width (shoulders at x≈52 and x≈348 out of 400) vs the old
-//   icon's 46% (x=108→292). Arms add short sleeve detail.
-//
-// SVG contract:
-//   - viewBox 400×560, no <rect>, no background fill, no bounding box
-//   - transparent everywhere outside the player paths
-//   - single fill colour (#0a0a1a); opacity is controlled by Konva KImage
+// Source:  https://commons.wikimedia.org/wiki/File:Footballer_Silhouette.svg
+// License: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+// Saved:   public/assets/player-silhouettes/footballer-silhouette.svg
+// Ratio:   400 / 700 (nominal SVG dimensions 400×700)
 //
 // Layer stacking note (CardCanvas Layer 1):
-//   This image is rendered DIRECTLY in the Layer (no clip Group) so Konva
-//   never clears the canvas region underneath it.
-const _PLAYER_SILHOUETTE_SVG =
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">` +
-  // Head — larger, athletic proportions (rx=62 ry=72 vs old rx=62 ry=70)
-  `<ellipse cx="200" cy="90" rx="63" ry="74" fill="#0a0a1a"/>` +
-  // Neck — slightly wider than before
-  `<rect x="175" y="155" width="50" height="36" fill="#0a0a1a"/>` +
-  // Torso + wide shoulders — shoulder nodes at (52,228) and (348,228)
-  // giving a span of 296/400 = 74% of viewbox width (old: 46%)
-  `<path d="M176 189L52 228L20 294L16 470L384 470L380 294L348 228L224 189Z" fill="#0a0a1a"/>` +
-  // Left sleeve — creates visible short-sleeve silhouette to left of torso
-  `<path d="M52 228L20 294L-4 320L20 340L44 280L74 254Z" fill="#0a0a1a"/>` +
-  // Right sleeve — mirror
-  `<path d="M348 228L380 294L404 320L380 340L356 280L326 254Z" fill="#0a0a1a"/>` +
-  `</svg>`;
-
-// Pre-encoded once at module load — no runtime cost per render.
-const PLAYER_SILHOUETTE = `data:image/svg+xml,${encodeURIComponent(_PLAYER_SILHOUETTE_SVG)}`;
+//   Rendered DIRECTLY in the Layer with NO clip Group — a clip Group would
+//   clear the canvas region to black before drawing, punching a hole through
+//   the overlay.png base beneath it.
+const PLAYER_SILHOUETTE = "/assets/player-silhouettes/footballer-silhouette.svg";
+// Aspect ratio of the downloaded SVG (width / height)
+const FOOTBALLER_SVG_RATIO = 400 / 700;
 
 // ── Badge zone — supports generic (emoji) + upload + none ────
 function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
@@ -312,11 +293,10 @@ export default function CardCanvas({
                base drawn in step (a). The silhouette SVG is already
                transparent everywhere outside the player shape, so no clip
                is needed — it blends directly over the card artwork.
-               SVG aspect ratio: 400 / 560                                   */}
+               Ratio: FOOTBALLER_SVG_RATIO = 400/700 (Wikimedia asset)      */}
           {!photo.src && silhouetteImage && (() => {
-            const svgAspect = 400 / 560;
-            const silH = pH * 1.05;
-            const silW = silH * svgAspect;
+            const silH = pH * 1.08;
+            const silW = silH * FOOTBALLER_SVG_RATIO;
             return (
               <KImage
                 image={silhouetteImage}
@@ -324,7 +304,7 @@ export default function CardCanvas({
                 y={pY + (pH - silH) / 2}
                 width={silW}
                 height={silH}
-                opacity={0.52}
+                opacity={0.64}
                 listening={false}
               />
             );
