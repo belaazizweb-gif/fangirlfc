@@ -277,7 +277,7 @@ export default function CreatorScreen() {
               >
                 <div
                   className={[
-                    "relative w-full aspect-[1086/1448] rounded-xl overflow-hidden",
+                    "relative w-full aspect-[1086/1448] rounded-xl overflow-hidden bg-[#1a0d2e]",
                     isActive ? "ring-2 ring-pink-500" : "",
                   ].join(" ")}
                 >

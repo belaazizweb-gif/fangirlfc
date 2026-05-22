@@ -34,7 +34,7 @@ export default function TemplateSelector({
               <div
                 className={[
                   "relative rounded-lg overflow-hidden transition-all duration-150",
-                  "w-[60px] h-[80px]",
+                  "w-[60px] h-[80px] bg-[#1a0d2e]",
                   isSelected
                     ? "ring-2 ring-pink-500 ring-offset-1 ring-offset-black scale-105"
                     : "ring-1 ring-white/10 hover:ring-white/30",

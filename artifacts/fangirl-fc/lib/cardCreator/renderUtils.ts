@@ -39,10 +39,10 @@ export type StatKey = (typeof STAT_KEYS)[number];
 // Coordinates are normalized (0–1) relative to the 1086×1448 canvas.
 
 const DEFAULT_PORTRAIT_BOX: NormRect = {
-  x: 0.18,
-  y: 0.045,
-  w: 0.64,
-  h: 0.56,
+  x: 0.10,
+  y: 0.03,
+  w: 0.80,
+  h: 0.62,
 };
 
 const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {

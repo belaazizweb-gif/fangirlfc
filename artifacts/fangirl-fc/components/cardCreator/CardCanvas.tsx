@@ -41,17 +41,35 @@ const DEBUG_COLORS: Record<string, string> = {
   stats:    "rgba(255,80,80,0.55)",
 };
 
-// ── Player silhouette — FUT-style portrait placeholder ────────
-// Inline SVG: head (ellipse) + neck (rect) + torso/shoulders (path) + arms (paths).
-// viewBox 400×560 — aspect ratio used for correct silhouette sizing below.
-// No background rectangle; transparent around the player shape.
+// ── Player silhouette — FUT-style football player bust ────────
+//
+// Design rationale:
+//   A real FUT card placeholder shows a wide-shouldered athletic bust,
+//   NOT a round-headed generic account icon. The torso spans ~70% of the
+//   viewBox width (shoulders at x≈52 and x≈348 out of 400) vs the old
+//   icon's 46% (x=108→292). Arms add short sleeve detail.
+//
+// SVG contract:
+//   - viewBox 400×560, no <rect>, no background fill, no bounding box
+//   - transparent everywhere outside the player paths
+//   - single fill colour (#0a0a1a); opacity is controlled by Konva KImage
+//
+// Layer stacking note (CardCanvas Layer 1):
+//   This image is rendered DIRECTLY in the Layer (no clip Group) so Konva
+//   never clears the canvas region underneath it.
 const _PLAYER_SILHOUETTE_SVG =
   `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">` +
-  `<ellipse cx="200" cy="95" rx="62" ry="70" fill="#1a1a2e"/>` +
-  `<rect x="177" y="158" width="46" height="35" fill="#1a1a2e"/>` +
-  `<path d="M200 193L108 230L68 290L58 420L342 420L332 290L292 230Z" fill="#1a1a2e"/>` +
-  `<path d="M108 230L55 240L32 320L50 340L72 280L100 250Z" fill="#1a1a2e"/>` +
-  `<path d="M292 230L345 240L368 320L350 340L328 280L300 250Z" fill="#1a1a2e"/>` +
+  // Head — larger, athletic proportions (rx=62 ry=72 vs old rx=62 ry=70)
+  `<ellipse cx="200" cy="90" rx="63" ry="74" fill="#0a0a1a"/>` +
+  // Neck — slightly wider than before
+  `<rect x="175" y="155" width="50" height="36" fill="#0a0a1a"/>` +
+  // Torso + wide shoulders — shoulder nodes at (52,228) and (348,228)
+  // giving a span of 296/400 = 74% of viewbox width (old: 46%)
+  `<path d="M176 189L52 228L20 294L16 470L384 470L380 294L348 228L224 189Z" fill="#0a0a1a"/>` +
+  // Left sleeve — creates visible short-sleeve silhouette to left of torso
+  `<path d="M52 228L20 294L-4 320L20 340L44 280L74 254Z" fill="#0a0a1a"/>` +
+  // Right sleeve — mirror
+  `<path d="M348 228L380 294L404 320L380 340L356 280L326 254Z" fill="#0a0a1a"/>` +
   `</svg>`;
 
 // Pre-encoded once at module load — no runtime cost per render.
@@ -306,7 +324,7 @@ export default function CardCanvas({
                 y={pY + (pH - silH) / 2}
                 width={silW}
                 height={silH}
-                opacity={0.58}
+                opacity={0.52}
                 listening={false}
               />
             );

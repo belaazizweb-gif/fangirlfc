@@ -1,0 +1,442 @@
+TASK: /creator Visual Foundation Polish — Asset-Safe FUT Card Rendering
+
+CONTEXT
+The black portrait rectangle bug is fixed.
+Root cause was the no-photo silhouette being rendered inside a clipped Konva Group.
+Current commit fixed it by rendering the silhouette directly without clip.
+
+Current state:
+- No black portrait box anymore.
+- Card renders.
+- Silhouette appears.
+- But visual quality is still prototype-level, not FUT-card-editor level.
+
+Main visible issues:
+1. Silhouette looks like a generic user icon, not a football player.
+2. Some templates show checkerboard/transparent zones in preview.
+3. Hotspots are too heavy and hide card content.
+4. Preview still feels like a web canvas, not a premium mobile editor.
+
+This task is a controlled visual foundation polish.
+Do NOT implement background removal yet.
+
+GLOBAL RULES
+Do NOT:
+- do not add background remover
+- do not add database
+- do not add auth
+- do not add My Cards
+- do not rebuild the editor
+- do not change routes/layouts/navigation
+- do not touch non-creator pages
+- do not manually edit PNG assets
+- do not overwrite template JSON structure unless explicitly required
+- do not break upload photo
+- do not break drag/zoom/rotate
+- do not break PNG export
+- do not include hotspots/editor UI in export
+- do not hide problems by adding random dark rectangles over the card
+
+IMPORTANT PRINCIPLE
+Fix rendering architecture, not symptoms.
+
+Do not blindly replace overlay.png with source.png.
+Do not blindly use background.png.
+Do not assume every template has the same asset structure.
+
+You must inspect the assets and choose a safe render strategy.
+
+PHASE 1 — AUDIT BEFORE EDITING
+
+Before changing code, inspect these files:
+
+- CardCanvas.tsx
+- renderUtils.ts
+- CreatorScreen.tsx
+- templateConfig.ts
+- templates.ts
+- any CSS module/global styles used by /creator
+- card_templates_config_pro_v4.json
+
+Also inspect these template folders:
+
+- gold_elite_2026
+- black_elite_2026
+- silver_chrome_2026
+- gold_crystal_2026
+
+For each folder inspect:
+- source.png
+- background.png
+- overlay.png
+- thumbnail.png
+- config.json
+
+You must determine and report:
+
+For each tested template:
+1. Which file is the flattened full card image?
+2. Which file is only the frame/top overlay?
+3. Which file has transparent areas?
+4. Whether the checkerboard is:
+   a) CSS/editor background,
+   b) baked inside an image file,
+   c) caused by transparent image areas revealing a checkerboard wrapper,
+   d) caused by wrong base asset selection.
+5. Which asset should be used for:
+   - visual base layer
+   - top overlay/masked layer
+
+Do not start code edits until this diagnosis is clear.
+
+PHASE 2 — TEMPLATE BASE RENDERING STRATEGY
+
+Goal:
+The preview must never show checkerboard.
+
+Required render architecture:
+
+Layer A — Card visual base
+- Use the safest full-card visual base for the selected template.
+- This can be source.png, background.png, or overlay.png depending on the audit.
+- The base must make the card look visually complete in preview.
+- Do not use an asset that creates duplicated borders or double overlays.
+- Do not use an asset that leaves transparent checkerboard visible.
+
+Layer B — Portrait content
+- If no uploaded photo: render football-player silhouette only.
+- If uploaded photo exists: render uploaded photo clipped to portraitBox.
+- No black background.
+- No placeholder rectangle.
+- No portrait backdrop.
+
+Layer C — Top overlay / frame
+- Use overlay.png masked with portrait cutout only if needed by current architecture.
+- The overlay should sit above the portrait/photo to wrap the frame correctly.
+- Do not duplicate the full artwork in a way that makes the card too dark or overlaid twice.
+
+Layer D — Text/content
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Layer E — DOM hotspots
+- UI only
+- never exported
+
+Implementation guidance:
+Create a small helper if needed, for example:
+
+getTemplateRenderAssets(template): {
+  baseSrc: string;
+  overlaySrc: string;
+  useMaskedOverlay: boolean;
+}
+
+But keep it simple.
+Avoid a large abstraction if current template structures can be handled with a small safe mapping.
+
+Preferred approach:
+- Use explicit per-template or per-asset metadata inside TypeScript if needed.
+- Do not do expensive pixel transparency analysis at runtime in the browser.
+- If transparency detection is needed, do it only as a dev-time diagnostic script or manual inspection, not runtime-heavy client logic.
+
+If uncertain for a template:
+- do not guess
+- keep current behavior for that template
+- report the uncertainty
+
+PHASE 3 — CHECKERBOARD REMOVAL IN PREVIEW
+
+The user must not see checkerboard in the editor preview.
+
+Find the exact source of checkerboard:
+- CSS background-image?
+- canvas wrapper background?
+- image itself?
+- transparency revealing wrapper?
+- export preview background?
+
+If checkerboard is CSS/editor wrapper:
+- remove it from visible preview
+- replace with premium dark app background
+
+If checkerboard comes from transparent template areas:
+- select the correct full-card base asset
+- or add a controlled card-stage backing only behind the card, not as a visible rectangle over the template
+
+If checkerboard is baked into the PNG asset:
+- do not pretend it is fixed
+- report that the asset itself contains checkerboard
+- do not manually edit the image
+- choose another available asset if it solves the issue safely
+
+Editor preview background requirements:
+- dark premium background
+- subtle radial/green-black gradient acceptable
+- no white square
+- no checkerboard
+- card remains centered and visually premium
+
+Export rule:
+- export must not include editor page background
+- export must include card visual base, silhouette/photo, overlay/frame, and text
+- export must exclude hotspots and UI
+
+PHASE 4 — FOOTBALL PLAYER SILHOUETTE
+
+The current silhouette is unacceptable because it looks like a generic account icon.
+
+Replace it with a football-player bust silhouette.
+
+Strict requirements:
+- transparent SVG background
+- no <rect>
+- no square
+- no background fill
+- no bounding box visible
+- black or near-black fill
+- opacity controlled in Konva, not baked if possible
+- athletic shoulders / upper torso
+- more human player shape
+- not a circular avatar icon
+- not a small generic profile icon
+
+Acceptable implementation:
+- inline SVG data URL with only path/ellipse shapes
+- or Konva Path vector
+
+Do not use:
+- external API
+- remote image URL
+- photo
+- background remover
+- PNG with opaque background
+
+Silhouette visual target:
+- similar concept to reference app
+- large player bust
+- blends into the card artwork
+- card texture remains visible through it
+- does not cover name
+- does not cover stats
+
+Recommended opacity:
+- start at 0.52
+- acceptable range: 0.45 to 0.62
+
+PHASE 5 — SILHOUETTE PLACEMENT
+
+Use getPortraitBox(layout, templateId).
+Do not hardcode placement directly in CardCanvas.
+
+Update default portrait box only if needed:
+
+const DEFAULT_PORTRAIT_BOX = {
+  x: 0.10,
+  y: 0.03,
+  w: 0.80,
+  h: 0.62,
+};
+
+Keep future-proof structure:
+
+const PORTRAIT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getPortraitBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return PORTRAIT_OVERRIDES[templateId] ?? DEFAULT_PORTRAIT_BOX;
+}
+
+Silhouette sizing:
+- silhouette height = portraitBox.h * CANVAS_HEIGHT * 1.05
+- preserve aspect ratio
+- center horizontally inside portraitBox
+- head should sit in upper card area
+- shoulders should be wide enough to feel like a player card
+- bottom can approach name area but must not overlap name band
+- must not overlap stats
+
+If one template needs different placement:
+- use PORTRAIT_OVERRIDES
+- do not add template-specific magic numbers inside CardCanvas
+
+PHASE 6 — PHOTO MODE SAFETY
+
+Photo mode must remain stable.
+
+Rules:
+- uploaded photo still renders
+- uploaded photo remains clipped to portraitBox
+- drag still works
+- zoom still works
+- rotate still works if already implemented
+- no black background behind photo
+- no checkerboard behind photo
+- no silhouette shown when photo exists
+
+Do not add background remover.
+
+PHASE 7 — HOTSPOT POLISH, LIMITED SCOPE
+
+Current hotspots are too large and visually heavy.
+They cover the card content.
+
+Do a limited style/position polish only.
+Do not rewrite the hotspot system.
+
+Requirements:
+- smaller diameter on mobile: 34–40px
+- less opaque fill
+- dark glass effect acceptable
+- white or light outline
+- white edit icon
+- subtle shadow
+- do not cover core text/icons
+
+Positioning:
+- left-side edit buttons should sit slightly outside or on the edge of the card zones, not directly over rating/position/flag/badge
+- camera hotspot should not cover the top frame
+- name hotspot should sit to the right edge of name band, not on top of name
+- stats hotspot should not cover stat values
+- bottom central flag/club/league hotspots should not cover exported content too heavily
+
+Important:
+Hotspots are DOM/UI only.
+They must remain excluded from export.
+
+If hotspot polish requires risky refactor:
+- skip it
+- report why
+- prioritize rendering correctness
+
+PHASE 8 — MOBILE PREVIEW COMPOSITION
+
+Keep the route isolated.
+
+Do not bring back Fangirl navigation.
+
+Improve only creator preview composition if needed:
+- card centered
+- card large but not cropped
+- top title still visible
+- bottom buttons accessible
+- vertical spacing clean
+- no debug artifacts
+- no checkerboard
+- no white transparent square
+- premium dark app background
+
+Do not redesign the whole page.
+
+PHASE 9 — EXPORT CONTRACT
+
+Export PNG must include:
+- selected card visual base
+- silhouette OR uploaded photo
+- top overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export PNG must NOT include:
+- hotspots
+- bottom buttons
+- language button
+- editor background
+- browser UI
+- template selector
+- debug UI
+
+Important:
+If changing base asset selection affects export, verify export manually.
+
+PHASE 10 — VALIDATION
+
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at mobile viewport 390×844.
+
+Gold template:
+1. no black portrait box
+2. no checkerboard
+3. silhouette looks like a football player bust
+4. silhouette blends into card
+5. name readable
+6. stats readable
+7. hotspots do not hide important content
+
+Black template:
+8. no checkerboard visible in preview
+9. card looks visually complete
+10. no white transparent square
+11. silhouette still visible and integrated
+
+Silver template:
+12. no checkerboard visible in preview
+13. card looks visually complete
+14. name/stats remain readable
+
+Photo mode:
+15. upload works
+16. drag works
+17. zoom works
+18. rotate works if currently supported
+19. photo remains clipped correctly
+20. no black background behind photo
+
+Export:
+21. PNG excludes hotspots
+22. PNG excludes editor UI
+23. PNG includes correct card content
+24. PNG does not show checkerboard unless it is baked into the selected image asset, in which case report it clearly
+
+Build:
+25. typecheck passes
+26. build passes
+
+PHASE 11 — FINAL REPORT REQUIRED
+
+Report exactly:
+
+1. Files inspected
+2. Template asset findings:
+   - gold_elite_2026
+   - black_elite_2026
+   - silver_chrome_2026
+   - gold_crystal_2026
+3. Exact source of checkerboard
+4. Files changed
+5. How base asset selection works now
+6. Whether any per-template override was added
+7. Confirmation no black portrait box returned
+8. Confirmation new silhouette has transparent background and no <rect>
+9. Confirmation silhouette placement/opacity updated
+10. Confirmation photo mode still works
+11. Confirmation hotspots remain excluded from export
+12. Confirmation export still works
+13. Typecheck result
+14. Build result
+15. Git commit hash after push
+
+SUCCESS CRITERIA
+This task is successful only if:
+- no black portrait box exists
+- no visible checkerboard appears in preview
+- silhouette looks like a football-player placeholder, not a generic account icon
+- photo upload still works
+- export still excludes UI/hotspots
+- typecheck and build pass

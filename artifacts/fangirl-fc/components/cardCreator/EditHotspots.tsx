@@ -102,20 +102,21 @@ export default function EditHotspots({ layout, onEdit }: Props) {
   return (
     <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
       {hotspots.map((h) => {
-        const dim = h.large ? 44 : 32;
+        // Smaller, less intrusive — 36px for the camera, 28px for text edits
+        const dim = h.large ? 36 : 28;
         return (
           <button
             key={h.key}
             aria-label={`Modifier ${h.key}`}
             onClick={() => onEdit(h.sheet)}
-            className="absolute pointer-events-auto rounded-full bg-black/60 border border-white/30 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform shadow-lg hover:bg-black/75 hover:border-white/50"
+            className="absolute pointer-events-auto rounded-full bg-black/35 border border-white/20 backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform shadow-md hover:bg-black/55 hover:border-white/35"
             style={{
               width: dim,
               height: dim,
               left: `${h.cx * 100}%`,
               top:  `${h.cy * 100}%`,
               transform: "translate(-50%, -50%)",
-              fontSize: h.large ? 18 : 12,
+              fontSize: h.large ? 15 : 10,
               lineHeight: 1,
             }}
           >
