@@ -269,17 +269,22 @@ export default function CardCanvas({
         scaleY={previewScale}
       >
         {/* ═══════════════════════════════════════════════════
-            LAYER 1 — Base card composite
-            a) background.png
-            b) user photo (or placeholder) clipped to photo zone
-            c) masked overlay (hole at photo zone)
+            LAYER 1 — Visual composite (bottom → top)
+            a) overlay.png — full card base, unmasked
+               background.png is NOT used: it may be fully transparent.
+               The unmasked overlay IS the complete card visual.
+            b) Portrait — silhouette (no photo) or uploaded photo
+               Clipped to portraitBox from getPortraitBox().
+            c) overlay.png — same image, but masked with a portrait hole
+               Sits above the portrait so the card frame overlaps
+               the portrait edges, exactly as on real FUT cards.
+               Because (a) already fills the full card, the hole
+               in (c) reveals portrait content, not a black canvas.
         ═══════════════════════════════════════════════════ */}
         <Layer>
-          {/* a) Background */}
-          {bgImage ? (
-            <KImage image={bgImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
-          ) : (
-            <Rect x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} fill="#111122" />
+          {/* a) Full card base — overlay.png unmasked */}
+          {overlayImage && (
+            <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />
           )}
 
           {/* b) Portrait layer — clipped to portrait box (getPortraitBox)
