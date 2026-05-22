@@ -1,0 +1,263 @@
+TASK: Final Numeric Tuning — Silhouette Position + Portrait Photo Framing Only
+
+CONTEXT
+The creator is now stable:
+- provided PNG silhouette is active
+- old Wikimedia silhouette is not used
+- black portrait box is fixed
+- export/download works
+- card rendering works
+- uploaded photo works
+
+Current visual issues from latest screenshots:
+1. No-photo silhouette is too tall and too high:
+   - head touches/overlaps the top crown/frame
+   - torso descends into the name band
+   - name readability is affected
+
+2. Uploaded selfie/photo is still not professional:
+   - the photo appears too large
+   - the photo area feels like a pasted rectangle
+   - current default fit is not enough for a FUT-style card
+   - without background removal it will not be perfect, but the first-load framing must be cleaner
+
+This is a numeric micro-tuning task only.
+
+DO NOT:
+- do not search the web
+- do not download assets
+- do not generate assets
+- do not create/crop new silhouette files
+- do not touch template assets
+- do not touch hotspots
+- do not touch routes/layout/navigation
+- do not add background remover
+- do not refactor the editor
+- do not change export architecture
+- do not run a full audit
+
+FILES TO TOUCH ONLY:
+1. lib/cardCreator/renderUtils.ts
+2. components/cardCreator/CardCanvas.tsx
+3. components/cardCreator/CreatorScreen.tsx
+
+PART 1 — KEEP CURRENT ACTIVE SILHOUETTE ASSET
+
+Keep using exactly:
+
+/assets/player-silhouettes/fut_player_silhouette_clean_transparent.png?v=2
+
+Do not replace the asset.
+Do not use the old Wikimedia SVG.
+Do not use wrapper SVG.
+Do not use inline SVG.
+
+PART 2 — TUNE SILHOUETTE BOX
+
+In renderUtils.ts, update DEFAULT_SILHOUETTE_BOX to:
+
+export const DEFAULT_SILHOUETTE_BOX: NormRect = {
+  x: 0.13,
+  y: 0.045,
+  w: 0.74,
+  h: 0.50,
+};
+
+Reason:
+- moves head below the top crown/frame
+- reduces total height
+- keeps player large enough
+- prevents torso from covering the name band
+
+In CardCanvas.tsx, update silhouette render sizing:
+
+silhouetteHeight = silhouetteBoxHeight * 0.94;
+silhouetteWidth = silhouetteHeight * CLEAN_SILHOUETTE_RATIO;
+
+Keep:
+- CLEAN_SILHOUETTE_RATIO = 1046 / 1279
+- horizontal centering inside silhouetteBox
+- no clip Group
+- no Rect
+- no background
+
+Silhouette opacity:
+set opacity = 0.56
+
+Acceptable range only if visually required:
+0.54 to 0.60
+
+Validation:
+- head below top crown/frame
+- torso above name band
+- name fully readable
+- stats fully readable
+- no bounding box
+
+PART 3 — TUNE PHOTO BOX AS A PORTRAIT AREA, NOT A WIDE RECTANGLE
+
+Important:
+Do NOT use a wide horizontal photoBox.
+A selfie needs a portrait/tall box.
+
+In renderUtils.ts, update DEFAULT_PHOTO_BOX to:
+
+export const DEFAULT_PHOTO_BOX: NormRect = {
+  x: 0.25,
+  y: 0.065,
+  w: 0.50,
+  h: 0.45,
+};
+
+Reason:
+- centered upper-card portrait zone
+- tall enough for face/upper body
+- smaller than current screenshot
+- does not reach the name band
+- does not cover stats
+
+PART 4 — PHOTO INITIAL FIT LOGIC
+
+In CreatorScreen.tsx handlePhotoSelect:
+
+Before changing, inspect the current photo transform model:
+- confirm whether photo.x and photo.y represent center coordinates or top-left coordinates
+- preserve the existing convention
+- do not rewrite the full photo system
+
+Change initial fit to COVER, not CONTAIN.
+
+Use the photoBox dimensions from getPhotoBox(layout, templateId).
+
+Formula:
+
+const scale =
+  Math.max(photoBoxWidth / imageWidth, photoBoxHeight / imageHeight) * 1.02;
+
+Then center image inside the photoBox according to the existing photo coordinate convention.
+
+Set:
+- rotation = 0
+- x/y centered in photoBox
+- scale = computed scale
+
+Reason:
+- cover avoids side bars / empty bars
+- smaller portrait box prevents full-card coverage
+- user can still drag/zoom/rotate manually
+
+Important:
+Do not use contain for initial selfie fit.
+Contain creates visible bars and makes the photo look pasted.
+
+PART 5 — CARD CANVAS BOX USAGE
+
+CardCanvas must use:
+- getSilhouetteBox(layout, templateId) for no-photo silhouette
+- getPhotoBox(layout, templateId) for uploaded photo
+
+Do NOT use one shared portrait box for both.
+
+No-photo mode:
+- render silhouette directly in Layer
+- no clip Group
+- no Rect
+- no placeholder background
+
+Photo mode:
+- keep clipped Group for uploaded photo only
+- use photoBox
+- no silhouette when photo exists
+- no Rect behind photo
+- drag/zoom/rotate preserved
+
+PART 6 — MASKED OVERLAY SAFETY
+
+Keep render order:
+
+1. full card base
+2. silhouette OR uploaded photo
+3. masked overlay/frame
+4. text/content
+5. DOM hotspots outside export
+
+If masked overlay uses a portrait hole:
+- use silhouetteBox when no photo exists
+- use photoBox when uploaded photo exists
+
+Do not reintroduce the old black rectangle bug.
+
+PART 7 — EXPORT SAFETY
+
+Do not change export function.
+
+Export must still include:
+- card base
+- silhouette OR uploaded photo
+- overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export must still exclude:
+- hotspots
+- bottom buttons
+- editor background
+- browser UI
+- debug UI
+
+PART 8 — VALIDATION
+
+Run:
+
+npm run typecheck
+npm run build
+
+Manual mobile validation at 390×844.
+
+No-photo:
+1. silhouette is smaller than previous screenshot
+2. head does not touch top crown/frame
+3. torso stops above name band
+4. name is fully readable
+5. stats are fully readable
+6. no black/grey bounding box
+7. silver template looks correct
+8. gold template looks correct
+
+Photo mode:
+9. uploaded selfie appears smaller than previous screenshot
+10. photo area is portrait/tall, not wide horizontal
+11. photo fills its box without side bars
+12. photo does not cover name
+13. photo does not cover stats
+14. drag works
+15. zoom works
+16. rotate works if currently supported
+
+Export:
+17. export still works
+18. export excludes hotspots/UI
+
+Build:
+19. typecheck passes
+20. build passes
+
+FINAL REPORT
+Report only:
+1. files changed
+2. final silhouetteBox values
+3. final photoBox values
+4. final silhouette opacity
+5. final photo initial fit formula
+6. confirmation photo x/y convention was preserved
+7. confirmation no-photo mode uses no clip Group
+8. confirmation photo mode uses clipped Group
+9. confirmation masked overlay uses the correct active box
+10. confirmation export unchanged
+11. typecheck result
+12. build result
+13. git commit hash

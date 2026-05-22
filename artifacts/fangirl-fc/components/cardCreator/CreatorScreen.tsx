@@ -106,10 +106,10 @@ export default function CreatorScreen() {
       const pY = nY(photoBox.y);
       const pW = nW(photoBox.w);
       const pH = nH(photoBox.h);
-      // Contain scale: image fits inside photo box without cropping.
-      // Multiplied by 0.92 so the initial crop has a small margin —
-      // prevents the photo from filling the full card on first load.
-      const rawScale = Math.min(pW / naturalWidth, pH / naturalHeight) * 0.78;
+      // Cover scale: image fills photo box without side bars.
+      // ×1.02 adds a tiny bleed so there are no visible edges.
+      // Photo box is portrait/tall so a selfie shows face+upper body.
+      const rawScale = Math.max(pW / naturalWidth, pH / naturalHeight) * 1.02;
       const scale    = Math.min(3, Math.max(0.2, rawScale));
       setCardState((prev) => ({
         ...prev,

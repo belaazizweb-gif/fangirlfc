@@ -36,10 +36,10 @@ export type StatKey = (typeof STAT_KEYS)[number];
 // Coordinates are normalized (0–1) relative to the 1086×1448 canvas.
 
 export const DEFAULT_SILHOUETTE_BOX: NormRect = {
-  x: 0.10,
-  y: 0.015,
-  w: 0.80,
-  h: 0.58,
+  x: 0.13,
+  y: 0.045,
+  w: 0.74,
+  h: 0.50,
 };
 
 export const SILHOUETTE_OVERRIDES: Partial<Record<string, NormRect>> = {
@@ -56,10 +56,10 @@ export function getSilhouetteBox(layout: CardLayoutDefinition, templateId: strin
 // Drag/zoom/rotate stay functional inside this clipped region.
 
 export const DEFAULT_PHOTO_BOX: NormRect = {
-  x: 0.22,
-  y: 0.06,
-  w: 0.56,
-  h: 0.40,
+  x: 0.25,
+  y: 0.065,
+  w: 0.50,
+  h: 0.45,
 };
 
 export const PHOTO_OVERRIDES: Partial<Record<string, NormRect>> = {

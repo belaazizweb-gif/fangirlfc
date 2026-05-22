@@ -300,9 +300,8 @@ export default function CardCanvas({
                Asset: fut_player_silhouette_clean_transparent.png
                Ratio: CLEAN_SILHOUETTE_RATIO = 1046/1279                     */}
           {!photo.src && silhouetteImage && (() => {
-            const silH = sbH * 0.98;
+            const silH = sbH * 0.94;
             const silW = silH * CLEAN_SILHOUETTE_RATIO;
-            // y offset: 2% of box height keeps head below crown/top frame
             const silX = sbX + (sbW - silW) / 2;
             const silY = sbY + sbH * 0.02;
             return (
@@ -312,7 +311,7 @@ export default function CardCanvas({
                 y={silY}
                 width={silW}
                 height={silH}
-                opacity={0.62}
+                opacity={0.56}
                 listening={false}
               />
             );
