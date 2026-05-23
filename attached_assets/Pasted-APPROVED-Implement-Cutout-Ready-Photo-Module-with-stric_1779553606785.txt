@@ -1,0 +1,468 @@
+APPROVED — Implement Cutout-Ready Photo Module with strict error prevention
+
+CONTEXT
+Phase 0 read-only diagnostic is complete.
+
+Confirmed current state:
+- CreatorPhotoState currently has:
+  src, x, y, scale, rotation, naturalWidth, naturalHeight
+- photo.x/photo.y are canvas center coordinates
+- Konva offsetX/offsetY handle the image pivot
+- export uses the same Konva Stage
+- hotspots are DOM outside Stage and excluded from export
+- masked overlay is dynamic, but currently CardCanvas always passes silhouetteBox coords
+- old localStorage states do not have cutoutSrc/isCutout
+
+Now implement manual transparent PNG cutout support.
+
+DO NOT:
+- do not add automatic background removal
+- do not call external APIs
+- do not install AI/background-removal libraries
+- do not change template assets
+- do not change routes/layout/navigation
+- do not touch hotspots
+- do not refactor the editor
+- do not change export architecture
+- do not modify unrelated files
+- do not leave debug logs, temporary UI, or console spam
+
+FILES ALLOWED ONLY:
+1. lib/cardCreator/creatorState.ts
+2. lib/cardCreator/localStorage.ts
+3. lib/cardCreator/renderUtils.ts
+4. components/cardCreator/CardCanvas.tsx
+5. components/cardCreator/CreatorScreen.tsx
+
+OBJECTIVE
+Support 3 modes cleanly:
+
+Mode A — no uploaded photo:
+- show default silhouette
+- use getSilhouetteBox
+- no clip Group
+
+Mode B — normal uploaded photo:
+- show src as normal rectangular photo
+- use getPhotoBox
+- keep clipped Group
+
+Mode C — transparent PNG cutout:
+- show cutoutSrc as transparent player/person layer
+- use getCutoutBox
+- render directly in Layer
+- no rectangular clipping
+- no rectangular background
+
+==================================================
+PHASE 1 — STATE EXTENSION
+==================================================
+
+In creatorState.ts, extend CreatorPhotoState:
+
+cutoutSrc?: string | null;
+isCutout?: boolean;
+
+Keep existing fields unchanged:
+src: string | null;
+x: number;
+y: number;
+scale: number;
+rotation: number;
+naturalWidth: number;
+naturalHeight: number;
+
+Update DEFAULT_CARD_STATE.photo with:
+
+cutoutSrc: null,
+isCutout: false,
+
+Important:
+- cutoutSrc and isCutout should remain optional in the interface for backward compatibility
+- do not make old saved data invalid
+- do not remove naturalWidth/naturalHeight
+
+==================================================
+PHASE 2 — LOCALSTORAGE NORMALIZATION
+==================================================
+
+In localStorage.ts, normalize loaded card state after JSON.parse.
+
+Rules:
+- old saved states without cutoutSrc/isCutout must load safely
+- if loaded photo exists, merge defaults without resetting existing values
+- if loaded photo is missing or malformed, fall back safely to DEFAULT_CARD_STATE.photo
+- do not wipe user data
+
+Required behavior:
+
+photo.cutoutSrc defaults to null
+photo.isCutout defaults to false
+
+Use safe logic similar to:
+
+const normalizedPhoto = {
+  ...DEFAULT_CARD_STATE.photo,
+  ...(loaded.photo ?? {}),
+  cutoutSrc: loaded.photo?.cutoutSrc ?? null,
+  isCutout: loaded.photo?.isCutout ?? false,
+};
+
+Make sure src/x/y/scale/rotation/naturalWidth/naturalHeight remain preserved from old saves.
+
+==================================================
+PHASE 3 — CUTOUT BOX
+==================================================
+
+In renderUtils.ts, add:
+
+export const DEFAULT_CUTOUT_BOX: NormRect = {
+  x: 0.13,
+  y: 0.045,
+  w: 0.74,
+  h: 0.50,
+};
+
+export const CUTOUT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getCutoutBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return CUTOUT_OVERRIDES[templateId] ?? DEFAULT_CUTOUT_BOX;
+}
+
+Keep existing:
+- getSilhouetteBox
+- getPhotoBox
+
+Usage:
+- no photo → getSilhouetteBox
+- normal photo → getPhotoBox
+- transparent PNG cutout → getCutoutBox
+
+Do not collapse the three boxes into one.
+
+==================================================
+PHASE 4 — TRANSPARENT PNG DETECTION
+==================================================
+
+In CreatorScreen.tsx, add:
+
+async function detectMeaningfulTransparency(dataUrl: string): Promise<boolean>
+
+Only run it when:
+file.type === "image/png"
+OR
+file.name.toLowerCase().endsWith(".png")
+
+Do not run alpha detection for JPG/WebP.
+
+Detection rules:
+- load the uploaded dataUrl into an Image
+- wait for image load/decode safely
+- draw to temporary canvas
+- downsample so longest side <= 512px
+- inspect alpha channel
+- count pixels where alpha < 250
+- transparentRatio = transparentPixelCount / totalPixelCount
+- return transparentRatio > 0.01
+
+Failure behavior:
+- if image load fails → return false
+- if canvas fails → return false
+- if dimensions are invalid → return false
+- if detection throws → return false
+
+Important:
+- PNG with baked checkerboard but no alpha must return false
+- opaque PNG must return false
+- transparent PNG cutout must return true
+- upload flow must never crash because of detection
+
+No external library.
+
+==================================================
+PHASE 5 — HANDLE PHOTO UPLOAD
+==================================================
+
+In handlePhotoSelect, preserve the existing flow and x/y convention.
+
+Before setting photo state:
+- read file as dataUrl
+- get naturalWidth/naturalHeight from the image
+- detect isTransparentPng only if file is PNG
+- branch by result
+
+Normal photo branch:
+- src = dataUrl
+- cutoutSrc = null
+- isCutout = false
+- use getPhotoBox
+- scale formula:
+
+Math.max(photoBoxWidth / naturalWidth, photoBoxHeight / naturalHeight) * 1.02
+
+- x = photoBox center X
+- y = photoBox center Y
+- rotation = 0
+
+Transparent PNG cutout branch:
+- src = dataUrl
+- cutoutSrc = dataUrl
+- isCutout = true
+- use getCutoutBox
+- scale formula:
+
+Math.min(cutoutBoxWidth / naturalWidth, cutoutBoxHeight / naturalHeight) * 0.98
+
+Important:
+Math.min is intentional for cutout mode.
+Do not “correct” it to Math.max.
+Reason:
+- cutout must fit fully inside the player zone
+- no part of the transparent player should be cropped by initial fit
+- normal photo uses Math.max because it must cover a rectangular photoBox
+- cutout uses Math.min because it must remain fully visible as a player layer
+
+- x = cutoutBox center X
+- y = cutoutBox center Y
+- rotation = 0
+
+Critical reset rule:
+When uploading a normal photo after a cutout, cutoutSrc must become null and isCutout must become false.
+Do not leave stale cutoutSrc active.
+
+==================================================
+PHASE 6 — CARDCANVAS RENDERING MODES
+==================================================
+
+In CardCanvas.tsx, compute:
+
+const isCutoutMode = Boolean(photo.src && photo.isCutout && photo.cutoutSrc);
+const activePhotoSrc = isCutoutMode ? photo.cutoutSrc : photo.src;
+
+Use activePhotoSrc for useImage.
+
+Do not load photo.src directly if cutout mode is active.
+
+Render modes:
+
+Mode A — no photo:
+- condition: !photo.src
+- render default silhouette
+- use getSilhouetteBox
+- render directly in Layer
+- no clip Group
+- no Rect/background
+
+Mode B — normal photo:
+- condition: photo.src && !isCutoutMode
+- render activePhotoSrc/photo.src
+- use getPhotoBox
+- keep clipped Group
+- no silhouette
+- no Rect/background
+
+Mode C — cutout:
+- condition: isCutoutMode
+- render activePhotoSrc/photo.cutoutSrc
+- use getCutoutBox
+- render directly in Layer
+- no clip Group
+- no Rect/background
+- no silhouette
+
+CRITICAL Z-ORDER:
+Within Konva Layer 1, cutout KImage must be placed:
+1. AFTER full card base image
+2. BEFORE masked overlay image
+3. BEFORE text/content layers
+
+It must have the same z-position as normal photo/silhouette.
+
+Do not place cutout above masked overlay.
+Do not place cutout above rating/name/stats.
+Do not place cutout below card base.
+
+==================================================
+PHASE 7 — MASKED OVERLAY ACTIVE BOX
+==================================================
+
+Current diagnostic:
+useMaskedOverlay is dynamic, but CardCanvas always passes silhouetteBox coords.
+
+Fix this.
+
+Compute activeMaskBox:
+
+if (isCutoutMode) {
+  activeMaskBox = cutoutBox;
+} else if (photo.src) {
+  activeMaskBox = photoBox;
+} else {
+  activeMaskBox = silhouetteBox;
+}
+
+Pass activeMaskBox coords to useMaskedOverlay.
+
+Do not leave masked overlay hardcoded to silhouetteBox.
+
+Do not reintroduce the old black rectangle bug.
+
+Important:
+- no-photo and cutout mode must NOT use Konva clip Group
+- normal photo mode keeps the clipped Group
+- masked overlay is the visual frame layer above all three modes
+
+==================================================
+PHASE 8 — DRAG / ZOOM / ROTATE
+==================================================
+
+The same transform state must work for:
+- normal photo
+- transparent PNG cutout
+
+Use existing:
+photo.x
+photo.y
+photo.scale
+photo.rotation
+photo.naturalWidth
+photo.naturalHeight
+
+Do not create separate cutout transform state.
+
+Ensure:
+- cutout KImage is draggable if normal photo is draggable
+- cutout onDragEnd calls the same update handler
+- zoom controls apply to cutout
+- rotate controls apply to cutout
+
+Preserve:
+- x/y are center coordinates
+- offsetX = naturalWidth / 2
+- offsetY = naturalHeight / 2
+
+==================================================
+PHASE 9 — EXPORT SAFETY
+==================================================
+
+Do not change export function unless absolutely required.
+
+Since export uses Konva Stage:
+- anything rendered in CardCanvas should export automatically
+- hotspots remain excluded because they are DOM outside Stage
+
+Export must include:
+- card base
+- default silhouette OR normal photo OR cutout
+- masked overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export must exclude:
+- hotspots
+- bottom buttons
+- upload sheet
+- editor background
+- browser UI
+- debug UI
+
+==================================================
+PHASE 10 — UI COPY ONLY IF SAFE
+==================================================
+
+Only if simple and isolated, update upload text:
+
+"Upload Photo / PNG Cutout"
+
+Optional helper:
+"Use a transparent PNG for best card result."
+
+Skip this if it risks layout changes.
+
+==================================================
+PHASE 11 — REQUIRED VALIDATION
+==================================================
+
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at 390×844.
+
+Normal JPG:
+1. upload JPG selfie
+2. isCutout = false
+3. cutoutSrc = null
+4. image renders in clipped photoBox
+5. photo does not cover name/stats
+6. drag works
+7. zoom works
+8. rotate works if supported
+9. export includes normal photo
+10. export excludes hotspots/UI
+
+Transparent PNG cutout:
+11. upload transparent PNG
+12. isCutout = true
+13. cutoutSrc is set
+14. no rectangular background appears
+15. cutout renders directly in Layer
+16. cutout is after card base and before masked overlay
+17. cutout does not cover name/stats
+18. drag works
+19. zoom works
+20. rotate works if supported
+21. export includes cutout correctly
+22. export excludes hotspots/UI
+
+Opaque PNG:
+23. upload PNG with no alpha
+24. isCutout = false
+25. cutoutSrc = null
+26. renders as normal clipped photo
+
+Regression:
+27. upload cutout PNG, then upload normal JPG
+28. old cutout disappears
+29. normal JPG appears correctly
+30. no stale cutoutSrc remains active
+
+Build:
+31. typecheck passes
+32. build passes
+
+==================================================
+PHASE 12 — FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. photo state changes
+3. localStorage compatibility change
+4. transparency detection method
+5. normal photo fit formula
+6. cutout fit formula
+7. final cutoutBox values
+8. confirmation normal JPG mode works
+9. confirmation transparent PNG cutout mode works
+10. confirmation opaque PNG falls back to normal photo
+11. confirmation uploading normal photo after cutout clears stale cutoutSrc
+12. confirmation drag/zoom/rotate work for both normal photo and cutout
+13. confirmation activePhotoSrc is used for useImage
+14. confirmation active masked overlay box changes by mode
+15. confirmation cutout z-order is after card base and before masked overlay
+16. confirmation export unchanged or exact minimal export change
+17. typecheck result
+18. build result
+19. git commit hash

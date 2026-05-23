@@ -1,13 +1,32 @@
 import type { CreatorCardState } from "./creatorState";
+import { DEFAULT_CARD_STATE } from "./creatorState";
 
 const STORAGE_KEY = "fangirlfc.creator.currentCard";
+
+/**
+ * Backfill cutoutSrc / isCutout on photo objects saved before those fields
+ * existed. Preserves all other existing values (src, x, y, scale, rotation,
+ * naturalWidth, naturalHeight).
+ */
+function normalizeLoadedState(loaded: CreatorCardState): CreatorCardState {
+  return {
+    ...loaded,
+    photo: {
+      ...DEFAULT_CARD_STATE.photo,
+      ...(loaded.photo ?? {}),
+      cutoutSrc: loaded.photo?.cutoutSrc ?? null,
+      isCutout:  loaded.photo?.isCutout  ?? false,
+    },
+  };
+}
 
 export function loadCardState(): CreatorCardState | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as CreatorCardState;
+    const parsed = JSON.parse(raw) as CreatorCardState;
+    return normalizeLoadedState(parsed);
   } catch {
     return null;
   }

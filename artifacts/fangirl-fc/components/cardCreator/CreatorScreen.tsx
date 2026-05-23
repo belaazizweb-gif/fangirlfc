@@ -7,7 +7,7 @@ import type Konva from "konva";
 import { CARD_TEMPLATE_CONFIG, type CardTemplateId } from "@/lib/cardCreator/templateConfig";
 import { type CreatorCardState, DEFAULT_CARD_STATE } from "@/lib/cardCreator/creatorState";
 import { loadCardState, saveCardState, clearCardState } from "@/lib/cardCreator/localStorage";
-import { resolveLayout, nX, nY, nW, nH, getPhotoBox } from "@/lib/cardCreator/renderUtils";
+import { resolveLayout, nX, nY, nW, nH, getPhotoBox, getCutoutBox } from "@/lib/cardCreator/renderUtils";
 import { downloadCardPng, shareCardPng } from "@/lib/cardCreator/exportCard";
 import BottomSheet from "./BottomSheet";
 import PhotoEditorSheet from "./PhotoEditorSheet";
@@ -16,6 +16,49 @@ import BadgeEditorSheet from "./BadgeEditorSheet";
 import StatsEditorSheet from "./StatsEditorSheet";
 import EditHotspots from "./EditHotspots";
 import type { LoadStatus } from "./CardCanvas";
+
+// ── Transparent PNG detection ────────────────────────────────────────────────
+//
+// Loads the image into a temporary offscreen canvas and inspects the alpha
+// channel. Returns true only when meaningfully transparent pixels are found.
+// Any failure (bad URL, canvas unavailable, cross-origin) returns false so the
+// upload flow never crashes.
+async function detectMeaningfulTransparency(dataUrl: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    try {
+      const img = new window.Image();
+      img.onload = () => {
+        try {
+          if (!img.naturalWidth || !img.naturalHeight) { resolve(false); return; }
+          // Downsample to max 512px on the longest side for performance
+          const maxSide = 512;
+          const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+          const dw = Math.max(1, Math.round(img.naturalWidth  * scale));
+          const dh = Math.max(1, Math.round(img.naturalHeight * scale));
+          const canvas = document.createElement("canvas");
+          canvas.width  = dw;
+          canvas.height = dh;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) { resolve(false); return; }
+          ctx.drawImage(img, 0, 0, dw, dh);
+          const { data } = ctx.getImageData(0, 0, dw, dh); // RGBA
+          const totalPixels = dw * dh;
+          let transparentCount = 0;
+          for (let i = 3; i < data.length; i += 4) {
+            if (data[i] < 250) transparentCount++;
+          }
+          resolve(transparentCount / totalPixels > 0.01);
+        } catch {
+          resolve(false);
+        }
+      };
+      img.onerror = () => resolve(false);
+      img.src = dataUrl;
+    } catch {
+      resolve(false);
+    }
+  });
+}
 
 // Konva/canvas is browser-only
 const CardCanvas = dynamic(() => import("./CardCanvas"), {
@@ -100,21 +143,62 @@ export default function CreatorScreen() {
   }, []);
 
   const handlePhotoSelect = useCallback(
-    (src: string, naturalWidth: number, naturalHeight: number) => {
-      const photoBox = getPhotoBox(layout, selectedTemplate.id);
-      const pX = nX(photoBox.x);
-      const pY = nY(photoBox.y);
-      const pW = nW(photoBox.w);
-      const pH = nH(photoBox.h);
-      // Cover scale: image fills photo box without side bars.
-      // ×1.02 adds a tiny bleed so there are no visible edges.
-      // Photo box is portrait/tall so a selfie shows face+upper body.
-      const rawScale = Math.max(pW / naturalWidth, pH / naturalHeight) * 1.02;
-      const scale    = Math.min(3, Math.max(0.2, rawScale));
-      setCardState((prev) => ({
-        ...prev,
-        photo: { src, x: pX + pW / 2, y: pY + pH / 2, scale, rotation: 0, naturalWidth, naturalHeight },
-      }));
+    async (src: string, naturalWidth: number, naturalHeight: number) => {
+      // Detect PNG transparency only for PNG data URLs.
+      const isPng = src.startsWith("data:image/png");
+      const isCutout = isPng && await detectMeaningfulTransparency(src);
+
+      if (isCutout) {
+        // ── Mode C: transparent PNG cutout ──────────────────────────
+        // Use the player-sized cutout box; Math.min so the cutout is never
+        // cropped — user can zoom/drag in after upload.
+        const box = getCutoutBox(layout, selectedTemplate.id);
+        const cX = nX(box.x);
+        const cY = nY(box.y);
+        const cW = nW(box.w);
+        const cH = nH(box.h);
+        const rawScale = Math.min(cW / naturalWidth, cH / naturalHeight) * 0.98;
+        const scale = Math.min(3, Math.max(0.1, rawScale));
+        setCardState((prev) => ({
+          ...prev,
+          photo: {
+            src,
+            cutoutSrc: src,
+            isCutout: true,
+            x: cX + cW / 2,
+            y: cY + cH / 2,
+            scale,
+            rotation: 0,
+            naturalWidth,
+            naturalHeight,
+          },
+        }));
+      } else {
+        // ── Mode B: normal opaque photo ─────────────────────────────
+        // Cover scale fills the photo box edge-to-edge; ×1.02 adds bleed.
+        // Stale cutoutSrc must be cleared so Mode C never lingers.
+        const box = getPhotoBox(layout, selectedTemplate.id);
+        const pX = nX(box.x);
+        const pY = nY(box.y);
+        const pW = nW(box.w);
+        const pH = nH(box.h);
+        const rawScale = Math.max(pW / naturalWidth, pH / naturalHeight) * 1.02;
+        const scale = Math.min(3, Math.max(0.2, rawScale));
+        setCardState((prev) => ({
+          ...prev,
+          photo: {
+            src,
+            cutoutSrc: null,
+            isCutout: false,
+            x: pX + pW / 2,
+            y: pY + pH / 2,
+            scale,
+            rotation: 0,
+            naturalWidth,
+            naturalHeight,
+          },
+        }));
+      }
     },
     [layout, selectedTemplate.id],
   );

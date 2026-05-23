@@ -10,6 +10,10 @@ export type BadgeState =
 
 export interface CreatorPhotoState {
   src: string | null;
+  /** Data URL of the transparent PNG cutout. Null for normal photos. */
+  cutoutSrc?: string | null;
+  /** True when the uploaded PNG had meaningful alpha transparency. */
+  isCutout?: boolean;
   x: number;
   y: number;
   scale: number;
@@ -38,6 +42,8 @@ export const DEFAULT_CARD_STATE: CreatorCardState = {
   templateId: "gold_elite_2026",
   photo: {
     src: null,
+    cutoutSrc: null,
+    isCutout: false,
     x: 0,
     y: 0,
     scale: 1,

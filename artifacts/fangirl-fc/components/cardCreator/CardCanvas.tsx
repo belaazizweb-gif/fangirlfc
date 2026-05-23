@@ -5,7 +5,7 @@ import { Stage, Layer, Image as KImage, Rect, Text, Circle, Group } from "react-
 import useImage from "use-image";
 import type Konva from "konva";
 import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
-import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getSilhouetteBox, getPhotoBox } from "@/lib/cardCreator/renderUtils";
+import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getSilhouetteBox, getPhotoBox, getCutoutBox } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
 import { useMaskedOverlay } from "./useMaskedOverlay";
 import type { CreatorCardState, BadgeState, BadgeId } from "@/lib/cardCreator/creatorState";
@@ -182,8 +182,17 @@ export default function CardCanvas({
   const [bgImage,      bgStatus]      = useImage(template.assets.background, "anonymous");
   const [overlayImage, overlayStatus] = useImage(template.assets.overlay,    "anonymous");
 
+  // Determine active render mode before loading images so useImage always
+  // receives a stable, correct URL on every render.
+  const isCutoutMode = Boolean(
+    cardState.photo.src && cardState.photo.isCutout && cardState.photo.cutoutSrc,
+  );
+  const activePhotoSrc = isCutoutMode
+    ? (cardState.photo.cutoutSrc ?? "")
+    : (cardState.photo.src ?? "");
+
   // Load user photo (data URL — never leaves browser)
-  const [photoImg] = useImage(cardState.photo.src || "");
+  const [photoImg] = useImage(activePhotoSrc);
 
   // Load the FUT-style player silhouette (shown when no photo is uploaded)
   const [silhouetteImage] = useImage(PLAYER_SILHOUETTE);
@@ -199,20 +208,34 @@ export default function CardCanvas({
   const sbW = nW(silhouetteBox.w);
   const sbH = nH(silhouetteBox.h);
 
-  // ── Photo box — used when a photo is uploaded ─────────────────
+  // ── Photo box — normal opaque uploaded photo ──────────────────
   const photoBox = getPhotoBox(layout, template.id);
   const pbX = nX(photoBox.x);
   const pbY = nY(photoBox.y);
   const pbW = nW(photoBox.w);
   const pbH = nH(photoBox.h);
 
+  // ── Cutout box — transparent PNG player layer ──────────────────
+  const cutoutBox = getCutoutBox(layout, template.id);
+  const cbX = nX(cutoutBox.x);
+  const cbY = nY(cutoutBox.y);
+  const cbW = nW(cutoutBox.w);
+  const cbH = nH(cutoutBox.h);
+
+  // ── Active mask box — switches per mode ───────────────────────
+  // The masked overlay hole must match whichever content is in the player zone.
+  // cutout mode → cutoutBox  |  normal photo → photoBox  |  no photo → silhouetteBox
+  const activeMaskX = isCutoutMode ? cbX : (cardState.photo.src ? pbX : sbX);
+  const activeMaskY = isCutoutMode ? cbY : (cardState.photo.src ? pbY : sbY);
+  const activeMaskW = isCutoutMode ? cbW : (cardState.photo.src ? pbW : sbW);
+  const activeMaskH = isCutoutMode ? cbH : (cardState.photo.src ? pbH : sbH);
+
   // ── Masked overlay (Phase 1.5 engine) ───────────────────────
-  // Hole is cut at the silhouette box (the larger of the two zones) so
-  // both silhouette and uploaded-photo content are fully visible
-  // through the card frame overlay.
+  // Hole is cut at the active player box so the card frame overlaps
+  // the correct zone for every render mode.
   const maskedOverlay = useMaskedOverlay(
     overlayImage, overlayStatus, template.id,
-    sbX, sbY, sbW, sbH,
+    activeMaskX, activeMaskY, activeMaskW, activeMaskH,
   );
 
   const maskedOverlayStatus = maskedOverlay
@@ -317,14 +340,11 @@ export default function CardCanvas({
             );
           })()}
 
-          {/* b-2) UPLOADED PHOTO — clip Group keeps photo inside photo box.
-               Clip is correct here: photo has an opaque background and must
-               not bleed outside the photo zone.
-               Photo box is smaller than the silhouette box so the photo
-               never covers name or stats.
-               TODO: background removal will replace photo.src with a
-               transparent cutout (cardState.photo.cutoutSrc).               */}
-          {photo.src && (
+          {/* b-2) NORMAL PHOTO (Mode B) — clip Group prevents bleeding.
+               Clip is correct here: opaque rectangular photo must not bleed
+               outside the photo zone. Photo box is smaller so photo never
+               covers name or stats.                                         */}
+          {photo.src && !isCutoutMode && (
             <Group clipX={pbX} clipY={pbY} clipWidth={pbW} clipHeight={pbH}>
               {photoImg && (
                 <KImage
@@ -343,6 +363,28 @@ export default function CardCanvas({
                 />
               )}
             </Group>
+          )}
+
+          {/* b-3) TRANSPARENT PNG CUTOUT (Mode C) — render directly in Layer.
+               NO clip Group — the PNG transparency does the masking.
+               Placed at the same z-position as normal photo / silhouette:
+               AFTER card base, BEFORE masked overlay, BEFORE text layers.
+               Drag/zoom/rotate use the same photo state as Mode B.          */}
+          {isCutoutMode && photoImg && (
+            <KImage
+              image={photoImg}
+              x={photo.x}
+              y={photo.y}
+              scaleX={photo.scale}
+              scaleY={photo.scale}
+              rotation={photo.rotation}
+              offsetX={photoOffsetX}
+              offsetY={photoOffsetY}
+              draggable
+              onDragEnd={(e) => {
+                onPhotoDrag?.({ x: e.target.x(), y: e.target.y() });
+              }}
+            />
           )}
 
           {/* c) Masked overlay */}

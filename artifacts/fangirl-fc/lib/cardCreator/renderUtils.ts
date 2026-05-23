@@ -32,7 +32,7 @@ export type StatKey = (typeof STAT_KEYS)[number];
 
 // ── Silhouette box — no-photo placeholder zone ─────────────────
 //
-// Larger than the photo box so the full-body silhouette fits comfortably.
+// Used when no photo has been uploaded.
 // Coordinates are normalized (0–1) relative to the 1086×1448 canvas.
 
 export const DEFAULT_SILHOUETTE_BOX: NormRect = {
@@ -50,10 +50,10 @@ export function getSilhouetteBox(layout: CardLayoutDefinition, templateId: strin
   return SILHOUETTE_OVERRIDES[templateId] ?? DEFAULT_SILHOUETTE_BOX;
 }
 
-// ── Photo box — uploaded selfie/photo zone ─────────────────────
+// ── Photo box — normal (opaque) uploaded photo zone ────────────
 //
-// Smaller than the silhouette box — photo must not cover name/stats.
-// Drag/zoom/rotate stay functional inside this clipped region.
+// Smaller portrait box for rectangular selfies.
+// Clipped with a Konva Group to prevent bleeding outside the zone.
 
 export const DEFAULT_PHOTO_BOX: NormRect = {
   x: 0.25,
@@ -70,10 +70,31 @@ export function getPhotoBox(layout: CardLayoutDefinition, templateId: string): N
   return PHOTO_OVERRIDES[templateId] ?? DEFAULT_PHOTO_BOX;
 }
 
+// ── Cutout box — transparent PNG player cutout zone ────────────
+//
+// Player-sized zone used when the uploaded PNG has meaningful alpha
+// transparency. Matches the silhouette zone so the cutout replaces
+// the placeholder naturally.
+// No rectangular clip Group — the PNG transparency does the masking.
+
+export const DEFAULT_CUTOUT_BOX: NormRect = {
+  x: 0.13,
+  y: 0.045,
+  w: 0.74,
+  h: 0.50,
+};
+
+export const CUTOUT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getCutoutBox(layout: CardLayoutDefinition, templateId: string): NormRect {
+  return CUTOUT_OVERRIDES[templateId] ?? DEFAULT_CUTOUT_BOX;
+}
+
 // ── Portrait box — kept for backward compatibility ─────────────
 //
-// Legacy alias used by any code not yet migrated to the separate
-// getSilhouetteBox / getPhotoBox API above.
+// Legacy alias. Prefer getSilhouetteBox / getPhotoBox / getCutoutBox.
 
 const DEFAULT_PORTRAIT_BOX: NormRect = {
   x: 0.08,
