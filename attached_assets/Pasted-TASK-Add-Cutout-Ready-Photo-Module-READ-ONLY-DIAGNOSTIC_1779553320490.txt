@@ -1,0 +1,453 @@
+TASK: Add Cutout-Ready Photo Module — READ-ONLY DIAGNOSTIC FIRST, then wait for approval
+
+CONTEXT
+The card creator is now stable:
+- silhouette works
+- normal photo upload works
+- drag / zoom / rotate work
+- export/download works
+- card rendering/layering works
+- black portrait box bug is fixed
+
+Current limitation:
+A normal selfie/photo still appears as a rectangular image pasted onto the card.
+This cannot look like a real FUT-style card without transparent cutout support.
+
+Goal:
+Add cutout-ready support later, but FIRST perform a read-only diagnostic and wait for approval before editing code.
+
+DO NOT CODE YET.
+DO NOT MODIFY FILES YET.
+DO NOT RUN FIXES YET.
+
+FIRST STEP MUST BE READ-ONLY ONLY.
+
+DO NOT:
+- do not add automatic background removal
+- do not call external APIs
+- do not install AI/background-removal libraries
+- do not change template assets
+- do not touch routes/layout/navigation
+- do not touch hotspots
+- do not rebuild the editor
+- do not change export architecture
+- do not break local autosave/backward compatibility
+- do not modify unrelated files
+
+FILES TO INSPECT FIRST:
+1. components/cardCreator/CardCanvas.tsx
+2. components/cardCreator/CreatorScreen.tsx
+3. lib/cardCreator/renderUtils.ts
+4. any cardCreator type/state file if photo state is defined elsewhere
+
+PHASE 0 — READ-ONLY DIAGNOSTIC BEFORE TOUCHING CODE
+
+Before editing anything, read the files completely and report:
+
+1. Current photo state shape:
+   - src
+   - x
+   - y
+   - scale
+   - rotation
+   - any existing extra fields
+   - where the photo type/interface is defined
+
+2. Current photo transform convention:
+   - confirm whether photo.x / photo.y are center coordinates or top-left coordinates
+   - confirm how Konva offsetX / offsetY is used
+   - confirm how drag/zoom/rotate currently update state
+
+3. Current render order inside CardCanvas:
+   - card base image
+   - silhouette/photo
+   - masked overlay
+   - text/content
+   - debug/hotspots if any
+
+4. Current z-order:
+   - confirm where normal photo is inserted
+   - confirm where silhouette is inserted
+   - confirm where masked overlay is inserted
+
+5. Current masked overlay hole:
+   - confirm whether the masked overlay hole is dynamic or hardcoded
+   - confirm which box it currently uses
+   - confirm whether it can safely switch by mode:
+     a) silhouetteBox for no-photo mode
+     b) photoBox for normal photo mode
+     c) cutoutBox for transparent PNG cutout mode
+
+6. Current export behavior:
+   - confirm whether export uses the same Konva Stage
+   - confirm whether anything in CardCanvas automatically appears in export
+   - confirm hotspots/UI are outside export
+
+7. Current localStorage/autosave behavior:
+   - confirm where card state is saved
+   - confirm how old saved photo state would load
+   - identify what backward compatibility changes are needed for cutoutSrc/isCutout
+
+STOP AFTER THIS REPORT.
+Do not edit code until I approve the plan.
+
+PHASE 0 REPORT REQUIRED
+
+Report exactly:
+
+1. Files inspected
+2. Current photo state shape
+3. Current photo x/y convention
+4. Current render order
+5. Current z-order for silhouette/photo/masked overlay
+6. Current masked overlay hole logic: dynamic or hardcoded
+7. Current export mechanism
+8. Current autosave/localStorage compatibility risk
+9. Exact minimal files that would need changes
+10. Implementation plan, without coding
+
+Then wait for approval.
+
+====================================================================
+ONLY AFTER I APPROVE, IMPLEMENT THE FOLLOWING PLAN
+====================================================================
+
+PHASE 1 — PHOTO STATE EXTENSION WITH BACKWARD COMPATIBILITY
+
+Extend photo state shape to support cutout:
+
+photo: {
+  src: string | null;
+  cutoutSrc?: string | null;
+  isCutout?: boolean;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+}
+
+Backward compatibility rules:
+- existing saved states without cutoutSrc/isCutout must still load
+- default isCutout = false
+- default cutoutSrc = null
+- do not reset existing user card data unnecessarily
+- do not break localStorage/autosave
+
+If there is a TypeScript interface/type for photo state, update it cleanly.
+
+PHASE 2 — ADD A DEDICATED CUTOUT BOX
+
+Do not use the small normal photoBox for cutout PNG.
+A cutout should behave more like a player/silhouette layer.
+
+In renderUtils.ts, add if missing:
+
+export const DEFAULT_CUTOUT_BOX: NormRect = {
+  x: 0.13,
+  y: 0.045,
+  w: 0.74,
+  h: 0.50,
+};
+
+export const CUTOUT_OVERRIDES: Partial<Record<string, NormRect>> = {
+  // future per-template tuning
+};
+
+export function getCutoutBox(
+  layout: CardLayoutDefinition,
+  templateId: string
+): NormRect {
+  return CUTOUT_OVERRIDES[templateId] ?? DEFAULT_CUTOUT_BOX;
+}
+
+Keep existing:
+- getSilhouetteBox
+- getPhotoBox
+
+Usage:
+- no-photo placeholder uses getSilhouetteBox
+- transparent PNG cutout uses getCutoutBox
+- normal photo uses getPhotoBox
+
+Do NOT collapse all modes into one shared box.
+
+PHASE 3 — TRANSPARENT PNG DETECTION
+
+In handlePhotoSelect, detect whether uploaded file is a real transparent PNG.
+
+Rules:
+- only attempt alpha detection when file.type === "image/png" OR filename ends with .png
+- do not treat JPG/WebP as cutout
+- load the image from the uploaded data URL
+- draw it to a temporary canvas
+- for performance, downsample detection canvas to max 512px on the longest side
+- inspect alpha channel
+
+Detection logic:
+- count sampled pixels where alpha < 250
+- transparentRatio = transparentPixelCount / totalPixelCount
+- if transparentRatio > 0.01, treat as cutout
+- otherwise treat as normal photo
+
+Important:
+- PNG with no meaningful alpha must remain normal photo
+- PNG with baked checkerboard but no alpha must remain normal photo
+- if alpha detection fails for any reason, fallback to normal photo
+- do not crash upload flow
+
+Suggested helper:
+
+async function detectMeaningfulTransparency(dataUrl: string): Promise<boolean> {
+  // load image
+  // draw to small canvas
+  // inspect alpha
+  // return transparentRatio > 0.01
+}
+
+PHASE 4 — UPLOAD STATE BEHAVIOR
+
+When user uploads a normal photo:
+- src = dataUrl
+- cutoutSrc = null
+- isCutout = false
+- use getPhotoBox
+- initialize with normal photoBox fit
+
+When user uploads a transparent PNG cutout:
+- src = dataUrl
+- cutoutSrc = dataUrl
+- isCutout = true
+- use getCutoutBox
+- initialize with cutout/player fit
+
+Keep:
+- rotation = 0
+- x/y convention unchanged
+- existing photo transform convention unchanged
+
+Before changing x/y logic, confirm current convention:
+- photo.x/photo.y are canvas center coordinates
+- Konva offsetX/offsetY handles image pivot
+Preserve that convention.
+
+PHASE 5 — DEFAULT FIT LOGIC
+
+Normal photo initial fit:
+- keep current behavior:
+  Math.max(photoBoxWidth / imageWidth, photoBoxHeight / imageHeight) * 1.02
+- use getPhotoBox
+- center inside photoBox
+
+Transparent cutout initial fit:
+- use getCutoutBox
+- preserve image ratio
+- fit based on cutoutBox height/width using Math.min, not Math.max
+
+Use:
+
+const scale =
+  Math.min(cutoutBoxWidth / imageWidth, cutoutBoxHeight / imageHeight) * 0.98;
+
+Reason:
+- Math.min is intentional for cutout mode
+- cutout must fit inside the player zone without being cropped
+- normal photo uses Math.max because it must cover its rectangular photoBox
+- cutout uses Math.min because it must remain fully visible as a player layer
+- do not “correct” cutout fitting to Math.max
+
+Then center inside cutoutBox:
+- x = cutoutBox center X
+- y = cutoutBox center Y
+- rotation = 0
+
+If this makes the cutout too small during screenshot validation, adjust only multiplier between 0.98 and 1.08.
+Do not change architecture.
+
+PHASE 6 — CARD CANVAS RENDERING LOGIC
+
+In CardCanvas.tsx:
+
+const activePhotoSrc = photo.cutoutSrc || photo.src;
+const isCutout = Boolean(photo.isCutout && photo.cutoutSrc);
+
+Rendering modes:
+
+Mode A — no uploaded photo:
+- render default silhouette
+- use getSilhouetteBox
+- no clip Group
+- no Rect
+- no background
+
+Mode B — normal uploaded photo:
+- render photo.src
+- use getPhotoBox
+- keep clipped Group
+- no silhouette
+- no Rect/background
+- drag/zoom/rotate preserved
+
+Mode C — transparent PNG cutout:
+- render photo.cutoutSrc
+- use getCutoutBox
+- render directly in Layer, not inside clipped Group
+- no silhouette
+- no Rect/background
+- drag/zoom/rotate preserved
+
+CRITICAL Z-ORDER RULE:
+In the Konva Layer, the cutout KonvaImage must be placed AFTER the full card base Image and BEFORE the masked overlay Image.
+It must use the same z-position as normal photo.
+Do not place cutout above masked overlay.
+Do not place cutout above text/content.
+Do not place cutout below the card base.
+
+Important:
+For cutout mode, do NOT clip with a rectangular Group.
+The whole point is no rectangle.
+
+PHASE 7 — MASKED OVERLAY ACTIVE BOX
+
+Do not break existing layering.
+
+Render order must stay:
+1. full card base
+2. silhouette OR normal photo OR cutout
+3. masked overlay/frame
+4. text/content
+5. DOM hotspots outside export
+
+The masked overlay hole must use the correct active player box:
+
+if cutout mode:
+  activeMaskBox = getCutoutBox(layout, templateId)
+
+else if normal photo mode:
+  activeMaskBox = getPhotoBox(layout, templateId)
+
+else:
+  activeMaskBox = getSilhouetteBox(layout, templateId)
+
+If masked overlay hole is currently hardcoded:
+- update it to use activeMaskBox
+- do not skip this step
+- report exactly what was hardcoded and how it was replaced
+
+Do not use a stale global portrait box.
+Do not reintroduce the old black rectangle bug.
+Do not use Konva clip Group for no-photo or cutout mode.
+
+PHASE 8 — CONTROLS / TRANSFORMS
+
+Drag / zoom / rotate must work for:
+- normal photo
+- transparent PNG cutout
+
+Do not create separate transform systems.
+Use the same photo.x / photo.y / photo.scale / photo.rotation state.
+
+If existing controls are tied to photo mode, make sure they also work when isCutout=true.
+
+PHASE 9 — EXPORT SAFETY
+
+Do not change export function unless absolutely necessary.
+
+Export must include:
+- card base
+- default silhouette OR normal photo OR cutout PNG
+- overlay/frame
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+
+Export must exclude:
+- hotspots
+- bottom buttons
+- upload sheet
+- editor background
+- browser UI
+- debug UI
+
+Since export uses the Konva stage, any cutout rendered in CardCanvas should export automatically.
+
+PHASE 10 — UI COPY ONLY, NO COMPLEX UI
+
+Do not add a new background remover button.
+Do not add API UI.
+
+Only adjust upload sheet copy if easy:
+
+Button text:
+"Upload Photo / PNG Cutout"
+
+Optional helper text:
+"Use a transparent PNG for best card result."
+
+If this requires too much layout work, skip UI copy.
+
+PHASE 11 — VALIDATION
+
+Run:
+
+npm run typecheck
+npm run build
+
+Manual validation at 390×844:
+
+Normal JPG/selfie:
+1. upload normal JPG
+2. isCutout = false
+3. photo appears in clipped photoBox
+4. photo does not cover name/stats
+5. drag works
+6. zoom works
+7. rotate works if currently supported
+8. export includes normal photo
+9. export excludes hotspots/UI
+
+Transparent PNG cutout:
+10. upload transparent PNG
+11. isCutout = true
+12. no rectangular background appears
+13. only the cutout/player appears
+14. cutout is positioned in upper player area
+15. cutout does not cover name/stats
+16. cutout is inserted after card base and before masked overlay
+17. drag works
+18. zoom works
+19. rotate works if currently supported
+20. export includes cutout correctly
+21. export excludes hotspots/UI
+
+Fallback:
+22. upload PNG with no transparency
+23. isCutout = false
+24. renders as normal clipped photo
+
+Build:
+25. typecheck passes
+26. build passes
+
+PHASE 12 — FINAL REPORT
+
+Report only:
+1. files changed
+2. photo state changes
+3. transparency detection method
+4. normal photo default fit formula
+5. cutout default fit formula
+6. final cutoutBox values
+7. confirmation normal JPG mode still works
+8. confirmation transparent PNG cutout mode works
+9. confirmation PNG without transparency falls back to normal photo
+10. confirmation drag/zoom/rotate work for both normal photo and cutout
+11. confirmation active masked overlay box changes by mode
+12. confirmation cutout z-order is after card base and before masked overlay
+13. confirmation masked overlay hole was dynamic, or if hardcoded, exactly how it was updated
+14. confirmation export unchanged or explain exact minimal export change
+15. typecheck result
+16. build result
+17. git commit hash
