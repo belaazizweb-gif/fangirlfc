@@ -55,6 +55,33 @@ const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clea
 // Aspect ratio of the clean silhouette PNG (width / height)
 const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
 
+// ── Per-template backdrop colours ────────────────────────────
+//
+// A solid Konva Rect is drawn as the very first element in Layer 1
+// (before overlay.png) so that transparent areas in shaped overlay
+// PNGs are filled with a colour rather than exposing the transparent
+// Konva Stage. This Rect sits inside the Stage and is therefore
+// included in stage.toDataURL() exports.
+//
+// Templates whose overlay.png is 100% opaque (silver_chrome, gold_elite,
+// purple_holo, green_stadium) are unaffected visually because the
+// opaque overlay pixels cover the backdrop completely.
+//
+// Templates whose overlay.png has baked grey/white margin pixels
+// (black_elite) still show those baked pixels above the backdrop;
+// a full fix for those requires reprocessing the PNG assets.
+const DEFAULT_TEMPLATE_BACKDROP = "#f4f4f1";
+const TEMPLATE_BACKDROPS: Record<string, string> = {
+  gold_crystal_2026:  "#f1df9a",
+  silver_chrome_2026: "#f4f4f1",
+  gold_elite_2026:    "#ead58a",
+  black_elite_2026:   "#111318",
+  usa_host_2026:      "#e8ecf0",
+  fangirl_pink_2026:  "#f9e8f0",
+  purple_holo_2026:   "#f4f4f1",
+  green_stadium_2026: "#e8ecf0",
+};
+
 // ── Badge zone — supports generic (emoji) + upload + none ────
 function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
   const badgeSrc = badge.type === "upload" ? (badge.src || "") : "";
@@ -238,6 +265,9 @@ export default function CardCanvas({
     activeMaskX, activeMaskY, activeMaskW, activeMaskH,
   );
 
+  // Per-template backdrop colour — used in the Konva Rect below
+  const templateBackdrop = TEMPLATE_BACKDROPS[template.id] ?? DEFAULT_TEMPLATE_BACKDROP;
+
   const maskedOverlayStatus = maskedOverlay
     ? "loaded"
     : overlayStatus === "loaded" ? "masking" : overlayStatus;
@@ -310,6 +340,23 @@ export default function CardCanvas({
                in (c) reveals portrait content, not a black canvas.
         ═══════════════════════════════════════════════════ */}
         <Layer>
+          {/* 0) Backdrop Rect — always first in Layer 1.
+               Fills the entire Konva Stage canvas with a solid colour before
+               overlay.png is drawn. For templates whose overlay.png has shaped
+               transparency (gold_crystal, usa_host, fangirl_pink), this
+               prevents those transparent areas from appearing as transparent
+               in the exported PNG.
+               For templates whose overlay.png is 100% opaque (silver_chrome,
+               gold_elite, etc.), the opaque overlay pixels cover this Rect
+               completely — zero visual impact.
+               listening={false} keeps it non-interactive.            */}
+          <Rect
+            x={0} y={0}
+            width={TEMPLATE_W} height={TEMPLATE_H}
+            fill={templateBackdrop}
+            listening={false}
+          />
+
           {/* a) Full card base — overlay.png unmasked */}
           {overlayImage && (
             <KImage image={overlayImage} x={0} y={0} width={TEMPLATE_W} height={TEMPLATE_H} />

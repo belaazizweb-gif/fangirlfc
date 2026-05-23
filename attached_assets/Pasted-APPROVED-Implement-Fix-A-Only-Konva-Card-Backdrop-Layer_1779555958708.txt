@@ -1,0 +1,132 @@
+APPROVED — Implement Fix A Only: Konva Card Backdrop Layer
+
+Your Phase 0 diagnostic is accepted.
+
+Important conclusion:
+There are two different issues:
+A) real transparent pixels in overlay.png / transparent Konva Stage
+B) baked grey/white checkerboard pixels inside some opaque PNG assets
+
+This implementation must fix ONLY issue A.
+Do NOT claim that baked checkerboard pixels are fully fixed by this task.
+Do NOT modify PNG assets.
+Do NOT attempt asset cleanup.
+Do NOT change source.png / overlay.png / background.png selection logic.
+Do NOT touch cutout/photo/silhouette logic.
+Do NOT touch export architecture.
+Do NOT touch routes/navigation/hotspots.
+Do NOT refactor editor.
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx only
+
+GOAL
+Add a Konva Stage backdrop Rect as the first drawable element in Layer 1, behind the full card base image.
+
+This backdrop must:
+- be inside the Konva Stage
+- be included in PNG export
+- sit below overlay.png full base
+- not cover card frame
+- not cover silhouette/photo/cutout
+- not cover masked overlay
+- not cover text
+- not affect DOM hotspots
+
+RENDER ORDER REQUIRED
+
+Layer 1:
+1. Card backdrop Rect
+2. overlay.png full unmasked card base
+3. silhouette OR normal photo OR cutout
+4. masked overlay/frame
+
+Layer 2:
+5. text/content
+
+Layer 3:
+6. debug boxes only if enabled
+
+DOM:
+7. hotspots/buttons outside export
+
+IMPLEMENTATION DETAILS
+
+In CardCanvas.tsx, add a per-template backdrop map near the other constants:
+
+const DEFAULT_TEMPLATE_BACKDROP = "#f4f4f1";
+
+const TEMPLATE_BACKDROPS: Record<string, string> = {
+  gold_crystal_2026: "#f1df9a",
+  silver_chrome_2026: "#f4f4f1",
+  gold_elite_2026: "#ead58a",
+  black_elite_2026: "#111318",
+  usa_host_2026: "#e8ecf0",
+  fangirl_pink_2026: "#f9e8f0",
+  purple_holo_2026: "#f4f4f1",
+  green_stadium_2026: "#e8ecf0",
+};
+
+Then compute:
+
+const templateBackdrop =
+  TEMPLATE_BACKDROPS[templateId] ?? DEFAULT_TEMPLATE_BACKDROP;
+
+Add a Rect as the first element in Layer 1:
+
+<Rect
+  x={0}
+  y={0}
+  width={CANVAS_WIDTH}
+  height={CANVAS_HEIGHT}
+  fill={templateBackdrop}
+  listening={false}
+/>
+
+Important:
+- This Rect must be BEFORE the full overlay KImage.
+- Do not put it in CSS.
+- Do not put it outside the Stage.
+- CSS background will not export, so this must be Konva.
+- Do not add gradients.
+- Do not alter exportCard.ts.
+
+Baked checkerboard warning:
+For templates whose overlay.png is already 100% opaque with grey/white baked margins, this Rect will not remove those baked pixels because the PNG pixels sit above the Rect.
+Do not claim those baked pixels are fixed.
+Only report whether they remain and which templates still need asset replacement/cleanup.
+
+VALIDATION
+
+Run:
+npm run typecheck
+npm run build
+
+Manual validation:
+1. gold_crystal_2026 export no longer has transparent/checkerboard corners
+2. usa_host_2026 export no longer has transparent/checkerboard regions
+3. fangirl_pink_2026 export no longer has transparent/checkerboard corners
+4. silver_chrome_2026 still renders correctly
+5. gold_elite_2026 still renders correctly
+6. black_elite_2026 receives dark backdrop, but baked grey pixels may remain if they are inside overlay.png
+7. no-photo silhouette still works
+8. normal photo still works
+9. transparent PNG cutout still works
+10. export still excludes DOM hotspots/UI
+11. typecheck passes
+12. build passes
+
+FINAL REPORT
+
+Report only:
+1. files changed
+2. backdrop map added
+3. render order confirmation
+4. confirmation backdrop is inside Konva Stage and included in export
+5. confirmation cutout/photo/silhouette logic unchanged
+6. confirmation export function unchanged
+7. templates where true transparency is fixed by backdrop
+8. templates where baked checkerboard pixels remain and require asset cleanup/replacement
+9. typecheck result
+10. build result
+11. git commit hash
