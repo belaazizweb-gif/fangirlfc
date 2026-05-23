@@ -57,6 +57,30 @@ const PLAYER_SILHOUETTE = "/assets/player-silhouettes/fut_player_silhouette_clea
 // Aspect ratio of the clean silhouette PNG (width / height)
 const CLEAN_SILHOUETTE_RATIO = 1046 / 1279;
 
+// ── V3 Gold Elite design tokens — scoped to gold_elite_2026 ──
+const V3_GOLD = {
+  primaryText:       "#FFF4BF",
+  secondaryText:     "#F8D86A",
+  darkPanel:         "rgba(20, 14, 4, 0.38)",
+  darkPanelStrong:   "rgba(20, 14, 4, 0.48)",
+  panelStroke:       "rgba(255, 220, 120, 0.30)",
+  panelStrokeStrong: "rgba(255, 220, 120, 0.42)",
+  shadow:            "rgba(0,0,0,0.68)",
+  divider:           "rgba(255, 220, 120, 0.34)",
+  flagBorder:        "rgba(255,255,255,0.38)",
+} as const;
+
+// V3 stat definitions — explicit rows so no layout config dependency
+const V3_STATS = [
+  { key: "PAC" as const, colX: 0.155, colW: 0.300, rowY: 0.718 },
+  { key: "SHO" as const, colX: 0.155, colW: 0.300, rowY: 0.780 },
+  { key: "PAS" as const, colX: 0.155, colW: 0.300, rowY: 0.842 },
+  { key: "DRI" as const, colX: 0.545, colW: 0.300, rowY: 0.718 },
+  { key: "DEF" as const, colX: 0.545, colW: 0.300, rowY: 0.780 },
+  { key: "PHY" as const, colX: 0.545, colW: 0.300, rowY: 0.842 },
+];
+const V3_ROW_H = 0.050;
+
 // ── Per-template backdrop colours ────────────────────────────
 //
 // A solid Konva Rect is drawn as the very first element in Layer 1
@@ -256,6 +280,7 @@ export default function CardCanvas({
   const layout         = resolveLayout(template);
   const style          = template.style;
   const contentProfile = getContentProfile(template.contentProfileId);
+  const isGoldEliteV3  = template.id === "gold_elite_2026";
 
   // ── Silhouette box — used when no photo is uploaded ──────────
   const silhouetteBox = getSilhouetteBox(layout, template.id);
@@ -478,122 +503,336 @@ export default function CardCanvas({
 
         {/* ═══════════════════════════════════════════════════
             LAYER 2 — Card content
-            flag → badge → divider → rating → position → name → stats
+            V3 branch for gold_elite_2026 / generic for all others
         ═══════════════════════════════════════════════════ */}
         <Layer>
-          {/* Flag — aspect-ratio corrected via profile */}
-          <FlagZone
-            flagUrl={cardState.player.flagPath}
-            countryCode={cardState.player.countryCode}
-            x={flagX} y={flagY} w={flagW} h={flagH}
-            preserveAspectRatio={contentProfile.preserveFlagAspectRatio}
-            flagAspectRatio={contentProfile.flagAspectRatio}
-            onStatus={setFlagStatus}
-          />
+          {isGoldEliteV3 ? (() => {
+            /* ─────────────────────────────────────────────────
+               GOLD ELITE V3 — Premium content overlay
+               Panels first (behind text), then text/images
+            ───────────────────────────────────────────────── */
 
-          {/* Badge — circle opacity further reduced for less visual weight */}
-          <BadgeZone
-            badge={cardState.badge}
-            x={badgeX} y={badgeY} w={badgeW} h={badgeH}
-            circleOpacity={contentProfile.badgeCircleOpacity * 0.75}
-            circleStrokeOpacity={contentProfile.badgeCircleStrokeOpacity * 0.75}
-            iconScale={contentProfile.badgeIconScale}
-          />
+            // ── V3 local coords ────────────────────────────
+            const leftPanelX = nX(0.075);  const leftPanelY = nY(0.085);
+            const leftPanelW = nW(0.215);  const leftPanelH = nH(0.385);
 
-          {/* Stats divider — rendered before stat text so text sits above */}
-          {contentProfile.showStatsDivider && layout.stats.divider && (() => {
-            const dvX = nX(layout.stats.divider.x);
-            const dvY = nY(layout.stats.divider.y);
-            const dvH = nH(layout.stats.divider.h);
-            // Clamp to at least 1.5px so it's always visible
-            const dvW = Math.max(nW(layout.stats.divider.w), 1.5);
-            // Keep the divider centered on its original x coordinate
-            const dvXAdj = dvX - dvW / 2;
+            const rSlotX = nX(0.085);  const rSlotY = nY(0.095);
+            const rSlotW = nW(0.190);  const rSlotH = nH(0.115);
+
+            const pSlotX = nX(0.105);  const pSlotY = nY(0.205);
+            const pSlotW = nW(0.150);  const pSlotH = nH(0.050);
+
+            const fSlotX = nX(0.118);  const fSlotY = nY(0.268);
+            const fSlotW = nW(0.125);  const fSlotH = nH(0.060);
+
+            const bSlotX = nX(0.118);  const bSlotY = nY(0.350);
+            const bSlotW = nW(0.125);  const bSlotH = nH(0.090);
+
+            const npX = nX(0.115);  const npY = nY(0.595);
+            const npW = nW(0.770);  const npH = nH(0.072);
+
+            const nSlotX = nX(0.125);  const nSlotY = nY(0.600);
+            const nSlotW = nW(0.750);  const nSlotH = nH(0.060);
+
+            const spX = nX(0.115);  const spY = nY(0.690);
+            const spW = nW(0.770);  const spH = nH(0.205);
+
+            const dvX = nX(0.500);  const dvY = nY(0.715);
+            const dvW = Math.max(nW(0.002), 2);
+            const dvH = nH(0.175);
+
+            // ── V3 position text (fallback "ST" if missing/POS) ───
+            const rawPos = cardState.player.position;
+            const v3Pos  = (!rawPos || rawPos === "POS") ? "ST" : rawPos.toUpperCase();
+
+            // ── V3 name font size (long-name reduction) ────────
+            const v3Name = cardState.player.name.toUpperCase();
+            let v3NameFs = 68;
+            if (v3Name.length > 12) v3NameFs = 58;
+            if (v3Name.length > 16) v3NameFs = 50;
+
+            // ── V3 flag aspect correction ──────────────────────
+            const flagAR   = 4 / 3;
+            const fZoneAR  = fSlotW / fSlotH;
+            let v3fW = fSlotW, v3fH = fSlotH;
+            if (fZoneAR > flagAR) { v3fH = fSlotH; v3fW = fSlotH * flagAR; }
+            else                  { v3fW = fSlotW; v3fH = fSlotW / flagAR; }
+            const v3fX = fSlotX + (fSlotW - v3fW) / 2;
+            const v3fY = fSlotY + (fSlotH - v3fH) / 2;
+
+            // ── FC badge geometry ──────────────────────────────
+            const bcx = bSlotX + bSlotW / 2;
+            const bcy = bSlotY + bSlotH / 2;
+            const bR  = Math.min(bSlotW, bSlotH) * 0.36;
+
             return (
-              <Rect
-                x={dvXAdj} y={dvY}
-                width={dvW} height={dvH}
-                fill={contentProfile.dividerColor}
-                opacity={contentProfile.dividerOpacity}
-                listening={false}
+              <>
+                {/* ── PANELS (behind everything) ─────────────── */}
+
+                {/* Left meta panel */}
+                <Rect
+                  x={leftPanelX} y={leftPanelY} width={leftPanelW} height={leftPanelH}
+                  fill={V3_GOLD.darkPanel}
+                  stroke={V3_GOLD.panelStroke} strokeWidth={2}
+                  cornerRadius={24}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={12} shadowOpacity={0.28}
+                  listening={false}
+                />
+
+                {/* Nameplate */}
+                <Rect
+                  x={npX} y={npY} width={npW} height={npH}
+                  fill={V3_GOLD.darkPanelStrong}
+                  stroke={V3_GOLD.panelStrokeStrong} strokeWidth={2}
+                  cornerRadius={16}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={10} shadowOpacity={0.32}
+                  listening={false}
+                />
+
+                {/* Stats panel */}
+                <Rect
+                  x={spX} y={spY} width={spW} height={spH}
+                  fill={V3_GOLD.darkPanel}
+                  stroke={V3_GOLD.panelStroke} strokeWidth={2}
+                  cornerRadius={18}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={10} shadowOpacity={0.26}
+                  listening={false}
+                />
+
+                {/* Stats divider */}
+                <Rect
+                  x={dvX - dvW / 2} y={dvY} width={dvW} height={dvH}
+                  fill={V3_GOLD.divider}
+                  listening={false}
+                />
+
+                {/* ── FLAG ───────────────────────────────────── */}
+
+                {/* Flag backing plate */}
+                <Rect
+                  x={fSlotX} y={fSlotY} width={fSlotW} height={fSlotH}
+                  fill="rgba(0,0,0,0.20)"
+                  stroke={V3_GOLD.flagBorder} strokeWidth={1}
+                  cornerRadius={5}
+                  listening={false}
+                />
+
+                {/* Flag image / fallback — aspect-corrected */}
+                <FlagZone
+                  flagUrl={cardState.player.flagPath}
+                  countryCode={cardState.player.countryCode}
+                  x={v3fX} y={v3fY} w={v3fW} h={v3fH}
+                  preserveAspectRatio={false}
+                  flagAspectRatio={flagAR}
+                  onStatus={setFlagStatus}
+                />
+
+                {/* ── FC MONOGRAM BADGE ──────────────────────── */}
+                <Circle
+                  x={bcx} y={bcy} radius={bR}
+                  fill="rgba(0,0,0,0.24)"
+                  stroke="rgba(255,220,120,0.30)" strokeWidth={2}
+                  listening={false}
+                />
+                <Text
+                  x={bSlotX} y={bSlotY} width={bSlotW} height={bSlotH}
+                  text="FC"
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={38}
+                  fill={V3_GOLD.primaryText}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={4}
+                  align="center" verticalAlign="middle"
+                  listening={false}
+                />
+
+                {/* ── RATING ─────────────────────────────────── */}
+                <Text
+                  x={rSlotX} y={rSlotY} width={rSlotW} height={rSlotH}
+                  text={String(cardState.player.rating)}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={126}
+                  fill={V3_GOLD.primaryText}
+                  stroke="rgba(70,40,0,0.42)" strokeWidth={1.2}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={9} shadowOffsetY={3}
+                  align="center" verticalAlign="middle"
+                  listening={false}
+                />
+
+                {/* ── POSITION ───────────────────────────────── */}
+                <Text
+                  x={pSlotX} y={pSlotY} width={pSlotW} height={pSlotH}
+                  text={v3Pos}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={50}
+                  fill={V3_GOLD.secondaryText}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={5}
+                  align="center" verticalAlign="middle"
+                  letterSpacing={1}
+                  listening={false}
+                />
+
+                {/* ── PLAYER NAME ────────────────────────────── */}
+                <Text
+                  x={nSlotX} y={nSlotY} width={nSlotW} height={nSlotH}
+                  text={v3Name}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={v3NameFs}
+                  fill={V3_GOLD.primaryText}
+                  shadowColor={V3_GOLD.shadow} shadowBlur={7} shadowOffsetY={2}
+                  align="center" verticalAlign="middle"
+                  letterSpacing={2}
+                  listening={false}
+                />
+
+                {/* ── INLINE STATS ───────────────────────────── */}
+                {V3_STATS.map((s) => {
+                  const cX  = nX(s.colX);
+                  const cW  = nW(s.colW);
+                  const rY  = nY(s.rowY);
+                  const rH  = nH(V3_ROW_H);
+                  const vW  = cW * 0.42;
+                  const gap = cW * 0.04;
+                  const lW  = cW * 0.52;
+                  const val = cardState.stats[s.key];
+                  return (
+                    <Group key={`v3-${s.key}`}>
+                      <Text
+                        x={cX} y={rY} width={vW} height={rH}
+                        text={String(val ?? "")}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={48}
+                        fill={V3_GOLD.primaryText}
+                        shadowColor={V3_GOLD.shadow} shadowBlur={5}
+                        align="right" verticalAlign="middle"
+                        listening={false}
+                      />
+                      <Text
+                        x={cX + vW + gap} y={rY} width={lW} height={rH}
+                        text={s.key}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={38}
+                        fill={V3_GOLD.secondaryText}
+                        opacity={0.84}
+                        shadowColor={V3_GOLD.shadow} shadowBlur={4}
+                        letterSpacing={0.8}
+                        align="left" verticalAlign="middle"
+                        listening={false}
+                      />
+                    </Group>
+                  );
+                })}
+              </>
+            );
+          })() : (
+            <>
+              {/* ─────────────────────────────────────────────
+                  GENERIC CONTENT — all templates except gold_elite_2026
+              ───────────────────────────────────────────── */}
+
+              {/* Flag — aspect-ratio corrected via profile */}
+              <FlagZone
+                flagUrl={cardState.player.flagPath}
+                countryCode={cardState.player.countryCode}
+                x={flagX} y={flagY} w={flagW} h={flagH}
+                preserveAspectRatio={contentProfile.preserveFlagAspectRatio}
+                flagAspectRatio={contentProfile.flagAspectRatio}
+                onStatus={setFlagStatus}
               />
-            );
-          })()}
 
-          {/* Rating */}
-          <Text
-            x={ratingX} y={ratingY} width={ratingW} height={ratingH}
-            text={String(cardState.player.rating)}
-            fontSize={ratingFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-            fill={style.ratingColor} align={layout.rating.align} verticalAlign="middle"
-            shadowEnabled={contentProfile.shadowEnabled}
-            shadowBlur={contentProfile.ratingShadowBlur}
-            shadowColor={contentProfile.shadowColor}
-          />
+              {/* Badge — circle opacity further reduced for less visual weight */}
+              <BadgeZone
+                badge={cardState.badge}
+                x={badgeX} y={badgeY} w={badgeW} h={badgeH}
+                circleOpacity={contentProfile.badgeCircleOpacity * 0.75}
+                circleStrokeOpacity={contentProfile.badgeCircleStrokeOpacity * 0.75}
+                iconScale={contentProfile.badgeIconScale}
+              />
 
-          {/* Position */}
-          <Text
-            x={posX} y={posY} width={posW} height={posH}
-            text={cardState.player.position}
-            fontSize={posFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-            fill={style.textColor} align={layout.position.align} verticalAlign="middle"
-            shadowEnabled={contentProfile.shadowEnabled}
-            shadowBlur={contentProfile.positionShadowBlur}
-            shadowColor={contentProfile.shadowColor}
-          />
+              {/* Stats divider — rendered before stat text so text sits above */}
+              {contentProfile.showStatsDivider && layout.stats.divider && (() => {
+                const dvX = nX(layout.stats.divider.x);
+                const dvY = nY(layout.stats.divider.y);
+                const dvH = nH(layout.stats.divider.h);
+                const dvW = Math.max(nW(layout.stats.divider.w), 1.5);
+                const dvXAdj = dvX - dvW / 2;
+                return (
+                  <Rect
+                    x={dvXAdj} y={dvY}
+                    width={dvW} height={dvH}
+                    fill={contentProfile.dividerColor}
+                    opacity={contentProfile.dividerOpacity}
+                    listening={false}
+                  />
+                );
+              })()}
 
-          {/* Player name */}
-          <Text
-            x={nameX} y={nameY} width={nameW} height={nameH}
-            text={cardState.player.name.toUpperCase()}
-            fontSize={nameFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-            letterSpacing={1.2}
-            fill={style.nameColor} align={layout.name.align} verticalAlign="middle"
-            shadowEnabled={contentProfile.shadowEnabled}
-            shadowBlur={contentProfile.nameShadowBlur}
-            shadowColor={contentProfile.shadowColor}
-          />
+              {/* Rating */}
+              <Text
+                x={ratingX} y={ratingY} width={ratingW} height={ratingH}
+                text={String(cardState.player.rating)}
+                fontSize={ratingFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+                fill={style.ratingColor} align={layout.rating.align} verticalAlign="middle"
+                shadowEnabled={contentProfile.shadowEnabled}
+                shadowBlur={contentProfile.ratingShadowBlur}
+                shadowColor={contentProfile.shadowColor}
+              />
 
-          {/* Stats — inline FUT rows: "99 PAC" value + label side by side */}
-          {[...layout.stats.left, ...layout.stats.right].map((s) => {
-            const sx     = nX(s.x);
-            const sy     = nY(s.y);
-            const sw     = nW(s.w);
-            const sh     = nH(s.h);
-            const valSize = sh * 0.58;
-            const lblSize = sh * 0.46;
-            // Inline layout: value right-aligned | gap | label left-aligned
-            const valueW = sw * 0.42;
-            const gap    = sw * 0.04;
-            const labelW = sw * 0.52;
-            const val = cardState.stats[s.key as StatKey];
-            return (
-              <Group key={s.key}>
-                {/* Stat value — right-aligned */}
-                <Text
-                  x={sx} y={sy} width={valueW} height={sh}
-                  text={String(val ?? "")}
-                  fontSize={valSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-                  fill={style.statsColor} align="right" verticalAlign="middle"
-                  shadowEnabled={contentProfile.shadowEnabled}
-                  shadowBlur={contentProfile.statShadowBlur}
-                  shadowColor={contentProfile.shadowColor}
-                />
-                {/* Stat label — left-aligned, reduced opacity */}
-                <Text
-                  x={sx + valueW + gap} y={sy} width={labelW} height={sh}
-                  text={s.key}
-                  fontSize={lblSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-                  fill={style.statsColor}
-                  opacity={contentProfile.statLabelOpacity}
-                  align="left" verticalAlign="middle"
-                  shadowEnabled={contentProfile.shadowEnabled}
-                  shadowBlur={contentProfile.statShadowBlur}
-                  shadowColor={contentProfile.shadowColor}
-                />
-              </Group>
-            );
-          })}
+              {/* Position */}
+              <Text
+                x={posX} y={posY} width={posW} height={posH}
+                text={cardState.player.position}
+                fontSize={posFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+                fill={style.textColor} align={layout.position.align} verticalAlign="middle"
+                shadowEnabled={contentProfile.shadowEnabled}
+                shadowBlur={contentProfile.positionShadowBlur}
+                shadowColor={contentProfile.shadowColor}
+              />
+
+              {/* Player name */}
+              <Text
+                x={nameX} y={nameY} width={nameW} height={nameH}
+                text={cardState.player.name.toUpperCase()}
+                fontSize={nameFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+                letterSpacing={1.2}
+                fill={style.nameColor} align={layout.name.align} verticalAlign="middle"
+                shadowEnabled={contentProfile.shadowEnabled}
+                shadowBlur={contentProfile.nameShadowBlur}
+                shadowColor={contentProfile.shadowColor}
+              />
+
+              {/* Stats — inline FUT rows: "99 PAC" value + label side by side */}
+              {[...layout.stats.left, ...layout.stats.right].map((s) => {
+                const sx      = nX(s.x);
+                const sy      = nY(s.y);
+                const sw      = nW(s.w);
+                const sh      = nH(s.h);
+                const valSize = sh * 0.58;
+                const lblSize = sh * 0.46;
+                const valueW  = sw * 0.42;
+                const gap     = sw * 0.04;
+                const labelW  = sw * 0.52;
+                const val = cardState.stats[s.key as StatKey];
+                return (
+                  <Group key={s.key}>
+                    <Text
+                      x={sx} y={sy} width={valueW} height={sh}
+                      text={String(val ?? "")}
+                      fontSize={valSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+                      fill={style.statsColor} align="right" verticalAlign="middle"
+                      shadowEnabled={contentProfile.shadowEnabled}
+                      shadowBlur={contentProfile.statShadowBlur}
+                      shadowColor={contentProfile.shadowColor}
+                    />
+                    <Text
+                      x={sx + valueW + gap} y={sy} width={labelW} height={sh}
+                      text={s.key}
+                      fontSize={lblSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+                      fill={style.statsColor}
+                      opacity={contentProfile.statLabelOpacity}
+                      align="left" verticalAlign="middle"
+                      shadowEnabled={contentProfile.shadowEnabled}
+                      shadowBlur={contentProfile.statShadowBlur}
+                      shadowColor={contentProfile.shadowColor}
+                    />
+                  </Group>
+                );
+              })}
+            </>
+          )}
         </Layer>
 
         {/* ═══════════════════════════════════════════════════

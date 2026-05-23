@@ -1,0 +1,680 @@
+TASK: Implement Premium Card Content UI V3 for gold_elite_2026 ONLY — Typography-Locked Version
+
+CONTEXT
+The image engine is stable:
+- normal photo works
+- manual PNG cutout works
+- AI background remover works
+- export/download works
+- backdrop works
+- templates work
+
+Current issue:
+The card still looks amateur because the content layer is weak:
+- stats do not look like premium football card stats
+- name is just plain text
+- rating/position/flag/badge are not structured
+- no strong internal UI layer
+- typography and hierarchy are not professional enough
+
+We validated the new direction:
+Premium Content UI Overlay V3.
+
+This task implements V3 ONLY for:
+gold_elite_2026
+
+Do NOT generalize yet.
+Do NOT change other templates.
+
+STRICT SCOPE
+
+DO NOT:
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change routes/navigation
+- do not change card state/localStorage
+- do not touch PhotoEditorSheet
+- do not touch CreatorScreen
+- do not touch EditHotspots
+- do not disable templates
+- do not refactor the editor
+- do not modify other templates’ visual rendering
+- do not change player/photo/cutout/silhouette boxes
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx
+
+Only touch lib/cardCreator/cardContentProfiles.ts if absolutely required.
+Prefer touching only CardCanvas.tsx.
+
+==================================================
+PRE-FLIGHT CHECKS BEFORE CODING
+==================================================
+
+Before editing, inspect CardCanvas.tsx and confirm:
+
+1. Where Layer 2 currently renders:
+- rating
+- position
+- flag
+- badge
+- name
+- stats
+- divider
+
+2. Confirm current fontFamily string used:
+"D-DIN Condensed"
+
+3. Confirm whether helper functions already exist:
+- FlagZone
+- BadgeZone
+- stats rendering loop
+- contentProfile usage
+
+4. Confirm the exact condition to detect the template:
+template.id === "gold_elite_2026"
+
+5. Confirm how current card data is accessed:
+- rating
+- position
+- player name
+- stats values
+- flag
+- badge
+
+Then implement.
+
+==================================================
+CORE DECISION
+==================================================
+
+For gold_elite_2026 only:
+- do NOT render the old generic content layer.
+- render a completely new V3 content layer.
+
+For all other templates:
+- keep existing content rendering unchanged.
+
+Implementation pattern:
+
+const isGoldEliteV3 = template.id === "gold_elite_2026";
+
+In Layer 2:
+
+if (isGoldEliteV3) {
+  renderGoldEliteV3Content();
+} else {
+  render existing content exactly as before;
+}
+
+Do not duplicate old rating/name/stats under the V3 content.
+
+==================================================
+FONT / TYPOGRAPHY RULES — CRITICAL
+==================================================
+
+Typography is critical.
+
+Use:
+fontFamily: "D-DIN Condensed"
+
+Fallback:
+If using a font stack is supported safely, use:
+"D-DIN Condensed, Arial Narrow, Arial, sans-serif"
+
+But do not break Konva typecheck.
+
+All major text must use:
+fontStyle: "bold"
+
+Use real fixed pixel font sizes for gold_elite_2026 V3.
+Do NOT rely only on subtle ratios.
+
+Full canvas is approximately:
+CANVAS_WIDTH = 1086
+CANVAS_HEIGHT = 1448
+
+Use these target font sizes:
+
+Rating:
+fontSize = 126
+
+Position:
+fontSize = 50
+
+Name:
+fontSize = 68
+minFontSize = 50 if name is long
+
+Stats value:
+fontSize = 48
+
+Stats label:
+fontSize = 38
+
+Badge FC:
+fontSize = 38
+
+Important:
+- Text must be visually obvious on mobile.
+- Do not make stats tiny.
+- Do not make labels unreadable.
+- Do not use the old stacked stats rendering.
+- Stats must be inline: “99 PAC”.
+
+Name:
+- always uppercase
+- letterSpacing = 2 if supported by React-Konva Text
+- if letterSpacing creates typecheck error, remove it and report
+- name must fit inside nameplate
+- if name length > 12 characters, reduce name font size to 58
+- if name length > 16 characters, reduce name font size to 50
+
+Position:
+- uppercase
+- if value is missing or "POS", render "ST" fallback
+
+Stats:
+- values remain 0–99
+- labels uppercase
+- value and label share baseline
+- no stacked value-over-label layout
+
+==================================================
+V3 GOLD PALETTE
+==================================================
+
+Add local constants inside CardCanvas.tsx near the V3 renderer:
+
+const V3_GOLD = {
+  primaryText: "#FFF4BF",
+  secondaryText: "#F8D86A",
+  darkPanel: "rgba(20, 14, 4, 0.38)",
+  darkPanelStrong: "rgba(20, 14, 4, 0.48)",
+  panelStroke: "rgba(255, 220, 120, 0.30)",
+  panelStrokeStrong: "rgba(255, 220, 120, 0.42)",
+  shadow: "rgba(0,0,0,0.68)",
+  divider: "rgba(255, 220, 120, 0.34)",
+  flagBorder: "rgba(255,255,255,0.38)",
+};
+
+Do not import a new design system.
+Keep constants local for now.
+
+==================================================
+COORDINATE CONVERSION
+==================================================
+
+Use normalized coordinates converted to pixels.
+
+Use existing helpers if available.
+If not, create small local helpers inside CardCanvas.tsx:
+
+const nx = (v: number) => v * CANVAS_WIDTH;
+const ny = (v: number) => v * CANVAS_HEIGHT;
+const nw = (v: number) => v * CANVAS_WIDTH;
+const nh = (v: number) => v * CANVAS_HEIGHT;
+
+Do not hardcode pixel x/y directly without explanation.
+Use normalized specs below.
+
+==================================================
+LAYER ORDER
+==================================================
+
+Do not change Layer 1.
+
+Layer 1 stays:
+1. backdrop
+2. overlay base
+3. silhouette OR normal photo OR cutout
+4. masked overlay/frame
+
+Layer 2 for gold_elite_2026 V3:
+1. V3 panels:
+   - left meta panel
+   - nameplate
+   - stats panel
+   - dividers
+2. V3 content text/images:
+   - rating
+   - position
+   - flag
+   - FC badge
+   - name
+   - stats
+
+DOM hotspots remain unchanged and outside export.
+
+==================================================
+PHASE 1 — LEFT META PANEL
+==================================================
+
+Render a rounded Rect behind rating/position/flag/badge.
+
+Normalized:
+leftMetaPanel = {
+  x: 0.075,
+  y: 0.085,
+  w: 0.215,
+  h: 0.385,
+};
+
+Style:
+- fill: V3_GOLD.darkPanel
+- stroke: V3_GOLD.panelStroke
+- strokeWidth: 2
+- cornerRadius: 24
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 12
+- shadowOpacity: 0.28
+- listening={false}
+
+This panel must sit behind rating/position/flag/FC badge.
+
+==================================================
+PHASE 2 — RATING
+==================================================
+
+ratingSlot = {
+  x: 0.085,
+  y: 0.095,
+  w: 0.190,
+  h: 0.115,
+};
+
+Render rating centered.
+
+Style:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 126
+- fill: V3_GOLD.primaryText
+- stroke: "rgba(70, 40, 0, 0.42)"
+- strokeWidth: 1.2
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 9
+- shadowOffsetY: 3
+- align: "center"
+- verticalAlign: "middle"
+- listening={false}
+
+Rating must be the strongest text element after the player.
+
+==================================================
+PHASE 3 — POSITION
+==================================================
+
+positionSlot = {
+  x: 0.105,
+  y: 0.205,
+  w: 0.150,
+  h: 0.050,
+};
+
+Text:
+- if current position is empty or "POS", render "ST"
+- otherwise render current position uppercase
+
+Style:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 50
+- fill: V3_GOLD.secondaryText
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 5
+- align: "center"
+- verticalAlign: "middle"
+- letterSpacing: 1 if supported
+- listening={false}
+
+==================================================
+PHASE 4 — FLAG
+==================================================
+
+flagSlot = {
+  x: 0.118,
+  y: 0.268,
+  w: 0.125,
+  h: 0.060,
+};
+
+Render a small rounded plate behind the flag:
+- fill: "rgba(0,0,0,0.20)"
+- stroke: V3_GOLD.flagBorder
+- strokeWidth: 1
+- cornerRadius: 5
+- listening={false}
+
+Flag image:
+- preserve 4:3 ratio
+- center inside flagSlot
+- do not stretch
+- do not exceed the slot
+
+Use the same flag source as current card.
+If using existing FlagZone is simpler, create a V3-specific helper for gold only.
+
+Fallback flag:
+- must also be drawn within the same corrected 4:3 area
+- not stretched
+
+==================================================
+PHASE 5 — FC MONOGRAM BADGE
+==================================================
+
+Do NOT use the old emoji badge for gold_elite_2026 V3.
+
+Use a neutral FC monogram.
+
+badgeSlot = {
+  x: 0.118,
+  y: 0.350,
+  w: 0.125,
+  h: 0.090,
+};
+
+Render:
+- circle centered in slot
+- radius = min(w, h) * 0.36
+- fill: "rgba(0,0,0,0.24)"
+- stroke: "rgba(255,220,120,0.30)"
+- strokeWidth: 2
+- listening={false}
+
+Text:
+- "FC"
+- centered
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 38
+- fill: V3_GOLD.primaryText
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 4
+- align: "center"
+- verticalAlign: "middle"
+- listening={false}
+
+==================================================
+PHASE 6 — NAMEPLATE
+==================================================
+
+Render nameplate background.
+
+nameplate = {
+  x: 0.115,
+  y: 0.595,
+  w: 0.770,
+  h: 0.072,
+};
+
+Style:
+- fill: V3_GOLD.darkPanelStrong
+- stroke: V3_GOLD.panelStrokeStrong
+- strokeWidth: 2
+- cornerRadius: 16
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 10
+- shadowOpacity: 0.32
+- listening={false}
+
+Name text:
+
+nameSlot = {
+  x: 0.125,
+  y: 0.600,
+  w: 0.750,
+  h: 0.060,
+};
+
+Text:
+- player name uppercase
+- if name missing, use existing fallback if current system has one
+
+Font size logic:
+const upperName = name.toUpperCase();
+let nameFontSize = 68;
+if (upperName.length > 12) nameFontSize = 58;
+if (upperName.length > 16) nameFontSize = 50;
+
+Style:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: nameFontSize
+- fill: V3_GOLD.primaryText
+- align: "center"
+- verticalAlign: "middle"
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 7
+- shadowOffsetY: 2
+- letterSpacing: 2 if supported
+- listening={false}
+
+The name must look like a title inside a plate.
+
+==================================================
+PHASE 7 — STATS PANEL
+==================================================
+
+Render stats panel background.
+
+statsPanel = {
+  x: 0.115,
+  y: 0.690,
+  w: 0.770,
+  h: 0.205,
+};
+
+Style:
+- fill: V3_GOLD.darkPanel
+- stroke: V3_GOLD.panelStroke
+- strokeWidth: 2
+- cornerRadius: 18
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 10
+- shadowOpacity: 0.26
+- listening={false}
+
+==================================================
+PHASE 8 — STATS DIVIDER
+==================================================
+
+divider = {
+  x: 0.500,
+  y: 0.715,
+  w: 0.002,
+  h: 0.175,
+};
+
+Render before stat texts.
+
+Style:
+- fill: V3_GOLD.divider
+- width: at least 2px after conversion
+- listening={false}
+
+Divider must be subtle and must not cover text.
+
+==================================================
+PHASE 9 — INLINE FUT STATS
+==================================================
+
+Stats layout:
+- 2 columns
+- 3 rows
+- inline rows, not stacked
+
+Rows:
+row1 y = 0.718
+row2 y = 0.780
+row3 y = 0.842
+
+Left column:
+x = 0.155
+w = 0.300
+
+Right column:
+x = 0.545
+w = 0.300
+
+rowH = 0.050
+
+Left stats:
+PAC
+SHO
+PAS
+
+Right stats:
+DRI
+DEF
+PHY
+
+Each row renders inline:
+"99 PAC"
+
+Use this exact split:
+
+valueW = colW * 0.42
+gap = colW * 0.04
+labelW = colW * 0.52
+
+Value text:
+- x = colX
+- y = rowY
+- width = valueW
+- height = rowH
+- align = "right"
+- verticalAlign = "middle"
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 48
+- fill: V3_GOLD.primaryText
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 5
+- listening={false}
+
+Label text:
+- x = colX + valueW + gap
+- y = rowY
+- width = labelW
+- height = rowH
+- align = "left"
+- verticalAlign = "middle"
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 38
+- fill: V3_GOLD.secondaryText
+- opacity: 0.84
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 4
+- letterSpacing: 0.8 if supported
+- listening={false}
+
+Do not use old stacked stat layout for gold_elite_2026 V3.
+
+==================================================
+PHASE 10 — OPTIONAL PLAYER INTEGRATION SHADOW
+==================================================
+
+Only if simple and safe:
+For gold_elite_2026 V3, if photo/cutout is active, add a subtle shadow on the active photo/cutout KImage using existing Konva shadow props.
+
+Preferred:
+- shadowColor: "rgba(0,0,0,0.45)"
+- shadowBlur: 14
+- shadowOffsetY: 6
+- shadowOpacity: 0.35
+
+Do NOT change image position, scale, or boxes.
+Do NOT add this if it risks affecting other templates.
+
+If skipped, report skipped.
+
+==================================================
+PHASE 11 — SAFETY
+==================================================
+
+Other templates:
+- must continue using existing generic content rendering.
+- must not show V3 panels.
+- must not show FC monogram unless they already did.
+
+Do not change:
+- Layer 1
+- cutout/photo/background remover
+- photo boxes
+- silhouette boxes
+- export
+- hotspots
+- template assets
+- card state
+- localStorage
+
+==================================================
+PHASE 12 — VALIDATION
+==================================================
+
+Run:
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation:
+1. Select gold_elite_2026
+2. V3 left meta panel is visible
+3. rating is large and premium
+4. position is readable and falls back from POS to ST
+5. flag is 4:3 and not stretched
+6. badge shows FC monogram, not emoji
+7. nameplate is visible
+8. name is uppercase and inside nameplate
+9. stats panel is visible
+10. stats render inline as:
+   99 PAC
+   99 SHO
+   99 PAS
+   99 DRI
+   99 DEF
+   99 PHY
+11. stats are clearly readable on mobile
+12. no overlap with cutout/photo
+13. export includes V3 panels/text
+14. export excludes DOM hotspots/UI
+
+Regression:
+15. Other templates render as before
+16. normal photo upload still works
+17. manual PNG cutout still works
+18. AI remove background still works
+19. drag/zoom/rotate still work
+20. export still works
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. confirmation V3 applies only to gold_elite_2026
+3. confirmation old generic content is not duplicated under V3
+4. typography details:
+   - rating font size
+   - position font size
+   - name font size logic
+   - stats value font size
+   - stats label font size
+5. left meta panel confirmation
+6. flag 4:3 confirmation
+7. FC monogram confirmation
+8. nameplate confirmation
+9. stats panel confirmation
+10. inline stats confirmation
+11. optional player shadow applied or skipped
+12. confirmation other templates unchanged
+13. confirmation no cutout/photo/background remover/export changes
+14. typecheck result
+15. build result
+16. git commit hash
