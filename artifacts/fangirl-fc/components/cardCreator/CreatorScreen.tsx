@@ -60,6 +60,78 @@ async function detectMeaningfulTransparency(dataUrl: string): Promise<boolean> {
   });
 }
 
+// ── Background removal helpers (module-level, browser-only) ─────────────────
+//
+// These are plain functions — no hooks, no side-effects — so they are safe
+// at module scope inside a "use client" file.
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [header, base64] = dataUrl.split(",");
+  const mimeMatch = header.match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : "image/png";
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("blobToDataUrl failed"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function loadImageDimensions(dataUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload  = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => reject(new Error("loadImageDimensions failed"));
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * Downscales the image so the longest side ≤ 1600px and re-encodes as
+ * image/png (preserving any alpha channel). Falls back to the original Blob
+ * if the canvas operation fails.
+ */
+async function resizeImageForBackgroundRemoval(dataUrl: string): Promise<Blob> {
+  try {
+    const { width, height } = await loadImageDimensions(dataUrl);
+    const MAX_SIDE = 1600;
+    const longest = Math.max(width, height);
+    const scale   = longest > MAX_SIDE ? MAX_SIDE / longest : 1;
+    const dw = Math.max(1, Math.round(width  * scale));
+    const dh = Math.max(1, Math.round(height * scale));
+
+    return await new Promise<Blob>((resolve, reject) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width  = dw;
+        canvas.height = dh;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("no 2d ctx")); return; }
+        ctx.drawImage(img, 0, 0, dw, dh);
+        // Always output image/png so any existing alpha channel is preserved
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("canvas.toBlob returned null"));
+        }, "image/png");
+      };
+      img.onerror = () => reject(new Error("img load failed"));
+      img.src = dataUrl;
+    });
+  } catch {
+    // Safe fallback: return the original bytes as a Blob (may be JPEG, but
+    // background-removal can still process it).
+    return dataUrlToBlob(dataUrl);
+  }
+}
+
 // Konva/canvas is browser-only
 const CardCanvas = dynamic(() => import("./CardCanvas"), {
   ssr: false,
@@ -89,8 +161,10 @@ export default function CreatorScreen() {
   // ── State ────────────────────────────────────────────────────
   const [cardState,   setCardState]   = useState<CreatorCardState>(DEFAULT_CARD_STATE);
   const [activeSheet, setActiveSheet] = useState<Sheet>(null);
-  const [exporting,   setExporting]   = useState(false);
+  const [exporting,    setExporting]    = useState(false);
   const [resetPending, setResetPending] = useState(false);
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [bgRemoveError, setBgRemoveError] = useState<string | null>(null);
 
   // Initialised from window on first (client-only) render — no hydration mismatch
   // because page.tsx loads this component with dynamic({ ssr: false }).
@@ -165,6 +239,7 @@ export default function CreatorScreen() {
             src,
             cutoutSrc: src,
             isCutout: true,
+            cutoutSource: "manual" as const,
             x: cX + cW / 2,
             y: cY + cH / 2,
             scale,
@@ -176,7 +251,7 @@ export default function CreatorScreen() {
       } else {
         // ── Mode B: normal opaque photo ─────────────────────────────
         // Cover scale fills the photo box edge-to-edge; ×1.02 adds bleed.
-        // Stale cutoutSrc must be cleared so Mode C never lingers.
+        // Stale cutoutSrc / cutoutSource must be cleared so Mode C never lingers.
         const box = getPhotoBox(layout, selectedTemplate.id);
         const pX = nX(box.x);
         const pY = nY(box.y);
@@ -190,6 +265,7 @@ export default function CreatorScreen() {
             src,
             cutoutSrc: null,
             isCutout: false,
+            cutoutSource: undefined,
             x: pX + pW / 2,
             y: pY + pH / 2,
             scale,
@@ -202,6 +278,63 @@ export default function CreatorScreen() {
     },
     [layout, selectedTemplate.id],
   );
+
+  // ── AI Background Removal ─────────────────────────────────────
+  const handleRemoveBackground = useCallback(async () => {
+    const originalSrc = cardState.photo.src;
+    if (!originalSrc || isRemovingBg) return;
+
+    setBgRemoveError(null);
+    setIsRemovingBg(true);
+
+    try {
+      // TODO: Verify @imgly/background-removal AGPL/commercial licensing before production release.
+      const { removeBackground } = await import("@imgly/background-removal");
+
+      const inputBlob    = await resizeImageForBackgroundRemoval(originalSrc);
+      const outputBlob   = await removeBackground(inputBlob);
+      const cutoutDataUrl = await blobToDataUrl(outputBlob);
+      const { width: cutoutWidth, height: cutoutHeight } = await loadImageDimensions(cutoutDataUrl);
+
+      // Fit cutout into the player zone using contain (Math.min) so it never
+      // gets cropped on initial placement — user can zoom/drag after.
+      const box  = getCutoutBox(layout, selectedTemplate.id);
+      const cX   = nX(box.x);
+      const cY   = nY(box.y);
+      const cW   = nW(box.w);
+      const cH   = nH(box.h);
+      const rawScale = Math.min(cW / cutoutWidth, cH / cutoutHeight) * 0.98;
+      const scale    = Math.min(3, Math.max(0.1, rawScale));
+
+      // CardCanvas derives offsetX = naturalWidth / 2, offsetY = naturalHeight / 2
+      // from the loaded image's natural dimensions on every render.
+      // Setting naturalWidth/naturalHeight to the cutout's dimensions here ensures
+      // the pivot is always correct for drag / zoom / rotate.
+      setCardState((prev) => ({
+        ...prev,
+        photo: {
+          ...prev.photo,
+          src:          originalSrc,   // original src preserved as fallback
+          cutoutSrc:    cutoutDataUrl,
+          isCutout:     true,
+          cutoutSource: "ai" as const,
+          naturalWidth:  cutoutWidth,
+          naturalHeight: cutoutHeight,
+          x:       cX + cW / 2,
+          y:       cY + cH / 2,
+          scale,
+          rotation: 0,
+        },
+      }));
+    } catch {
+      setBgRemoveError(
+        "Background removal failed. You can keep the original photo or try another image.",
+      );
+      // Photo state is NOT touched on failure — original photo remains visible.
+    } finally {
+      setIsRemovingBg(false);
+    }
+  }, [cardState.photo.src, isRemovingBg, layout, selectedTemplate.id]);
 
   const handleResetConfirm = useCallback(() => {
     clearCardState();
@@ -409,6 +542,9 @@ export default function CreatorScreen() {
           onChange={(photo) => setCardState((prev) => ({ ...prev, photo }))}
           onPhotoSelect={handlePhotoSelect}
           template={selectedTemplate}
+          onRemoveBackground={handleRemoveBackground}
+          isRemovingBg={isRemovingBg}
+          bgRemoveError={bgRemoveError}
         />
       </BottomSheet>
 

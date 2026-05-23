@@ -14,8 +14,9 @@ function normalizeLoadedState(loaded: CreatorCardState): CreatorCardState {
     photo: {
       ...DEFAULT_CARD_STATE.photo,
       ...(loaded.photo ?? {}),
-      cutoutSrc: loaded.photo?.cutoutSrc ?? null,
-      isCutout:  loaded.photo?.isCutout  ?? false,
+      cutoutSrc:    loaded.photo?.cutoutSrc    ?? null,
+      isCutout:     loaded.photo?.isCutout     ?? false,
+      cutoutSource: loaded.photo?.cutoutSource ?? undefined,
     },
   };
 }

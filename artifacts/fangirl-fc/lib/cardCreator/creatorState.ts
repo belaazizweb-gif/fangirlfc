@@ -14,6 +14,9 @@ export interface CreatorPhotoState {
   cutoutSrc?: string | null;
   /** True when the uploaded PNG had meaningful alpha transparency. */
   isCutout?: boolean;
+  /** How the active cutout was produced. "manual" = user uploaded a transparent PNG.
+   *  "ai" = background was removed by @imgly/background-removal. undefined = no cutout. */
+  cutoutSource?: "manual" | "ai";
   x: number;
   y: number;
   scale: number;

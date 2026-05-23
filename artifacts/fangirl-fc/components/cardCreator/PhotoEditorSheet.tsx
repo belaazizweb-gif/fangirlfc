@@ -10,9 +10,15 @@ interface Props {
   onChange: (photo: CreatorPhotoState) => void;
   onPhotoSelect: (src: string, naturalWidth: number, naturalHeight: number) => void;
   template: CardTemplateDefinition;
+  onRemoveBackground?: () => void;
+  isRemovingBg?: boolean;
+  bgRemoveError?: string | null;
 }
 
-export default function PhotoEditorSheet({ photo, onChange, onPhotoSelect, template }: Props) {
+export default function PhotoEditorSheet({
+  photo, onChange, onPhotoSelect, template,
+  onRemoveBackground, isRemovingBg = false, bgRemoveError,
+}: Props) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,6 +47,13 @@ export default function PhotoEditorSheet({ photo, onChange, onPhotoSelect, templ
     onChange({ ...photo, x: pX + pW / 2, y: pY + pH / 2, scale, rotation: 0 });
   };
 
+  // Determine Remove Background button label
+  const removeBgLabel = (() => {
+    if (!photo.isCutout) return "✨ Remove Background";
+    if (photo.cutoutSource === "ai") return "✨ Remove Background Again";
+    return "✨ Replace with AI Cutout";
+  })();
+
   return (
     <div className="space-y-5 pb-2">
       {/* Hidden file input */}
@@ -55,10 +68,42 @@ export default function PhotoEditorSheet({ photo, onChange, onPhotoSelect, templ
       {/* Upload / Replace */}
       <button
         onClick={() => fileRef.current?.click()}
-        className="w-full py-3.5 rounded-xl bg-pink-600 hover:bg-pink-500 active:scale-95 transition-all font-semibold text-sm"
+        disabled={isRemovingBg}
+        className="w-full py-3.5 rounded-xl bg-pink-600 hover:bg-pink-500 active:scale-95 transition-all font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {photo.src ? "📷 Replace Photo" : "📷 Upload Photo"}
       </button>
+
+      {/* Remove Background — only shown when a photo is loaded */}
+      {photo.src && onRemoveBackground && (
+        <div className="space-y-2">
+          <button
+            onClick={onRemoveBackground}
+            disabled={isRemovingBg}
+            className="w-full py-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 active:scale-95 transition-all font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isRemovingBg ? (
+              <span className="animate-pulse">Removing background…</span>
+            ) : (
+              removeBgLabel
+            )}
+          </button>
+
+          {/* First-use hint — always shown alongside loading, not just during load */}
+          {isRemovingBg && (
+            <p className="text-[11px] text-white/40 text-center leading-relaxed">
+              First use may take 10–30 seconds to load the AI model.
+            </p>
+          )}
+
+          {/* Error message */}
+          {bgRemoveError && !isRemovingBg && (
+            <p className="text-[11px] text-red-400 text-center leading-relaxed px-1">
+              {bgRemoveError}
+            </p>
+          )}
+        </div>
+      )}
 
       {photo.src && (
         <>
@@ -107,15 +152,17 @@ export default function PhotoEditorSheet({ photo, onChange, onPhotoSelect, templ
           <div className="flex gap-3">
             <button
               onClick={handleResetPosition}
-              className="flex-1 py-3 rounded-xl bg-white/8 hover:bg-white/12 active:scale-95 transition-all text-sm text-white/70 font-medium"
+              disabled={isRemovingBg}
+              className="flex-1 py-3 rounded-xl bg-white/8 hover:bg-white/12 active:scale-95 transition-all text-sm text-white/70 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Reset Position
             </button>
             <button
+              disabled={isRemovingBg}
               onClick={() =>
                 onChange({ src: null, x: 0, y: 0, scale: 1, rotation: 0, naturalWidth: 0, naturalHeight: 0 })
               }
-              className="flex-1 py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 active:scale-95 transition-all text-sm text-red-400 font-medium"
+              className="flex-1 py-3 rounded-xl bg-red-500/15 hover:bg-red-500/25 active:scale-95 transition-all text-sm text-red-400 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Remove Photo
             </button>
