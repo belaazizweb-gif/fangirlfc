@@ -1,0 +1,535 @@
+TASK: Gold Elite V3.1 — Strong Premium Content Layer + Clean Arrow Edit Hotspots
+
+CONTEXT
+The previous V3 implementation changed gold_elite_2026, but the visual result is still not acceptable.
+The change is visible but too weak:
+- stats still look bad and not premium
+- stats are too low and visually mixed with the template lines
+- nameplate is not strong enough
+- left meta block is not clear enough
+- edit pencil hotspots are ugly, too many, and cover the card content
+- several pencil hotspots open the same edit sheet, which is redundant
+
+We need V3.1 for gold_elite_2026 ONLY.
+
+DO NOT GENERALIZE.
+DO NOT TOUCH OTHER TEMPLATES VISUAL RENDERING.
+
+STRICT SCOPE
+
+DO NOT:
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change card state/localStorage
+- do not change routes/navigation
+- do not disable templates
+- do not refactor the editor
+- do not change player/photo/cutout/silhouette boxes
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx
+2. components/cardCreator/EditHotspots.tsx
+3. components/cardCreator/CreatorScreen.tsx ONLY if the hotspot list is defined there
+
+Prefer:
+- CardCanvas.tsx for V3.1 visual content
+- EditHotspots.tsx for hotspot style
+- CreatorScreen.tsx only if required to consolidate redundant hotspots
+
+==================================================
+PART A — GOLD ELITE V3.1 CONTENT FIX
+==================================================
+
+Apply ONLY when:
+
+template.id === "gold_elite_2026"
+
+Other templates must continue using the existing generic branch.
+
+Do not duplicate old content under V3.1.
+
+The V3.1 branch must be mutually exclusive:
+isGoldEliteV3 ? <GoldEliteV31Content /> : <GenericContent />
+
+==================================================
+A1 — STRONGER GOLD PALETTE
+==================================================
+
+Replace weak transparent panels with stronger visible panels.
+
+Use local constants:
+
+const V3_GOLD = {
+  primaryText: "#FFF6C7",
+  secondaryText: "#F3CD55",
+  darkPanel: "rgba(12, 8, 2, 0.64)",
+  darkPanelStrong: "rgba(12, 8, 2, 0.74)",
+  panelStroke: "rgba(255, 220, 120, 0.48)",
+  panelStrokeStrong: "rgba(255, 220, 120, 0.62)",
+  shadow: "rgba(0,0,0,0.78)",
+  divider: "rgba(255, 220, 120, 0.44)",
+  rowFill: "rgba(255, 244, 191, 0.08)",
+  rowStroke: "rgba(255, 220, 120, 0.16)",
+  flagBorder: "rgba(255,255,255,0.42)",
+};
+
+Reason:
+Previous panels were too transparent and disappeared on the gold template.
+
+==================================================
+A2 — LEFT META PANEL MUST BE CLEAR
+==================================================
+
+Render left meta panel above template frame/content, but below text.
+
+Normalized:
+leftMetaPanel = {
+  x: 0.078,
+  y: 0.088,
+  w: 0.205,
+  h: 0.365,
+};
+
+Style:
+- fill: V3_GOLD.darkPanelStrong
+- stroke: V3_GOLD.panelStroke
+- strokeWidth: 2.5
+- cornerRadius: 24
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 14
+- shadowOpacity: 0.36
+- listening={false}
+
+This panel must be clearly visible in screenshot.
+If it is not visible, increase fill opacity before finalizing.
+
+==================================================
+A3 — RATING / POSITION
+==================================================
+
+Rating:
+slot:
+x: 0.086
+y: 0.094
+w: 0.188
+h: 0.110
+
+Text:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 132
+- fill: V3_GOLD.primaryText
+- stroke: "rgba(70, 40, 0, 0.48)"
+- strokeWidth: 1.4
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 10
+- shadowOffsetY: 3
+- align: "center"
+- verticalAlign: "middle"
+- listening={false}
+
+Position:
+slot:
+x: 0.105
+y: 0.202
+w: 0.150
+h: 0.052
+
+Text:
+- if position is empty or "POS", render "ST"
+- uppercase
+- fontSize: 54
+- fill: V3_GOLD.secondaryText
+- shadowBlur: 6
+- letterSpacing: 1 if supported
+- align: "center"
+- verticalAlign: "middle"
+
+Position must be visibly readable on mobile.
+
+==================================================
+A4 — FLAG AND FC BADGE
+==================================================
+
+Flag:
+slot:
+x: 0.118
+y: 0.267
+w: 0.125
+h: 0.060
+
+- keep 4:3 ratio
+- center flag
+- do not stretch
+- add visible plate:
+  fill: "rgba(0,0,0,0.30)"
+  stroke: V3_GOLD.flagBorder
+  strokeWidth: 1.2
+  cornerRadius: 5
+
+FC badge:
+slot:
+x: 0.118
+y: 0.348
+w: 0.125
+h: 0.092
+
+Do NOT use emoji badge.
+
+Render:
+- circle fill: "rgba(0,0,0,0.34)"
+- circle stroke: "rgba(255,220,120,0.42)"
+- strokeWidth: 2
+- text "FC"
+- fontSize: 42
+- fill: V3_GOLD.primaryText
+- shadowBlur: 5
+
+FC must be clearly visible.
+
+==================================================
+A5 — STRONG NAMEPLATE
+==================================================
+
+Previous nameplate was too weak.
+
+Use:
+
+nameplate = {
+  x: 0.125,
+  y: 0.592,
+  w: 0.750,
+  h: 0.078,
+};
+
+Style:
+- fill: V3_GOLD.darkPanelStrong
+- stroke: V3_GOLD.panelStrokeStrong
+- strokeWidth: 2.5
+- cornerRadius: 18
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 12
+- shadowOpacity: 0.38
+
+Name text:
+slot:
+x: 0.135
+y: 0.598
+w: 0.730
+h: 0.066
+
+Font:
+- D-DIN Condensed
+- bold
+- uppercase
+- fontSize:
+  72 if name length <= 12
+  60 if name length > 12
+  52 if name length > 16
+- fill: V3_GOLD.primaryText
+- shadowBlur: 8
+- letterSpacing: 2 if supported
+- align center
+- verticalAlign middle
+
+The nameplate must be visibly a panel, not just text.
+
+==================================================
+A6 — REDESIGN STATS PANEL
+==================================================
+
+The current stats are too low and ugly.
+Move the stats panel up and make it stronger.
+
+statsPanel = {
+  x: 0.125,
+  y: 0.678,
+  w: 0.750,
+  h: 0.190,
+};
+
+Style:
+- fill: V3_GOLD.darkPanel
+- stroke: V3_GOLD.panelStroke
+- strokeWidth: 2.5
+- cornerRadius: 18
+- shadowColor: V3_GOLD.shadow
+- shadowBlur: 12
+- shadowOpacity: 0.32
+
+Rows:
+row1 y = 0.700
+row2 y = 0.758
+row3 y = 0.816
+
+rowH = 0.044
+
+Columns:
+left:
+x = 0.155
+w = 0.300
+
+right:
+x = 0.545
+w = 0.300
+
+This moves stats away from the bottom frame and improves readability.
+
+==================================================
+A7 — ADD SUBTLE ROW CHIPS
+==================================================
+
+For each stat row, render a subtle rounded row background behind text.
+
+For each column row:
+- x = colX - 0.010
+- y = rowY + 0.003
+- w = colW + 0.020
+- h = rowH - 0.006
+- fill = V3_GOLD.rowFill
+- stroke = V3_GOLD.rowStroke
+- strokeWidth = 1
+- cornerRadius = 8
+- listening={false}
+
+This creates a real stat module, not text floating on the template.
+
+==================================================
+A8 — INLINE STATS TYPOGRAPHY
+==================================================
+
+Render inline rows:
+99 PAC
+99 SHO
+99 PAS
+99 DRI
+99 DEF
+99 PHY
+
+Do not stack.
+
+For each stat row:
+valueW = colW * 0.42
+gap = colW * 0.04
+labelW = colW * 0.52
+
+Value:
+- fontSize: 52
+- fill: V3_GOLD.primaryText
+- align: "right"
+- shadowBlur: 5
+
+Label:
+- fontSize: 40
+- fill: V3_GOLD.secondaryText
+- opacity: 0.90
+- align: "left"
+- shadowBlur: 4
+- letterSpacing: 0.8 if supported
+
+Both:
+- verticalAlign: "middle"
+- D-DIN Condensed
+- bold
+- listening={false}
+
+Stats must be clearly readable on mobile.
+
+==================================================
+A9 — STATS DIVIDER
+==================================================
+
+Render divider:
+x = 0.500
+y = 0.695
+w = at least 2.5 px
+h = 0.160
+
+Style:
+- fill: V3_GOLD.divider
+- listening={false}
+
+Divider behind text, above panel.
+
+==================================================
+PART B — EDIT HOTSPOTS CLEANUP
+==================================================
+
+Current hotspots are ugly:
+- too many pencils
+- they cover the card content
+- multiple pencils open the same sheet
+- no pointer/arrow relationship to the edited element
+
+Goal:
+For gold_elite_2026 preview/editor, make hotspots look like external edit callouts with arrows.
+
+Important:
+Hotspots are DOM and excluded from export.
+Do not change export.
+
+==================================================
+B1 — CONSOLIDATE REDUNDANT INFO HOTSPOTS
+==================================================
+
+If the current hotspot list contains separate hotspots for rating, position, and name that all open the same "info" sheet:
+- remove/hide the redundant ones
+- use ONE info edit hotspot only
+
+Label/icon:
+✏️ Info
+
+It should point to the left meta panel OR nameplate.
+
+Do not create three separate pencils opening the same sheet.
+
+Keep separate hotspots only if they open different sheets:
+- photo
+- info
+- flag/nation
+- badge/club
+- stats
+
+Maximum visible edit hotspots after cleanup:
+5
+
+==================================================
+B2 — ARROW CALLOUT STYLE
+==================================================
+
+Each hotspot should be a small external callout:
+- icon/button outside or on the edge of the card
+- thin line points to the target area
+- small dot at target point
+
+Style:
+Button:
+- size 26px to 30px
+- background: rgba(0,0,0,0.55)
+- border: 1px solid rgba(255,220,120,0.45)
+- color/icon opacity: 0.9
+- backdrop blur light
+- border-radius: 999px
+
+Line:
+- color: rgba(255,220,120,0.55)
+- width: 1.5px
+- dashed if easy
+- pointer-events: none
+
+Target dot:
+- 6px circle
+- fill: rgba(255,220,120,0.75)
+
+If drawing arrows/lines in DOM is too complex:
+- implement a simple straight line div rotated toward the target
+- keep it minimal
+- do not use canvas for hotspots
+
+==================================================
+B3 — HOTSPOT PLACEMENT
+==================================================
+
+For gold_elite_2026 only, recommended callouts:
+
+Photo:
+- button near top-right of player zone
+- points to player/cutout area
+
+Info:
+- button left outside card
+- points to left meta panel/nameplate
+- opens existing info sheet
+
+Flag:
+- button left outside card
+- points to flag
+
+Badge:
+- button left outside card
+- points to FC badge
+
+Stats:
+- button right outside stats panel
+- points to stats panel
+- opens stats sheet
+
+Do not place buttons directly over rating/name/stats text.
+
+==================================================
+B4 — OTHER TEMPLATES
+==================================================
+
+If gold-only hotspot customization is too risky:
+- apply the cleaner smaller callout style globally
+- but do not change click behavior
+- do not break export
+- report this choice clearly
+
+==================================================
+SAFETY
+==================================================
+
+Do not change:
+- card data
+- state schema
+- export
+- image processing
+- upload
+- background remover
+
+==================================================
+VALIDATION
+==================================================
+
+Run:
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation on gold_elite_2026:
+1. left meta panel clearly visible
+2. rating clearly visible
+3. position clearly visible
+4. flag not stretched
+5. FC monogram visible
+6. nameplate clearly visible
+7. stats panel clearly visible
+8. row chips visible but subtle
+9. stats are readable and inline
+10. stats are not too low
+11. pencils no longer cover content
+12. redundant info pencils reduced to one
+13. arrow/callout visual points to edited area
+14. click behavior still works
+15. export excludes hotspots/UI
+16. export includes V3.1 content
+
+Regression:
+17. background remover still works
+18. cutout still works
+19. normal photo still works
+20. other templates still render
+21. typecheck passes
+22. build passes
+
+FINAL REPORT
+Report:
+1. files changed
+2. confirmation V3.1 applies only to gold_elite_2026 content
+3. exact stats panel coordinates used
+4. exact row coordinates used
+5. typography sizes used
+6. left meta/nameplate/stats panel visibility confirmation
+7. row chips confirmation
+8. hotspot cleanup strategy used
+9. number of visible hotspots after cleanup
+10. arrow/callout implementation details
+11. confirmation export unaffected
+12. confirmation cutout/background remover unaffected
+13. typecheck result
+14. build result
+15. git commit hash
