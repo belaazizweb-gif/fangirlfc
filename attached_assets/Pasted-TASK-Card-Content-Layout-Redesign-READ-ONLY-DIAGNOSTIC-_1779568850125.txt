@@ -1,0 +1,212 @@
+TASK: Card Content Layout Redesign — READ-ONLY DIAGNOSTIC FIRST
+
+CONTEXT
+The card creator engine is now stable:
+- no-photo silhouette works
+- normal photo works
+- manual PNG cutout works
+- AI background remover works
+- export/download works
+- backdrop layer works
+- templates already have JSON/config files
+- some templates share the same geometry, around 6 templates are mostly identical
+- other templates have different visual structure
+
+Current problem:
+The visual content on the card is not professional enough:
+- rating / position / flag / badge feel poorly organized
+- stats layout does not feel like a real premium football card
+- typography is weak
+- badge/flag sizing is not polished
+- name and stats alignment vary visually by template
+- hotspots are too visually dominant
+- current design does not yet match the quality target inspired by FUT-style card creators
+
+This task is diagnostic only.
+
+DO NOT CODE YET.
+DO NOT MODIFY FILES.
+DO NOT CHANGE POSITIONS.
+DO NOT REFACTOR.
+DO NOT TOUCH CUTOUT / BACKGROUND REMOVAL / EXPORT.
+DO NOT TOUCH TEMPLATE ASSETS.
+DO NOT EDIT JSON FILES YET.
+
+Goal:
+Audit the current template/config/layout system and propose a professional content layout strategy before implementation.
+
+FILES TO INSPECT
+
+Inspect all relevant files:
+1. components/cardCreator/CardCanvas.tsx
+2. lib/cardCreator/templateConfig.ts
+3. lib/cardCreator/renderUtils.ts
+4. any template JSON/config files
+5. public/assets/card-templates/**/*
+6. any file where rating/name/stats/flag/badge/hotspots are positioned
+7. any file where template definitions are registered
+8. any file where fonts/text styles are defined
+
+PHASE 0 — READ-ONLY DIAGNOSTIC
+
+Report the following:
+
+1. Template inventory
+List all available template IDs.
+
+For each template, report:
+- templateId
+- asset folder path
+- available files: overlay.png, source.png, background.png, thumbnail.png, config/json
+- current layout id / profile id if any
+- whether it shares geometry with another template
+
+2. Template grouping by geometry
+Group templates into layout families.
+
+Example expected output:
+- Group A: templates that share same dimensions / same text-safe areas / same stats band
+- Group B: templates with different center/name/stat structure
+- Group C: special templates needing overrides
+
+Do not guess visually only.
+Use config/json data and asset geometry where possible.
+
+3. Current content rendering source
+Identify exactly where these are rendered and positioned:
+- rating
+- position
+- flag
+- badge
+- player name
+- stats values
+- stats labels
+- edit hotspots
+
+For each, report:
+- file name
+- whether position is hardcoded or config-driven
+- whether style is hardcoded or config-driven
+- whether template-specific overrides already exist
+
+4. Current text/style system
+Report:
+- current font family used
+- current font sizes
+- current font weights
+- current text colors
+- current text shadows
+- whether fonts are consistent across templates
+- whether typography differs by template
+
+5. Current stats layout
+Report current stats structure:
+- 2-column layout or 6-column layout
+- exact positions
+- current label/value order
+- whether stats are aligned to template visual bands
+- what is currently wrong visually
+
+6. Current left column layout
+Report current positions and sizes for:
+- rating
+- position
+- flag
+- badge
+
+Identify:
+- whether flag is too large
+- whether badge circle is part of card design or just editor-like
+- whether rating/position align as a professional card column
+
+7. Hotspots diagnosis
+Report:
+- hotspot positions
+- hotspot sizes
+- opacity/colors
+- whether hotspots are DOM or Konva
+- whether hotspots are excluded from export
+- recommended visual tuning without affecting export
+
+8. Proposed architecture
+Propose a professional layout architecture.
+
+Expected direction:
+- create content layout profiles, not one-off hardcoded template fixes
+- 6 identical templates should share one profile
+- exceptional templates should use profile variants or small overrides
+- each profile should define slots:
+  ratingSlot
+  positionSlot
+  flagSlot
+  badgeSlot
+  nameSlot
+  statsSlot
+  hotspotSlots
+
+Report whether the best approach is:
+A) extend existing templateConfig.ts
+B) create new file like cardContentLayouts.ts
+C) use template JSON files directly
+D) hybrid approach
+
+Recommend one.
+
+9. Proposed layout profiles
+Based on the actual templates, propose layout profile names.
+
+For example:
+- standard_fut
+- wide_center
+- special_left_panel
+
+For each proposed profile, list:
+- templates using it
+- rating position/size
+- position label position/size
+- flag position/size
+- badge position/size
+- name position/size
+- stats block mode: 2-column or 6-column
+- text color strategy
+- shadow strategy
+- hotspot placement strategy
+
+10. Recommended V1 design decision
+Give a strict recommendation for the first implementation:
+- which 3 to 6 templates should be kept active for V1
+- which templates should be hidden/deferred if they need asset cleanup
+- whether stats should use 2-column or 6-column layout for V1
+- whether badge should keep circle background or be rendered directly
+- whether hotspots should be reduced/hidden until tap
+
+11. Implementation plan
+Give a minimal implementation plan, but do not code.
+
+The plan must include:
+- files to change
+- data structure to add
+- how to preserve existing card state
+- how to avoid breaking cutout/background remover/export
+- validation steps
+
+STOP AFTER REPORT.
+Do not code until approved.
+
+REPORT FORMAT
+
+Report exactly:
+
+1. Files inspected
+2. Template inventory
+3. Template geometry groups
+4. Current rendering/positioning source for each content element
+5. Current typography/stats/left-column problems
+6. Recommended content layout architecture
+7. Proposed layout profiles
+8. Recommended V1 active templates
+9. Recommended stats layout
+10. Recommended hotspot strategy
+11. Exact files that would need changes
+12. Risks
+13. Implementation plan without coding
