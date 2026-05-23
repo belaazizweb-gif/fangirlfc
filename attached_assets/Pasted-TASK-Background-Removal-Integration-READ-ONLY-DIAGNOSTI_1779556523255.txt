@@ -1,0 +1,382 @@
+TASK: Background Removal Integration — READ-ONLY DIAGNOSTIC FIRST
+
+CONTEXT
+The card creator is stable:
+- normal photo upload works
+- manual transparent PNG cutout works
+- cutout-ready architecture exists
+- photo.cutoutSrc / photo.isCutout exist
+- getCutoutBox exists
+- drag / zoom / rotate work
+- export/download works
+
+We want to integrate @imgly/background-removal later, but first we must run a read-only diagnostic.
+
+DO NOT CODE YET.
+DO NOT INSTALL PACKAGE YET.
+DO NOT MODIFY FILES YET.
+DO NOT RUN npm install YET.
+
+This first step is diagnostic only.
+
+GOAL
+Verify whether @imgly/background-removal can be safely integrated in this Next.js/client-side project without breaking:
+- build
+- SSR/client boundaries
+- current upload flow
+- manual PNG cutout flow
+- export
+- localStorage compatibility
+
+READ-ONLY DIAGNOSTIC REQUIRED
+
+Inspect and report:
+
+1. Package manager
+- Is this project using npm, pnpm, yarn, or bun?
+- Which lockfile exists?
+- Which command should be used later to install @imgly/background-removal?
+
+2. Current photo state
+Confirm current photo state shape:
+- src
+- cutoutSrc
+- isCutout
+- x
+- y
+- scale
+- rotation
+- naturalWidth
+- naturalHeight
+
+Confirm where the interface/type is defined.
+
+3. Current cutout architecture
+Confirm:
+- getCutoutBox exists
+- where it is defined
+- current cutoutBox values
+- CardCanvas uses cutout mode
+- cutout mode renders directly in Layer, not inside clipped Group
+- cutout z-order is after card base and before masked overlay
+
+4. Current upload flow
+Inspect handlePhotoSelect:
+- where uploaded dataUrl is created
+- where transparency detection happens
+- where photo state is set
+- how normal photo vs transparent PNG cutout is handled
+- how uploading normal photo after cutout clears stale cutoutSrc
+
+5. Current transform convention
+Confirm:
+- photo.x/photo.y are center coordinates
+- Konva offsetX = naturalWidth / 2
+- Konva offsetY = naturalHeight / 2
+- drag/zoom/rotate use the same state for normal photo and cutout
+
+6. Next.js/client compatibility
+Confirm:
+- CreatorScreen.tsx is a client component or is only used client-side
+- dynamic import inside a click handler is safe
+- there is no top-level import risk
+- @imgly/background-removal must NOT be imported at top-level
+
+7. Build risk
+Report possible risks:
+- SSR error risk
+- WASM/ONNX asset loading risk
+- bundle size risk
+- mobile memory/performance risk
+- model first-load network delay risk
+
+8. Asset/model loading
+Report whether @imgly/background-removal usually loads model/WASM assets remotely or from package/public assets.
+Do not configure this yet.
+Just report the expected integration implication.
+
+9. Minimal implementation files
+Report exact files that would need changes later.
+Expected likely files:
+- package.json
+- package lockfile
+- components/cardCreator/CreatorScreen.tsx
+Maybe no CardCanvas change if cutout-ready already works.
+
+10. Implementation plan
+Provide a precise implementation plan, but do not code.
+
+STOP AFTER DIAGNOSTIC.
+WAIT FOR APPROVAL BEFORE INSTALLING OR CODING.
+
+REPORT FORMAT
+
+Report exactly:
+1. package manager detected
+2. current photo state shape
+3. current cutout architecture confirmation
+4. current upload flow summary
+5. current x/y and offset convention
+6. Next.js dynamic import safety assessment
+7. expected @imgly/background-removal integration risks
+8. expected files to change
+9. implementation plan
+10. whether you recommend proceeding
+
+==================================================
+ONLY AFTER APPROVAL, IMPLEMENT THIS PLAN
+==================================================
+
+TASK AFTER APPROVAL:
+Add optional in-browser background removal using @imgly/background-removal.
+
+DO NOT:
+- do not add backend
+- do not call remove.bg / PhotoRoom / external APIs
+- do not upload user photos to a server
+- do not run background removal automatically on every upload
+- do not break manual transparent PNG cutout upload
+- do not break normal photo upload
+- do not break export
+- do not refactor editor
+- do not touch templates/routes/hotspots
+
+INSTALLATION
+
+Install with the project’s existing package manager only.
+
+Install:
+@imgly/background-removal
+
+Do NOT install:
+@imgly/background-removal-node
+
+LICENSING NOTE
+
+Add a small TODO comment near the integration:
+"TODO: Verify @imgly/background-removal AGPL/commercial licensing before production release."
+
+DYNAMIC IMPORT ONLY
+
+Do NOT top-level import.
+
+Use dynamic import inside the remove background handler only:
+
+const { removeBackground } = await import("@imgly/background-removal");
+
+Reason:
+- avoid SSR/build issues
+- avoid loading heavy model on initial page load
+- keep /creator initial load lighter
+
+UI STATE
+
+In CreatorScreen.tsx, add local UI state:
+
+const [isRemovingBg, setIsRemovingBg] = useState(false);
+const [bgRemoveError, setBgRemoveError] = useState<string | null>(null);
+
+While processing, show:
+"Removing background..."
+
+Also show hint:
+"First use may take 10–30 seconds to load the AI model."
+
+Error message:
+"Background removal failed. You can keep the original photo or try another image."
+
+Disable upload/remove buttons while isRemovingBg is true.
+
+HELPERS
+
+Add safe helpers:
+
+1. dataUrlToBlob(dataUrl: string): Blob
+
+2. blobToDataUrl(blob: Blob): Promise<string>
+
+3. loadImageDimensions(dataUrl: string): Promise<{ width: number; height: number }>
+
+4. resizeImageForBackgroundRemoval(dataUrl: string): Promise<Blob>
+
+CRITICAL:
+resizeImageForBackgroundRemoval must always output image/png.
+Do NOT output JPEG.
+Reason:
+- preserve any existing alpha channel
+- avoid destroying transparency
+- keep processing consistent
+
+Resize rules:
+- max longest side: 1600px
+- preserve aspect ratio
+- output: image/png
+- if resize fails, fallback to original Blob
+
+REMOVE BACKGROUND HANDLER
+
+Add:
+
+async function handleRemoveBackground() { ... }
+
+Rules:
+- if no photo.src, return
+- if isRemovingBg, return
+- set bgRemoveError = null
+- set isRemovingBg = true
+- dynamically import removeBackground
+- resize current photo.src to PNG Blob
+- call removeBackground(inputBlob)
+- receive output Blob PNG
+- convert output Blob to dataUrl
+- load cutout dimensions
+- compute fit using getCutoutBox
+
+Cutout fit formula:
+
+const scale =
+  Math.min(cutoutBoxWidth / cutoutWidth, cutoutBoxHeight / cutoutHeight) * 0.98;
+
+Math.min is intentional:
+- cutout must fit fully inside the player zone
+- do not crop the transparent player layer
+- user can manually zoom after
+
+Set photo state:
+- keep src as original existing photo.src
+- cutoutSrc = cutoutDataUrl
+- isCutout = true
+- naturalWidth = cutoutWidth
+- naturalHeight = cutoutHeight
+- x = cutoutBox center X
+- y = cutoutBox center Y
+- scale = computed scale
+- rotation = 0
+
+CRITICAL OFFSET RULE:
+After setting naturalWidth/naturalHeight to cutout dimensions, confirm CardCanvas recalculates:
+offsetX = naturalWidth / 2
+offsetY = naturalHeight / 2
+
+This is required so the cutout pivot stays correct for drag/zoom/rotate.
+
+Failure behavior:
+- catch errors
+- set bgRemoveError
+- keep original photo unchanged
+- set isRemovingBg = false in finally
+- do not lose src
+- do not clear the original photo on failure
+
+BUTTON BEHAVIOR
+
+Add button only when photo.src exists.
+
+Button text:
+- if !photo.isCutout: "Remove Background"
+- if photo.isCutout and cutout came from manual transparent PNG upload: "Replace with AI Cutout"
+- if photo.isCutout and cutout came from AI removal: "Remove Background Again"
+
+If current state cannot distinguish manual cutout vs AI cutout yet:
+- add optional field only if low-risk:
+  cutoutSource?: "manual" | "ai"
+- otherwise use:
+  photo.isCutout ? "Replace with AI Cutout" : "Remove Background"
+
+Do not add button over the card canvas.
+It must be DOM UI and excluded from export.
+
+PRESERVE EXISTING MODES
+
+Manual transparent PNG upload:
+- must still work
+- should become isCutout=true
+- should not require AI removal
+- Remove Background button should not accidentally run unless user clearly chooses it
+
+Normal JPG upload:
+- starts as normal photo
+- user taps Remove Background
+- after success, becomes cutout
+
+Opaque PNG upload:
+- starts as normal photo
+- user can tap Remove Background
+
+Upload normal photo after cutout:
+- clears old cutoutSrc/isCutout as already implemented
+
+PERFORMANCE / FAILURE SAFETY
+
+Add safeguards:
+- no parallel background removal
+- no crash if dynamic import fails
+- no crash if model/WASM loading fails
+- no crash if output Blob is invalid
+- no state update that loses original photo on failure
+- no noisy console logs in production
+
+VALIDATION
+
+Run:
+npm run typecheck
+npm run build
+
+Manual validation at 390×844:
+
+Normal JPG:
+1. upload JPG selfie
+2. normal photo appears
+3. tap Remove Background
+4. loader appears
+5. first-use loading hint appears
+6. after processing, cutout appears without rectangular background
+7. cutout does not cover name/stats
+8. drag works
+9. zoom works
+10. rotate works if supported
+11. export includes cutout
+12. export excludes UI/hotspots
+
+Manual transparent PNG cutout:
+13. upload transparent PNG
+14. it still becomes isCutout=true without AI
+15. button wording is clear: Replace with AI Cutout or equivalent
+16. export works
+
+Opaque PNG:
+17. upload opaque PNG
+18. starts as normal photo
+19. Remove Background button works
+
+Failure:
+20. simulate or trigger a failure if practical
+21. original photo remains visible
+22. error message appears
+23. app does not crash
+
+Build:
+24. typecheck passes
+25. build passes
+
+FINAL REPORT
+
+Report only:
+1. package installed
+2. files changed
+3. dynamic import confirmation
+4. loader/error states added
+5. first-use loading hint added
+6. resize-before-processing logic and confirmation output is PNG
+7. removeBackground flow
+8. cutoutSrc/isCutout update logic
+9. naturalWidth/naturalHeight + offset compatibility confirmation
+10. button behavior for normal photo vs existing cutout
+11. confirmation original src is preserved as fallback
+12. confirmation manual PNG cutout still works
+13. confirmation normal photo still works
+14. confirmation export still works
+15. known performance/licensing notes
+16. typecheck result
+17. build result
+18. git commit hash
