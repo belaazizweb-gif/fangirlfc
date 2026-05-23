@@ -1,0 +1,235 @@
+TASK: Card Content Layout V2 — Make FUT Text/Stats Visibly Professional
+
+CONTEXT
+The previous content profile implementation was technically correct but visually too subtle.
+On mobile, the card still does not look professional enough.
+
+Current problems:
+- stats still look weak and not FUT-like
+- current stat rendering stacks value above label, making labels tiny
+- rating/position/name do not feel premium enough
+- badge placeholder still feels cheap
+- overall content composition still looks too close to the old version
+
+Goal:
+Make the card content visibly more professional without touching image/cutout/export systems.
+
+DO NOT:
+- do not touch cutout logic
+- do not touch AI background remover
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change routes/navigation
+- do not change card state/localStorage
+- do not disable templates
+- do not touch PhotoEditorSheet
+- do not touch CreatorScreen
+- do not change player/photo/cutout boxes
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx
+2. lib/cardCreator/cardContentProfiles.ts only if needed for profile values
+
+Do not modify templateConfig.ts unless strictly necessary.
+
+IMPORTANT
+This must be a visible redesign, not another tiny ratio adjustment.
+
+PHASE 1 — KEEP EXISTING PROFILE SYSTEM
+
+Keep using:
+- getContentProfile(template.contentProfileId)
+- existing template geometry from templateConfig.ts
+- existing zones for rating, position, flag, badge, name, stats
+
+Do not remove cardContentProfiles.ts.
+
+PHASE 2 — CHANGE STATS RENDERING TO INLINE FUT ROWS
+
+Current stat rendering is value above label.
+Replace it with inline FUT-style rows.
+
+Instead of:
+
+99
+PAC
+
+Render:
+
+99 PAC
+
+Layout:
+- keep two-column, three-row structure
+- left column: PAC, SHO, PAS
+- right column: DRI, DEF, PHY
+- each row uses the existing stat row zone
+- value and label are on the same baseline
+
+For each stat row:
+- value takes about 42% of the row width
+- label takes about 58% of the row width
+- value is right-aligned
+- label is left-aligned
+- small horizontal gap between value and label
+
+Pseudo layout:
+
+const valueW = sw * 0.42;
+const labelW = sw * 0.52;
+const gap = sw * 0.04;
+
+value:
+x = sx
+width = valueW
+align = "right"
+
+label:
+x = sx + valueW + gap
+width = labelW
+align = "left"
+
+Vertical:
+- both value and label centered vertically inside the row
+- do not split row into 55% / 40% boxes anymore
+
+Font sizes:
+- stat value fontSize = sh * 0.58
+- stat label fontSize = sh * 0.46
+- label opacity = contentProfile.statLabelOpacity
+- value opacity = 1
+
+Keep:
+- D-DIN Condensed
+- bold
+- profile shadow logic
+
+This change must be visually obvious.
+
+PHASE 3 — STATS DIVIDER
+
+Keep the stats divider.
+Make sure:
+- divider renders behind stat text
+- divider is subtle
+- divider does not cover text
+- divider is at least 1.5px wide after pixel conversion
+
+PHASE 4 — RATING / POSITION IMPROVEMENT
+
+Make rating and position more premium.
+
+Rating:
+- fontSize = ratingH * max(contentProfile.ratingFontRatio, 0.84)
+- verticalAlign = "middle"
+- align = "center"
+- keep profile shadow
+- no clipping
+
+Position:
+- fontSize = posH * max(contentProfile.positionFontRatio, 0.78)
+- verticalAlign = "middle"
+- align = "center"
+- keep profile shadow
+
+Goal:
+- rating must dominate the left column
+- position must be readable on mobile
+
+PHASE 5 — NAME IMPROVEMENT
+
+Player name:
+- uppercase rendering
+- fontSize = nameH * max(contentProfile.nameFontRatio, 0.78)
+- align center
+- verticalAlign middle
+- add slight letterSpacing if React-Konva Text supports it safely
+  letterSpacing = 1.2
+- if letterSpacing causes typecheck error, remove it and report
+
+Goal:
+- name should feel like a card title, not plain text
+
+PHASE 6 — FLAG ASPECT RATIO
+
+Keep existing aspect-corrected flag rendering.
+Do not regress it.
+Fallback flag must also remain aspect-corrected.
+
+PHASE 7 — BADGE PLACEHOLDER POLISH
+
+Keep current badge/emoji behavior.
+Do not add external crest assets.
+
+But make it less cheap:
+- reduce badge circle fill opacity by multiplying profile value by 0.75
+- reduce stroke opacity by multiplying profile value by 0.75
+- icon fontSize = min(w, h) * profile.badgeIconScale
+- keep centered
+
+Goal:
+- badge should be present but less like a heavy debug sticker
+
+PHASE 8 — PRESERVE Z-ORDER
+
+Do not change Layer 1.
+Do not change photo/cutout/silhouette rendering.
+
+Layer order must remain:
+1. backdrop
+2. overlay base
+3. silhouette OR photo OR cutout
+4. masked overlay
+5. text/content
+
+PHASE 9 — VALIDATION
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual visual check at 390×844 on:
+1. gold_crystal_2026
+2. gold_elite_2026
+3. black_elite_2026
+4. purple_holo_2026
+5. fangirl_pink_2026
+6. world_edition_2026
+7. silver_chrome_2026
+
+For each:
+- stats now show inline format like “99 PAC”
+- stats are clearly more readable than before
+- divider still visible and subtle
+- rating is stronger
+- position is readable
+- flag remains 4:3
+- badge is less heavy
+- name is more premium
+- no overlap with photo/cutout
+- export still works
+
+Regression:
+- normal photo upload still works
+- manual PNG cutout still works
+- AI remove background still works
+- drag/zoom/rotate still work
+- export still works
+- hotspots still excluded from export
+
+PHASE 10 — FINAL REPORT
+
+Report only:
+1. files changed
+2. confirmation stats changed from stacked to inline FUT rows
+3. final stat value/label font formulas
+4. rating/position changes
+5. name changes
+6. badge polish changes
+7. confirmation flag aspect ratio preserved
+8. confirmation no cutout/photo/background remover/export changes
+9. typecheck result
+10. build result
+11. git commit hash

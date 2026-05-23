@@ -337,9 +337,9 @@ export default function CardCanvas({
   const nameW = nW(layout.name.w);
   const nameH = nH(layout.name.h);
 
-  const ratingFontSize = ratingH * contentProfile.ratingFontRatio;
-  const posFontSize    = posH    * contentProfile.positionFontRatio;
-  const nameFontSize   = nameH   * contentProfile.nameFontRatio;
+  const ratingFontSize = ratingH * Math.max(contentProfile.ratingFontRatio,   0.84);
+  const posFontSize    = posH    * Math.max(contentProfile.positionFontRatio, 0.78);
+  const nameFontSize   = nameH   * Math.max(contentProfile.nameFontRatio,    0.78);
 
   // Photo transform values
   const { photo } = cardState;
@@ -491,12 +491,12 @@ export default function CardCanvas({
             onStatus={setFlagStatus}
           />
 
-          {/* Badge — circle opacity/icon scale from profile */}
+          {/* Badge — circle opacity further reduced for less visual weight */}
           <BadgeZone
             badge={cardState.badge}
             x={badgeX} y={badgeY} w={badgeW} h={badgeH}
-            circleOpacity={contentProfile.badgeCircleOpacity}
-            circleStrokeOpacity={contentProfile.badgeCircleStrokeOpacity}
+            circleOpacity={contentProfile.badgeCircleOpacity * 0.75}
+            circleStrokeOpacity={contentProfile.badgeCircleStrokeOpacity * 0.75}
             iconScale={contentProfile.badgeIconScale}
           />
 
@@ -547,41 +547,46 @@ export default function CardCanvas({
             x={nameX} y={nameY} width={nameW} height={nameH}
             text={cardState.player.name.toUpperCase()}
             fontSize={nameFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
+            letterSpacing={1.2}
             fill={style.nameColor} align={layout.name.align} verticalAlign="middle"
             shadowEnabled={contentProfile.shadowEnabled}
             shadowBlur={contentProfile.nameShadowBlur}
             shadowColor={contentProfile.shadowColor}
           />
 
-          {/* Stats */}
+          {/* Stats — inline FUT rows: "99 PAC" value + label side by side */}
           {[...layout.stats.left, ...layout.stats.right].map((s) => {
-            const sx           = nX(s.x);
-            const sy           = nY(s.y);
-            const sw           = nW(s.w);
-            const sh           = nH(s.h);
-            const statValueBoxH = sh * 0.55;
-            const statLabelBoxH = sh * 0.40;
-            const valSize = statValueBoxH * contentProfile.statValueFontRatio;
-            const lblSize = statLabelBoxH * contentProfile.statLabelFontRatio;
+            const sx     = nX(s.x);
+            const sy     = nY(s.y);
+            const sw     = nW(s.w);
+            const sh     = nH(s.h);
+            const valSize = sh * 0.58;
+            const lblSize = sh * 0.46;
+            // Inline layout: value right-aligned | gap | label left-aligned
+            const valueW = sw * 0.42;
+            const gap    = sw * 0.04;
+            const labelW = sw * 0.52;
             const val = cardState.stats[s.key as StatKey];
             return (
               <Group key={s.key}>
+                {/* Stat value — right-aligned */}
                 <Text
-                  x={sx} y={sy} width={sw} height={statValueBoxH}
+                  x={sx} y={sy} width={valueW} height={sh}
                   text={String(val ?? "")}
                   fontSize={valSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-                  fill={style.statsColor} align="center" verticalAlign="middle"
+                  fill={style.statsColor} align="right" verticalAlign="middle"
                   shadowEnabled={contentProfile.shadowEnabled}
                   shadowBlur={contentProfile.statShadowBlur}
                   shadowColor={contentProfile.shadowColor}
                 />
+                {/* Stat label — left-aligned, reduced opacity */}
                 <Text
-                  x={sx} y={sy + statValueBoxH} width={sw} height={statLabelBoxH}
+                  x={sx + valueW + gap} y={sy} width={labelW} height={sh}
                   text={s.key}
                   fontSize={lblSize} fontFamily="D-DIN Condensed" fontStyle="bold"
                   fill={style.statsColor}
                   opacity={contentProfile.statLabelOpacity}
-                  align="center" verticalAlign="middle"
+                  align="left" verticalAlign="middle"
                   shadowEnabled={contentProfile.shadowEnabled}
                   shadowBlur={contentProfile.statShadowBlur}
                   shadowColor={contentProfile.shadowColor}
