@@ -1,0 +1,546 @@
+APPROVED — Implement Card Content Profiles Phase 1 with strict visual safeguards
+
+Your read-only diagnostic is approved.
+
+Goal:
+Improve professional FUT-style rendering for:
+- rating
+- position
+- flag
+- badge
+- player name
+- stats
+- stats divider
+
+This is Phase 1 only.
+
+DO NOT:
+- do not touch cutout logic
+- do not touch AI background remover
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change routes/navigation
+- do not change card state/localStorage
+- do not disable templates
+- do not change hotspot behavior yet
+- do not use template JSON files at runtime
+- do not change player/photo/cutout boxes
+- do not refactor the editor
+
+FILES ALLOWED:
+1. lib/cardCreator/cardContentProfiles.ts — new file
+2. lib/cardCreator/templateConfig.ts
+3. components/cardCreator/CardCanvas.tsx
+
+Do not touch EditHotspots.tsx in this phase.
+Do not touch CreatorScreen.tsx.
+Do not touch PhotoEditorSheet.tsx.
+Do not touch exportCard.ts.
+
+CORE PRINCIPLE
+Existing geometry stays in templateConfig.ts:
+- rating zone
+- position zone
+- flag zone
+- badge zone
+- name zone
+- stats zones
+- divider zone
+
+The new content profile system controls only visual rendering:
+- font ratios
+- shadow blur/color
+- stats label opacity
+- divider visibility/style
+- flag aspect preservation
+- badge circle/icon style
+
+Do not move zones in this phase.
+
+==================================================
+PHASE 1 — CREATE CONTENT PROFILE FILE
+==================================================
+
+Create:
+
+lib/cardCreator/cardContentProfiles.ts
+
+Important:
+This file must not import from templateConfig.ts to avoid circular dependencies.
+
+Define:
+
+export type ContentProfileId =
+  | "standard_light"
+  | "standard_dark"
+  | "standard_green"
+  | "premium_gold"
+  | "world_cup"
+  | "fangirl";
+
+Define:
+
+export interface ContentProfile {
+  ratingFontRatio: number;
+  positionFontRatio: number;
+  nameFontRatio: number;
+
+  // These ratios are applied to the internal stat value/label sub-boxes,
+  // NOT to the full stat row height.
+  statValueFontRatio: number;
+  statLabelFontRatio: number;
+
+  shadowEnabled: boolean;
+  ratingShadowBlur: number;
+  positionShadowBlur: number;
+  nameShadowBlur: number;
+  statShadowBlur: number;
+  shadowColor: string;
+
+  showStatsDivider: boolean;
+  dividerColor: string;
+  dividerOpacity: number;
+
+  statLabelOpacity: number;
+
+  flagAspectRatio: number;
+  preserveFlagAspectRatio: boolean;
+
+  badgeCircleOpacity: number;
+  badgeCircleStrokeOpacity: number;
+  badgeIconScale: number;
+}
+
+Define CONTENT_PROFILES.
+
+standard_light:
+{
+  ratingFontRatio: 0.78,
+  positionFontRatio: 0.72,
+  nameFontRatio: 0.74,
+  statValueFontRatio: 0.92,
+  statLabelFontRatio: 0.78,
+
+  shadowEnabled: false,
+  ratingShadowBlur: 0,
+  positionShadowBlur: 0,
+  nameShadowBlur: 0,
+  statShadowBlur: 0,
+  shadowColor: "rgba(0,0,0,0.55)",
+
+  showStatsDivider: true,
+  dividerColor: "#18202A",
+  dividerOpacity: 0.30,
+
+  statLabelOpacity: 0.66,
+
+  flagAspectRatio: 4 / 3,
+  preserveFlagAspectRatio: true,
+
+  badgeCircleOpacity: 0.22,
+  badgeCircleStrokeOpacity: 0.18,
+  badgeIconScale: 0.58,
+}
+
+standard_dark:
+{
+  ratingFontRatio: 0.78,
+  positionFontRatio: 0.72,
+  nameFontRatio: 0.74,
+  statValueFontRatio: 0.92,
+  statLabelFontRatio: 0.78,
+
+  shadowEnabled: true,
+  ratingShadowBlur: 8,
+  positionShadowBlur: 6,
+  nameShadowBlur: 7,
+  statShadowBlur: 5,
+  shadowColor: "rgba(0,0,0,0.75)",
+
+  showStatsDivider: true,
+  dividerColor: "#FFFFFF",
+  dividerOpacity: 0.25,
+
+  statLabelOpacity: 0.70,
+
+  flagAspectRatio: 4 / 3,
+  preserveFlagAspectRatio: true,
+
+  badgeCircleOpacity: 0.38,
+  badgeCircleStrokeOpacity: 0.20,
+  badgeIconScale: 0.58,
+}
+
+standard_green:
+Use same base values as standard_dark, but:
+- shadowColor: "rgba(20,10,0,0.65)"
+- dividerColor: "#F8E7A6"
+- dividerOpacity: 0.40
+- statLabelOpacity: 0.75
+
+premium_gold:
+{
+  ratingFontRatio: 0.82,
+  positionFontRatio: 0.74,
+  nameFontRatio: 0.76,
+  statValueFontRatio: 0.94,
+  statLabelFontRatio: 0.80,
+
+  shadowEnabled: true,
+  ratingShadowBlur: 6,
+  positionShadowBlur: 5,
+  nameShadowBlur: 6,
+  statShadowBlur: 4,
+  shadowColor: "rgba(0,0,0,0.60)",
+
+  showStatsDivider: true,
+  dividerColor: "#5C4300",
+  dividerOpacity: 0.30,
+
+  statLabelOpacity: 0.70,
+
+  flagAspectRatio: 4 / 3,
+  preserveFlagAspectRatio: true,
+
+  badgeCircleOpacity: 0.30,
+  badgeCircleStrokeOpacity: 0.18,
+  badgeIconScale: 0.60,
+}
+
+world_cup:
+{
+  ratingFontRatio: 0.76,
+  positionFontRatio: 0.70,
+  nameFontRatio: 0.75,
+  statValueFontRatio: 0.90,
+  statLabelFontRatio: 0.76,
+
+  shadowEnabled: false,
+  ratingShadowBlur: 0,
+  positionShadowBlur: 0,
+  nameShadowBlur: 0,
+  statShadowBlur: 0,
+  shadowColor: "rgba(0,0,0,0.55)",
+
+  showStatsDivider: true,
+  dividerColor: "#2A1A00",
+  dividerOpacity: 0.25,
+
+  statLabelOpacity: 0.68,
+
+  flagAspectRatio: 4 / 3,
+  preserveFlagAspectRatio: true,
+
+  badgeCircleOpacity: 0.26,
+  badgeCircleStrokeOpacity: 0.16,
+  badgeIconScale: 0.58,
+}
+
+fangirl:
+{
+  ratingFontRatio: 0.76,
+  positionFontRatio: 0.70,
+  nameFontRatio: 0.72,
+  statValueFontRatio: 0.88,
+  statLabelFontRatio: 0.76,
+
+  shadowEnabled: true,
+  ratingShadowBlur: 5,
+  positionShadowBlur: 4,
+  nameShadowBlur: 5,
+  statShadowBlur: 4,
+  shadowColor: "rgba(200,0,100,0.35)",
+
+  showStatsDivider: true,
+  dividerColor: "#FF7ABF",
+  dividerOpacity: 0.30,
+
+  statLabelOpacity: 0.80,
+
+  flagAspectRatio: 4 / 3,
+  preserveFlagAspectRatio: true,
+
+  badgeCircleOpacity: 0.28,
+  badgeCircleStrokeOpacity: 0.14,
+  badgeIconScale: 0.58,
+}
+
+Export:
+
+export function getContentProfile(id: ContentProfileId | undefined): ContentProfile {
+  return id ? CONTENT_PROFILES[id] ?? CONTENT_PROFILES.standard_light : CONTENT_PROFILES.standard_light;
+}
+
+==================================================
+PHASE 2 — ADD contentProfileId TO TEMPLATE CONFIG
+==================================================
+
+In templateConfig.ts:
+
+Use type-only import:
+
+import type { ContentProfileId } from "./cardContentProfiles";
+
+Extend CardTemplateDefinition with:
+
+contentProfileId: ContentProfileId;
+
+Assign:
+
+silver_classic_2026 → standard_light
+silver_chrome_2026 → standard_light
+
+black_elite_2026 → standard_dark
+blue_electric_2026 → standard_dark
+purple_holo_2026 → standard_dark
+red_fire_2026 → standard_dark
+
+green_stadium_2026 → standard_green
+
+gold_elite_2026 → premium_gold
+gold_crystal_2026 → premium_gold
+
+world_edition_2026 → world_cup
+usa_host_2026 → world_cup
+
+fangirl_pink_2026 → fangirl
+
+Do not change:
+- layoutId
+- enabled
+- assets
+- names
+- style colors
+- template order
+
+After this phase:
+Run typecheck.
+If typecheck fails, stop and report.
+Do not continue to CardCanvas changes until the template typing is clean.
+
+==================================================
+PHASE 3 — UPDATE CardCanvas PROFILE USAGE
+==================================================
+
+In CardCanvas.tsx:
+
+Import:
+
+import { getContentProfile } from "@/lib/cardCreator/cardContentProfiles";
+
+Compute once inside component:
+
+const contentProfile = getContentProfile(template.contentProfileId);
+
+Use profile values instead of hardcoded visual constants.
+
+Rating:
+- fontSize = ratingH * contentProfile.ratingFontRatio
+- shadowEnabled = contentProfile.shadowEnabled
+- shadowBlur = contentProfile.ratingShadowBlur
+- shadowColor = contentProfile.shadowColor
+
+Position:
+- fontSize = posH * contentProfile.positionFontRatio
+- shadowBlur = contentProfile.positionShadowBlur
+
+Name:
+- fontSize = nameH * contentProfile.nameFontRatio
+- shadowBlur = contentProfile.nameShadowBlur
+
+Stats:
+Keep existing two-column three-row V1 layout.
+Do NOT switch to six-column stats.
+
+Important:
+Current stat row split must remain:
+- value sub-box = top 55% of row
+- label sub-box = next 40% of row
+
+Use:
+const statValueBoxH = sh * 0.55;
+const statLabelBoxH = sh * 0.40;
+
+Then:
+stat value font size = statValueBoxH * contentProfile.statValueFontRatio
+stat label font size = statLabelBoxH * contentProfile.statLabelFontRatio
+
+Do NOT multiply statValueFontRatio directly by the full row height.
+Do NOT multiply statLabelFontRatio directly by the full row height.
+
+Stat label opacity:
+- value Text remains full opacity
+- label Text uses opacity={contentProfile.statLabelOpacity}
+- keep fill = style.statsColor
+
+If stat label Text already has shadow:
+- shadow should follow profile only if contentProfile.shadowEnabled is true
+- avoid making label shadows too heavy
+
+==================================================
+PHASE 4 — RENDER STATS DIVIDER
+==================================================
+
+The layout already has stats.divider coords.
+
+If:
+- contentProfile.showStatsDivider === true
+- layout.stats.divider exists
+
+Render a Konva Rect divider.
+
+Rules:
+- place it in Layer 2 before stat text groups
+- use layout.stats.divider coords converted to pixels
+- fill = contentProfile.dividerColor
+- opacity = contentProfile.dividerOpacity
+- listening={false}
+
+If the divider width is less than 1px after conversion:
+- clamp visible width to at least 1.5px
+- keep it centered on the original divider x
+
+Do not render divider above text.
+Do not render divider in Layer 1.
+Do not affect export logic.
+
+==================================================
+PHASE 5 — FIX FLAG ASPECT RATIO
+==================================================
+
+Current flags are stretched because flag zone aspect ratio differs from the real 4:3 flag ratio.
+
+In FlagZone:
+- pass contentProfile or relevant flag settings to FlagZone
+- if contentProfile.preserveFlagAspectRatio is true, center a 4:3 flag inside the existing flag zone
+- do not change flag assets
+- do not change flag zone coords
+- do not stretch the flag
+
+Algorithm:
+const targetRatio = contentProfile.flagAspectRatio; // 4/3
+const zoneRatio = w / h;
+
+if (zoneRatio > targetRatio) {
+  flagH = h;
+  flagW = h * targetRatio;
+} else {
+  flagW = w;
+  flagH = w / targetRatio;
+}
+
+flagX = x + (w - flagW) / 2;
+flagY = y + (h - flagH) / 2;
+
+Use flagX/flagY/flagW/flagH for:
+- image flag rendering
+- fallback flag rectangle rendering
+
+Important:
+The fallback flag must also use corrected dimensions.
+Do not correct only the image path and leave fallback stretched.
+
+==================================================
+PHASE 6 — BADGE CIRCLE STYLE
+==================================================
+
+In BadgeZone:
+- pass contentProfile or badge style values
+- keep current emoji/badge behavior
+- do not add external crest assets
+- do not remove badge slot
+
+Use:
+- circle fill opacity = contentProfile.badgeCircleOpacity
+- circle stroke opacity = contentProfile.badgeCircleStrokeOpacity
+- icon fontSize = min(w, h) * contentProfile.badgeIconScale
+
+Keep badge centered.
+Do not change badge zone coords.
+
+==================================================
+PHASE 7 — PRESERVE EVERYTHING ELSE
+==================================================
+
+Do not change:
+- player/cutout/photo boxes
+- background remover
+- cutout mode
+- normal photo mode
+- manual PNG cutout
+- AI background remover
+- export
+- hotspots
+- template assets
+- card state
+- localStorage
+
+CardCanvas z-order must remain:
+1. backdrop Rect
+2. overlay.png full base
+3. silhouette OR normal photo OR cutout
+4. masked overlay/frame
+5. text/content
+
+==================================================
+PHASE 8 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual visual check at 390×844 on at least:
+
+1. gold_crystal_2026
+2. gold_elite_2026
+3. black_elite_2026
+4. purple_holo_2026
+5. fangirl_pink_2026
+6. world_edition_2026
+7. silver_chrome_2026
+
+For each:
+- rating readable
+- position readable
+- flag no longer stretched
+- badge circle lighter/less cheap
+- name readable
+- stat values readable
+- stat labels readable
+- divider visible but subtle
+- no overlap with cutout/photo
+- no text clipped by zone
+- export still works
+
+Regression:
+- normal photo upload still works
+- manual PNG cutout still works
+- AI remove background still works
+- drag/zoom/rotate still work
+- export still works
+- hotspots still excluded from export
+
+==================================================
+PHASE 9 — FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. content profiles created
+3. profile assigned to each template
+4. confirmation type-only import used for ContentProfileId
+5. font ratio changes applied
+6. clarification that stat font ratios apply to value/label sub-boxes, not full row height
+7. stats divider rendering confirmation
+8. flag aspect correction confirmation, including fallback flag
+9. badge circle style update
+10. confirmation no hotspot changes
+11. confirmation no cutout/photo/background remover/export changes
+12. typecheck result
+13. build result
+14. git commit hash

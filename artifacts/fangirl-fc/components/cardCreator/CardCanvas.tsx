@@ -5,6 +5,8 @@ import { Stage, Layer, Image as KImage, Rect, Text, Circle, Group } from "react-
 import useImage from "use-image";
 import type Konva from "konva";
 import type { CardTemplateDefinition } from "@/lib/cardCreator/templateConfig";
+import { getContentProfile } from "@/lib/cardCreator/cardContentProfiles";
+import type { ContentProfile } from "@/lib/cardCreator/cardContentProfiles";
 import { nX, nY, nW, nH, resolveLayout, TEMPLATE_W, TEMPLATE_H, getSilhouetteBox, getPhotoBox, getCutoutBox } from "@/lib/cardCreator/renderUtils";
 import type { StatKey } from "@/lib/cardCreator/renderUtils";
 import { useMaskedOverlay } from "./useMaskedOverlay";
@@ -83,7 +85,13 @@ const TEMPLATE_BACKDROPS: Record<string, string> = {
 };
 
 // ── Badge zone — supports generic (emoji) + upload + none ────
-function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: number; w: number; h: number }) {
+function BadgeZone({
+  badge, x, y, w, h,
+  circleOpacity, circleStrokeOpacity, iconScale,
+}: {
+  badge: BadgeState; x: number; y: number; w: number; h: number;
+  circleOpacity: number; circleStrokeOpacity: number; iconScale: number;
+}) {
   const badgeSrc = badge.type === "upload" ? (badge.src || "") : "";
   const [badgeImg] = useImage(badgeSrc);
 
@@ -122,12 +130,14 @@ function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: num
     <Group>
       <Circle
         x={cx} y={cy} radius={size / 2}
-        fill="rgba(0,0,0,0.50)" stroke="rgba(255,255,255,0.18)" strokeWidth={2}
+        fill={`rgba(0,0,0,${circleOpacity})`}
+        stroke={`rgba(255,255,255,${circleStrokeOpacity})`}
+        strokeWidth={2}
       />
       <Text
         x={x} y={y} width={w} height={h}
         text={emojiMap[id]}
-        fontSize={size * 0.62}
+        fontSize={Math.min(w, h) * iconScale}
         align="center" verticalAlign="middle"
       />
     </Group>
@@ -136,10 +146,13 @@ function BadgeZone({ badge, x, y, w, h }: { badge: BadgeState; x: number; y: num
 
 // ── Flag with safe SVG fallback ──────────────────────────────
 function FlagZone({
-  flagUrl, countryCode, x, y, w, h, onStatus,
+  flagUrl, countryCode, x, y, w, h,
+  preserveAspectRatio, flagAspectRatio,
+  onStatus,
 }: {
   flagUrl: string; countryCode: string;
   x: number; y: number; w: number; h: number;
+  preserveAspectRatio: boolean; flagAspectRatio: number;
   onStatus?: (s: string) => void;
 }) {
   const [img, status] = useImage(flagUrl, "anonymous");
@@ -150,16 +163,31 @@ function FlagZone({
     else onStatus?.(status);
   }, [status, onStatus]);
 
+  // Compute corrected dimensions centered within the zone
+  let fX = x, fY = y, fW = w, fH = h;
+  if (preserveAspectRatio) {
+    const zoneRatio = w / h;
+    if (zoneRatio > flagAspectRatio) {
+      fH = h;
+      fW = h * flagAspectRatio;
+    } else {
+      fW = w;
+      fH = w / flagAspectRatio;
+    }
+    fX = x + (w - fW) / 2;
+    fY = y + (h - fH) / 2;
+  }
+
   if (status === "loaded" && img) {
-    return <KImage image={img} x={x} y={y} width={w} height={h} />;
+    return <KImage image={img} x={fX} y={fY} width={fW} height={fH} />;
   }
   return (
     <Group>
-      <Rect x={x} y={y} width={w} height={h} fill="#1a3a6a" cornerRadius={3} />
+      <Rect x={fX} y={fY} width={fW} height={fH} fill="#1a3a6a" cornerRadius={3} />
       <Text
-        x={x} y={y} width={w} height={h}
+        x={fX} y={fY} width={fW} height={fH}
         text={countryCode}
-        fontSize={h * 0.45} fontFamily="D-DIN Condensed" fontStyle="bold"
+        fontSize={fH * 0.45} fontFamily="D-DIN Condensed" fontStyle="bold"
         fill="#ffffff" align="center" verticalAlign="middle"
       />
     </Group>
@@ -225,8 +253,9 @@ export default function CardCanvas({
   const [silhouetteImage] = useImage(PLAYER_SILHOUETTE);
 
   // Resolved layout + pixel coordinates
-  const layout = resolveLayout(template);
-  const style  = template.style;
+  const layout         = resolveLayout(template);
+  const style          = template.style;
+  const contentProfile = getContentProfile(template.contentProfileId);
 
   // ── Silhouette box — used when no photo is uploaded ──────────
   const silhouetteBox = getSilhouetteBox(layout, template.id);
@@ -308,9 +337,9 @@ export default function CardCanvas({
   const nameW = nW(layout.name.w);
   const nameH = nH(layout.name.h);
 
-  const ratingFontSize = ratingH * 0.75;
-  const posFontSize    = posH    * 0.65;
-  const nameFontSize   = nameH   * 0.7;
+  const ratingFontSize = ratingH * contentProfile.ratingFontRatio;
+  const posFontSize    = posH    * contentProfile.positionFontRatio;
+  const nameFontSize   = nameH   * contentProfile.nameFontRatio;
 
   // Photo transform values
   const { photo } = cardState;
@@ -449,22 +478,47 @@ export default function CardCanvas({
 
         {/* ═══════════════════════════════════════════════════
             LAYER 2 — Card content
-            flag → badge → rating → position → name → stats
+            flag → badge → divider → rating → position → name → stats
         ═══════════════════════════════════════════════════ */}
         <Layer>
-          {/* Flag */}
+          {/* Flag — aspect-ratio corrected via profile */}
           <FlagZone
             flagUrl={cardState.player.flagPath}
             countryCode={cardState.player.countryCode}
             x={flagX} y={flagY} w={flagW} h={flagH}
+            preserveAspectRatio={contentProfile.preserveFlagAspectRatio}
+            flagAspectRatio={contentProfile.flagAspectRatio}
             onStatus={setFlagStatus}
           />
 
-          {/* Badge */}
+          {/* Badge — circle opacity/icon scale from profile */}
           <BadgeZone
             badge={cardState.badge}
             x={badgeX} y={badgeY} w={badgeW} h={badgeH}
+            circleOpacity={contentProfile.badgeCircleOpacity}
+            circleStrokeOpacity={contentProfile.badgeCircleStrokeOpacity}
+            iconScale={contentProfile.badgeIconScale}
           />
+
+          {/* Stats divider — rendered before stat text so text sits above */}
+          {contentProfile.showStatsDivider && layout.stats.divider && (() => {
+            const dvX = nX(layout.stats.divider.x);
+            const dvY = nY(layout.stats.divider.y);
+            const dvH = nH(layout.stats.divider.h);
+            // Clamp to at least 1.5px so it's always visible
+            const dvW = Math.max(nW(layout.stats.divider.w), 1.5);
+            // Keep the divider centered on its original x coordinate
+            const dvXAdj = dvX - dvW / 2;
+            return (
+              <Rect
+                x={dvXAdj} y={dvY}
+                width={dvW} height={dvH}
+                fill={contentProfile.dividerColor}
+                opacity={contentProfile.dividerOpacity}
+                listening={false}
+              />
+            );
+          })()}
 
           {/* Rating */}
           <Text
@@ -472,7 +526,9 @@ export default function CardCanvas({
             text={String(cardState.player.rating)}
             fontSize={ratingFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.ratingColor} align={layout.rating.align} verticalAlign="middle"
-            shadowEnabled={style.shadow} shadowBlur={style.shadow ? 6 : 0} shadowColor="rgba(0,0,0,0.6)"
+            shadowEnabled={contentProfile.shadowEnabled}
+            shadowBlur={contentProfile.ratingShadowBlur}
+            shadowColor={contentProfile.shadowColor}
           />
 
           {/* Position */}
@@ -481,7 +537,9 @@ export default function CardCanvas({
             text={cardState.player.position}
             fontSize={posFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.textColor} align={layout.position.align} verticalAlign="middle"
-            shadowEnabled={style.shadow} shadowBlur={style.shadow ? 4 : 0} shadowColor="rgba(0,0,0,0.6)"
+            shadowEnabled={contentProfile.shadowEnabled}
+            shadowBlur={contentProfile.positionShadowBlur}
+            shadowColor={contentProfile.shadowColor}
           />
 
           {/* Player name */}
@@ -490,35 +548,43 @@ export default function CardCanvas({
             text={cardState.player.name.toUpperCase()}
             fontSize={nameFontSize} fontFamily="D-DIN Condensed" fontStyle="bold"
             fill={style.nameColor} align={layout.name.align} verticalAlign="middle"
-            shadowEnabled={style.shadow} shadowBlur={style.shadow ? 6 : 0} shadowColor="rgba(0,0,0,0.7)"
+            shadowEnabled={contentProfile.shadowEnabled}
+            shadowBlur={contentProfile.nameShadowBlur}
+            shadowColor={contentProfile.shadowColor}
           />
 
           {/* Stats */}
           {[...layout.stats.left, ...layout.stats.right].map((s) => {
-            const sx      = nX(s.x);
-            const sy      = nY(s.y);
-            const sw      = nW(s.w);
-            const sh      = nH(s.h);
-            const valH    = sh * 0.55;
-            const lblH    = sh * 0.4;
-            const valSize = valH * 0.88;
-            const lblSize = lblH * 0.72;
+            const sx           = nX(s.x);
+            const sy           = nY(s.y);
+            const sw           = nW(s.w);
+            const sh           = nH(s.h);
+            const statValueBoxH = sh * 0.55;
+            const statLabelBoxH = sh * 0.40;
+            const valSize = statValueBoxH * contentProfile.statValueFontRatio;
+            const lblSize = statLabelBoxH * contentProfile.statLabelFontRatio;
             const val = cardState.stats[s.key as StatKey];
             return (
               <Group key={s.key}>
                 <Text
-                  x={sx} y={sy} width={sw} height={valH}
+                  x={sx} y={sy} width={sw} height={statValueBoxH}
                   text={String(val ?? "")}
                   fontSize={valSize} fontFamily="D-DIN Condensed" fontStyle="bold"
                   fill={style.statsColor} align="center" verticalAlign="middle"
-                  shadowEnabled={style.shadow} shadowBlur={style.shadow ? 4 : 0} shadowColor="rgba(0,0,0,0.6)"
+                  shadowEnabled={contentProfile.shadowEnabled}
+                  shadowBlur={contentProfile.statShadowBlur}
+                  shadowColor={contentProfile.shadowColor}
                 />
                 <Text
-                  x={sx} y={sy + valH} width={sw} height={lblH}
+                  x={sx} y={sy + statValueBoxH} width={sw} height={statLabelBoxH}
                   text={s.key}
                   fontSize={lblSize} fontFamily="D-DIN Condensed" fontStyle="bold"
-                  fill={style.statsColor} align="center" verticalAlign="middle"
-                  shadowEnabled={style.shadow} shadowBlur={style.shadow ? 3 : 0} shadowColor="rgba(0,0,0,0.6)"
+                  fill={style.statsColor}
+                  opacity={contentProfile.statLabelOpacity}
+                  align="center" verticalAlign="middle"
+                  shadowEnabled={contentProfile.shadowEnabled}
+                  shadowBlur={contentProfile.statShadowBlur}
+                  shadowColor={contentProfile.shadowColor}
                 />
               </Group>
             );

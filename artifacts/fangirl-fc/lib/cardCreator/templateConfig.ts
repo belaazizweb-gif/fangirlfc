@@ -3,6 +3,7 @@
 // All coordinates are NORMALIZED (0.0 – 1.0 of canvas size 1086 × 1448)
 // DO NOT edit manually — re-run the generation script when the JSON changes.
 // ============================================================
+import type { ContentProfileId } from "./cardContentProfiles";
 
 // ── Template IDs ────────────────────────────────────────────
 export type CardTemplateId =
@@ -100,12 +101,13 @@ export interface CardTemplateProcessing {
 
 // ── Full template definition ─────────────────────────────────
 export interface CardTemplateDefinition {
-  id:         CardTemplateId;
-  name:       string;
-  category:   string;
-  family:     string;
-  enabled:    boolean;
-  layoutId:   LayoutId;
+  id:               CardTemplateId;
+  name:             string;
+  category:         string;
+  family:           string;
+  enabled:          boolean;
+  layoutId:         LayoutId;
+  contentProfileId: ContentProfileId;
   assets: {
     background: string;
     overlay:    string;
@@ -304,6 +306,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "premium_crystal",
     enabled: true,
     layoutId: "goldCrystal",
+    contentProfileId: "premium_gold",
     assets: {
       background: "/templates/gold_crystal_2026/background.png",
       overlay:    "/templates/gold_crystal_2026/overlay.png",
@@ -322,6 +325,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_light",
     assets: {
       background: "/templates/silver_classic_2026/background.png",
       overlay:    "/templates/silver_classic_2026/overlay.png",
@@ -340,6 +344,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "premium_gold",
     enabled: true,
     layoutId: "goldElite",
+    contentProfileId: "premium_gold",
     assets: {
       background: "/templates/gold_elite_2026/background.png",
       overlay:    "/templates/gold_elite_2026/overlay.png",
@@ -358,6 +363,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_light",
     assets: {
       background: "/templates/silver_chrome_2026/background.png",
       overlay:    "/templates/silver_chrome_2026/overlay.png",
@@ -376,6 +382,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_dark",
     assets: {
       background: "/templates/black_elite_2026/background.png",
       overlay:    "/templates/black_elite_2026/overlay.png",
@@ -394,6 +401,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_dark",
     assets: {
       background: "/templates/blue_electric_2026/background.png",
       overlay:    "/templates/blue_electric_2026/overlay.png",
@@ -412,6 +420,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_dark",
     assets: {
       background: "/templates/purple_holo_2026/background.png",
       overlay:    "/templates/purple_holo_2026/overlay.png",
@@ -430,6 +439,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "standard_frame_family",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_dark",
     assets: {
       background: "/templates/red_fire_2026/background.png",
       overlay:    "/templates/red_fire_2026/overlay.png",
@@ -448,6 +458,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "stadium_green_gold",
     enabled: true,
     layoutId: "standardFrame",
+    contentProfileId: "standard_green",
     assets: {
       background: "/templates/green_stadium_2026/background.png",
       overlay:    "/templates/green_stadium_2026/overlay.png",
@@ -466,6 +477,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "world_cup_host",
     enabled: false,
     layoutId: "worldCup",
+    contentProfileId: "world_cup",
     assets: {
       background: "/templates/usa_host_2026/background.png",
       overlay:    "/templates/usa_host_2026/overlay.png",
@@ -484,6 +496,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "world_cup_neutral",
     enabled: true,
     layoutId: "worldCup",
+    contentProfileId: "world_cup",
     assets: {
       background: "/templates/world_edition_2026/background.png",
       overlay:    "/templates/world_edition_2026/overlay.png",
@@ -502,6 +515,7 @@ const TEMPLATES: CardTemplateDefinition[] = [
     family: "fangirl_soft",
     enabled: true,
     layoutId: "fangirl",
+    contentProfileId: "fangirl",
     assets: {
       background: "/templates/fangirl_pink_2026/background.png",
       overlay:    "/templates/fangirl_pink_2026/overlay.png",
