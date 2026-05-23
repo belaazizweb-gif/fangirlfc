@@ -1,0 +1,268 @@
+TASK: Fix Checkerboard / Transparent Template Background — READ-ONLY DIAGNOSTIC FIRST
+
+CONTEXT
+The card creator now works:
+- no-photo silhouette works
+- normal photo works
+- transparent PNG cutout works
+- drag/zoom/rotate work
+- export/download works
+- cutout-ready architecture is stable
+
+Remaining visual issue:
+Some templates show a checkerboard / transparent background in preview and/or exported PNG.
+This looks unprofessional.
+
+But before coding, we must identify the exact source of the checkerboard.
+
+DO NOT CODE YET.
+DO NOT MODIFY FILES YET.
+DO NOT ADD A BACKDROP YET.
+DO NOT CHANGE EXPORT YET.
+
+First perform a read-only diagnostic and wait for approval.
+
+DO NOT:
+- do not change cutout logic
+- do not change photo logic
+- do not change silhouette logic
+- do not add background remover
+- do not modify PNG assets
+- do not refactor editor
+- do not touch routes/navigation
+- do not touch hotspots
+- do not change export architecture before diagnosis
+
+FILES / ASSETS TO INSPECT
+
+Inspect code:
+1. components/cardCreator/CardCanvas.tsx
+2. components/cardCreator/CreatorScreen.tsx
+3. components/cardCreator/useMaskedOverlay.ts
+4. lib/cardCreator/renderUtils.ts
+5. template config files
+6. any CSS/global styles used by /creator preview/canvas wrapper
+7. export/download function
+
+Inspect template folders for at least:
+- silver_chrome_2026
+- black_elite_2026
+- gold_elite_2026
+- gold_crystal_2026
+
+For each template inspect:
+- overlay.png
+- background.png
+- source.png
+- thumbnail.png
+- config.json if present
+
+PHASE 0 — READ-ONLY DIAGNOSTIC
+
+Before coding, report:
+
+1. Is checkerboard visible because of CSS?
+Check:
+- canvas wrapper background
+- preview wrapper background
+- any checkerboard CSS background-image
+- any transparent preview helper
+
+2. Is checkerboard visible because the template image itself contains baked checkerboard pixels?
+For each suspicious asset:
+- inspect actual PNG pixels if possible
+- report whether checkerboard is baked into overlay/source/background
+- do not modify PNG assets
+
+3. Is checkerboard visible because the PNG has transparent areas and there is no Konva Stage background behind it?
+Confirm:
+- whether the Konva Stage background is transparent
+- whether Layer 1 starts directly with overlay.png
+- whether transparent areas expose the preview wrapper/export transparency
+
+4. Is checkerboard visible only in browser preview or also in exported PNG?
+Confirm:
+- preview behavior
+- downloaded PNG behavior
+- whether export is truly transparent PNG or contains checkerboard pixels
+
+5. Which asset is currently used as the full card base?
+For each tested template, report:
+- base asset used
+- overlay/masked asset used
+- whether background.png is useful or just a stub
+- whether source.png is useful or creates duplicated frame
+
+6. Current render order in CardCanvas
+Report exact order:
+- backdrop if any
+- full card base image
+- silhouette/photo/cutout
+- masked overlay
+- text/content
+- DOM hotspots
+
+7. Current export mechanism
+Confirm:
+- export uses Konva stage
+- whether adding a Konva Rect would be included in export
+- whether CSS background would NOT be included in export
+
+8. Minimal safe fix options
+Provide recommendations:
+A. preview-only CSS background fix
+B. Konva Stage backdrop included in export
+C. per-template backdrop mapping
+D. disable/replace template if checkerboard is baked into PNG
+
+STOP AFTER REPORT.
+Wait for approval before coding.
+
+PHASE 0 REPORT FORMAT
+
+Report exactly:
+
+1. Files inspected
+2. Templates/assets inspected
+3. Exact source of checkerboard:
+   - CSS
+   - transparent stage
+   - baked into PNG
+   - wrong base asset
+   - other
+4. Whether checkerboard appears in preview only, export only, or both
+5. Current card base asset per tested template
+6. Current render order
+7. Current export behavior
+8. Recommended minimal fix
+9. Files that would need changes
+10. Risks
+
+Do not code until approved.
+
+==================================================
+ONLY AFTER APPROVAL, IMPLEMENT THE FIX BELOW
+==================================================
+
+TASK AFTER APPROVAL:
+Add a safe Card Backdrop Layer only if diagnostic confirms checkerboard is caused by template transparency / transparent Konva stage.
+
+DO NOT:
+- do not change cutout logic
+- do not change photo logic
+- do not change silhouette logic
+- do not modify template PNGs
+- do not touch hotspots
+- do not refactor editor
+- do not change route/navigation
+
+GOAL
+Remove visible checkerboard from templates by rendering a controlled backdrop inside the Konva Stage.
+
+Important:
+The backdrop must be inside the Konva Stage if it needs to appear in export.
+CSS background alone is not enough for export.
+
+RENDER ORDER REQUIRED
+
+Layer 1:
+1. Card backdrop Rect / gradient
+2. Full card base image
+3. Silhouette OR normal photo OR cutout
+4. Masked overlay/frame
+
+Layer 2:
+5. Text/content
+
+Layer 3:
+6. Debug boxes only if enabled
+
+DOM:
+7. Hotspots/buttons outside export
+
+BACKDROP RULES
+
+Add a backdrop before the full card base image.
+
+Backdrop:
+- x = 0
+- y = 0
+- width = CANVAS_WIDTH
+- height = CANVAS_HEIGHT
+- listening={false}
+
+Prefer solid color first.
+Do not add complex gradients unless already simple and safe.
+
+Use per-template mapping:
+
+const TEMPLATE_BACKDROPS: Record<string, string> = {
+  black_elite_2026: "#111318",
+  silver_chrome_2026: "#f4f4f1",
+  gold_elite_2026: "#ead58a",
+  gold_crystal_2026: "#f1df9a",
+};
+
+Fallback:
+"#f4f4f1"
+
+Important:
+- if a template already has a complete non-transparent base, backdrop must not visually damage it
+- if background.png is useful and safer than a Rect, report before using it
+- do not blindly switch all templates to source.png
+- do not duplicate frames or darken the card by stacking wrong assets
+
+EXPORT DECISION
+
+Because the user wants a professional downloaded card, exported PNG should not show checkerboard.
+
+Therefore:
+- if checkerboard is caused by transparency, include backdrop in Konva Stage export
+- if user wants transparent exports later, add that as a future option, not now
+
+VALIDATION AFTER CODING
+
+Run:
+npm run typecheck
+npm run build
+
+Manual validation at 390×844:
+
+Preview:
+1. silver template no longer shows checkerboard
+2. black template no longer shows checkerboard
+3. gold template still looks correct
+4. cutout mode still works
+5. normal photo mode still works
+6. no-photo silhouette still works
+7. no new rectangle appears over player/photo/cutout
+8. masked overlay still frames correctly
+
+Export:
+9. downloaded PNG does not show checkerboard
+10. export includes clean backdrop
+11. export includes cutout/photo/silhouette correctly
+12. export excludes hotspots/UI
+
+Regression:
+13. drag works
+14. zoom works
+15. rotate works if supported
+16. typecheck passes
+17. build passes
+
+FINAL REPORT AFTER CODING
+
+Report only:
+1. files changed
+2. exact checkerboard source confirmed
+3. backdrop strategy used
+4. per-template backdrop mapping
+5. render order confirmation
+6. confirmation preview checkerboard removed
+7. confirmation export checkerboard removed
+8. confirmation cutout/photo/silhouette unchanged
+9. confirmation export excludes UI/hotspots
+10. typecheck result
+11. build result
+12. git commit hash
