@@ -1,0 +1,78 @@
+TASK: Debug Missing Remove Background Button — No Code Changes First
+
+CONTEXT
+I tested /creator on mobile after the @imgly/background-removal integration.
+I do NOT see any "Remove Background" button anywhere.
+
+Your report said:
+- PhotoEditorSheet.tsx was updated
+- onRemoveBackground, isRemovingBg, bgRemoveError props were added
+- button labels were added:
+  "✨ Remove Background"
+  "✨ Replace with AI Cutout"
+  "✨ Remove Background Again"
+
+But in the UI the button is not visible.
+
+DO NOT make code changes yet.
+First diagnose exactly why the button is not visible.
+
+CHECK THESE POINTS
+
+1. Confirm final commit
+- Confirm the actual final commit hash after implementation was committed/pushed.
+- Do not report the diagnostic commit only.
+- If implementation is staged but not pushed, push it first and report the hash.
+
+2. Confirm PhotoEditorSheet is actually used
+- Find where PhotoEditorSheet is rendered in CreatorScreen.tsx.
+- Confirm the updated props are actually passed:
+  onRemoveBackground
+  isRemovingBg
+  bgRemoveError
+  photo or equivalent state used for label logic
+
+3. Confirm button render condition
+- In PhotoEditorSheet.tsx, find the exact condition that controls whether the Remove Background button appears.
+- Report it exactly.
+- Confirm whether it requires photo.src.
+- Confirm whether photo.src is present after uploading a normal JPG.
+
+4. Confirm UI location
+- Report where the button is rendered:
+  - inside upload sheet?
+  - inside photo edit sheet?
+  - below upload button?
+  - below zoom/rotate controls?
+- Explain what user action is required to see it.
+
+5. Check mobile visibility
+- Confirm the button is not hidden by:
+  - overflow
+  - scroll area
+  - fixed height
+  - z-index
+  - conditional tab/sheet state
+  - disabled state
+  - CSS class hidden/invisible
+  - sheet not open
+
+6. Confirm screenshot
+- Run the app.
+- Upload a normal JPG.
+- Open the relevant photo editing sheet.
+- Take a mobile screenshot showing whether the button is visible.
+
+STOP AFTER REPORT.
+Do not change code until I approve.
+
+FINAL REPORT:
+1. final implementation commit hash
+2. where PhotoEditorSheet is rendered
+3. props passed to PhotoEditorSheet
+4. exact button render condition
+5. exact UI location of the button
+6. whether photo.src is present after JPG upload
+7. whether the button is hidden by layout/overflow/sheet condition
+8. screenshot result
+9. recommended minimal fix if needed
