@@ -1,0 +1,83 @@
+TASK: Live Domain Runtime Verification — No Design Changes
+
+CONTEXT
+I tested on my phone at:
+https://fangirlfc.live/creator
+
+After the Gold Elite stats patch, I still see no visual difference.
+This should be impossible if stat fontSize changed from 56 to 84.
+
+Do NOT make design changes.
+Do NOT change stats values.
+Do NOT change layout.
+Do NOT touch cutout/background remover/export.
+Do NOT refactor.
+
+Goal:
+Prove whether fangirlfc.live is serving the latest patched build.
+
+STEP 1 — Confirm git/build state
+Report:
+1. latest local git commit hash
+2. whether the stats patch is committed
+3. exact current CardCanvas.tsx values for:
+   - stat value fontSize
+   - stat label fontSize
+   - bottomBlock fill opacity
+   - V3_STATS row positions
+4. confirm working tree is clean or report uncommitted files
+
+STEP 2 — Confirm deployment target
+Report:
+1. what server/domain Replit is running
+2. whether fangirlfc.live points to this Replit deployment
+3. whether the custom domain is serving the same build as Replit preview
+4. whether a production build/redeploy is needed for fangirlfc.live
+
+STEP 3 — Add temporary visible live marker
+Temporarily add a very obvious marker inside the gold_elite_2026 V3 branch:
+
+Text:
+"STATS84 LIVE"
+
+Position:
+x = 60
+y = 70
+
+Style:
+fontSize = 70
+fill = "red"
+fontStyle = "bold"
+
+This marker must only appear on gold_elite_2026.
+
+Then:
+1. rebuild/restart/deploy so fangirlfc.live receives the change
+2. open https://fangirlfc.live/creator?v=stats84-live
+3. take a screenshot or confirm whether "STATS84 LIVE" appears
+
+STEP 4 — Interpret result
+If "STATS84 LIVE" appears:
+- live domain is running the patched branch
+- then the issue is visual/design, not deploy
+
+If "STATS84 LIVE" does NOT appear:
+- live domain is NOT serving the patched build
+- fix deployment/cache first
+- do not touch design
+
+STEP 5 — Remove temporary marker
+After the test, remove "STATS84 LIVE".
+Do not leave it in final code.
+
+STEP 6 — Final report
+Report only:
+1. latest commit hash
+2. whether stats patch is committed
+3. exact CardCanvas stat font sizes currently in code
+4. whether fangirlfc.live is serving same build as Replit preview
+5. whether "STATS84 LIVE" appeared on fangirlfc.live
+6. whether this is a deployment/cache issue or design issue
+7. exact URL I should test
+8. whether temporary marker was removed
+9. final commit hash after cleanup if any
