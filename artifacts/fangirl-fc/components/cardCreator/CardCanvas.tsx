@@ -282,7 +282,9 @@ export default function CardCanvas({
   const layout         = resolveLayout(template);
   const style          = template.style;
   const contentProfile = getContentProfile(template.contentProfileId);
-  const isGoldEliteV3  = template.id === "gold_elite_2026";
+  const isPremiumGoldV3 =
+    template.id === "gold_elite_2026" ||
+    template.id === "gold_crystal_2026";
 
   // ── Silhouette box — used when no photo is uploaded ──────────
   const silhouetteBox = getSilhouetteBox(layout, template.id);
@@ -508,7 +510,7 @@ export default function CardCanvas({
             V3 branch for gold_elite_2026 / generic for all others
         ═══════════════════════════════════════════════════ */}
         <Layer>
-          {isGoldEliteV3 ? (() => {
+          {isPremiumGoldV3 ? (() => {
             /* ─────────────────────────────────────────────────
                GOLD ELITE V3 — Premium content overlay
                Panels first (behind text), then text/images

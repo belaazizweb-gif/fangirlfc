@@ -1,0 +1,188 @@
+TASK: Apply Locked Gold Elite Design to gold_crystal_2026 ONLY — No Creative Changes
+
+CONTEXT
+gold_elite_2026 is now accepted and locked at commit b1b7f92.
+
+Accepted baseline:
+- large readable stats
+- no large black bottom block
+- gold card artwork visible
+- slim nameplate
+- transparent row chips
+- large inline stats
+- hotspots restored/accepted
+- current design is acceptable
+
+Now we want to apply the same accepted design style to:
+gold_crystal_2026 ONLY
+
+This is not a redesign.
+This is not creative.
+This is a controlled template extension.
+
+STRICT RULES
+
+DO NOT:
+- do not change gold_elite_2026 visual output
+- do not change stats sizes from the locked accepted design
+- do not change Gold Elite coordinates unless absolutely required and approved
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change card state/localStorage
+- do not change routes/navigation
+- do not touch PhotoEditorSheet
+- do not touch CreatorScreen unless absolutely required
+- do not touch EditHotspots unless absolutely required
+- do not generalize to black/silver/purple/fangirl yet
+- do not refactor the whole editor
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx
+
+Only touch another file if build proves it is absolutely required. Report before changing it.
+
+==================================================
+PHASE 0 — PRE-FLIGHT, NO EDITS YET
+==================================================
+
+Before editing, inspect CardCanvas.tsx and report:
+
+1. Current accepted gold_elite_2026 branch condition.
+2. Current exact constants/values used for:
+   - nameplate
+   - stat rows
+   - rowH
+   - left/right column x/w
+   - stat value fontSize
+   - stat label fontSize
+   - row chip fill/stroke
+   - center divider
+3. Confirm current gold_elite_2026 output will not be modified numerically.
+
+Then proceed only with the minimal implementation.
+
+==================================================
+PHASE 1 — TARGET TEMPLATE
+==================================================
+
+Add gold_crystal_2026 to the same premium gold rendering path.
+
+Preferred approach:
+
+const isPremiumGoldV3 =
+  template.id === "gold_elite_2026" ||
+  template.id === "gold_crystal_2026";
+
+Then use this condition for the accepted gold V3 renderer.
+
+Important:
+- Do not duplicate a second huge branch if a clean OR condition is enough.
+- Do not change the existing accepted numeric values.
+- Do not create new coordinates for gold_crystal_2026 yet.
+- The first test must use the same accepted Gold Elite values.
+
+Reason:
+gold_crystal_2026 is visually close to gold_elite_2026 and should first inherit the locked baseline exactly.
+
+==================================================
+PHASE 2 — KEEP EXACT ACCEPTED DESIGN VALUES
+==================================================
+
+For gold_crystal_2026, use the same accepted values currently used by gold_elite_2026:
+
+Stats:
+- value fontSize = current accepted Gold Elite value
+- label fontSize = current accepted Gold Elite value
+- same rowY values
+- same rowH
+- same column x/w
+- same inline layout
+- same chip style
+- same divider style
+
+Name:
+- same slim nameplate
+- same name font logic
+- same uppercase behavior
+
+Left meta:
+- same rating/position/flag/FC rendering currently accepted
+
+Do not invent new values.
+
+==================================================
+PHASE 3 — GOLD ELITE LOCK PROTECTION
+==================================================
+
+After implementation, explicitly verify:
+
+1. gold_elite_2026 still renders through the same branch.
+2. gold_elite_2026 uses the same numeric values as before.
+3. There is no visual regression for gold_elite_2026.
+4. The only behavior change is that gold_crystal_2026 now also uses the premium gold renderer.
+
+If any Gold Elite values changed accidentally, revert them.
+
+==================================================
+PHASE 4 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual screenshot validation:
+
+1. gold_elite_2026:
+   - still looks like accepted baseline
+   - stats still large
+   - no black block
+   - design still visible
+
+2. gold_crystal_2026:
+   - now uses the same premium gold content style
+   - stats are large and readable
+   - no large black block
+   - name readable
+   - gold card artwork visible
+   - no obvious overlap
+
+Regression:
+3. cutout still works
+4. AI background remover still works
+5. normal photo still works
+6. export still works
+7. hotspots unchanged
+
+==================================================
+PHASE 5 — PUSH
+==================================================
+
+If typecheck/build pass and screenshots confirm both gold templates are correct:
+
+1. Commit the change.
+2. Push to GitHub.
+3. Report the final commit hash.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. previous gold_elite_2026 condition
+3. new premium gold condition
+4. confirmation gold_elite_2026 numeric values unchanged
+5. confirmation gold_crystal_2026 now uses the premium gold renderer
+6. typecheck result
+7. build result
+8. screenshot validation summary for gold_elite_2026
+9. screenshot validation summary for gold_crystal_2026
+10. confirmation cutout/background remover/export untouched
+11. git commit hash
