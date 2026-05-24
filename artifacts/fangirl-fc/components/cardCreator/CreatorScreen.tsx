@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import type Konva from "konva";
 import { CARD_TEMPLATE_CONFIG, type CardTemplateId } from "@/lib/cardCreator/templateConfig";
@@ -16,6 +15,7 @@ import BadgeEditorSheet from "./BadgeEditorSheet";
 import StatsEditorSheet from "./StatsEditorSheet";
 import EditHotspots from "./EditHotspots";
 import type { LoadStatus } from "./CardCanvas";
+import CardCanvas from "./CardCanvas";
 
 // ── Transparent PNG detection ────────────────────────────────────────────────
 //
@@ -132,13 +132,9 @@ async function resizeImageForBackgroundRemoval(dataUrl: string): Promise<Blob> {
   }
 }
 
-// Konva/canvas is browser-only
-const CardCanvas = dynamic(() => import("./CardCanvas"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full bg-[#0d0920] animate-pulse rounded-xl" />
-  ),
-});
+// CardCanvas is browser-only. CreatorScreen is already loaded with
+// dynamic({ ssr: false }) from page.tsx so Konva runs only in the browser.
+// Using a plain import avoids a second sequential lazy-load waterfall.
 
 // ── Sheet type (null = no sheet open) ────────────────────────
 type Sheet = "template" | "photo" | "info" | "badge" | "stats" | "save" | null;
@@ -509,6 +505,7 @@ export default function CreatorScreen() {
                     sizes="120px"
                     className="object-cover"
                     unoptimized
+                    loading="lazy"
                   />
                 </div>
                 <span
