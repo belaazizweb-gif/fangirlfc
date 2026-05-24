@@ -83,6 +83,79 @@ const V3_STATS = [
 ];
 const V3_ROW_H = 0.065;
 
+// ── Non-gold premium palette ──────────────────────────────────
+type NonGoldPaletteId = "dark" | "light" | "pink" | "green";
+
+const NON_GOLD_TEMPLATE_PALETTE: Record<string, NonGoldPaletteId> = {
+  black_elite_2026:    "dark",
+  purple_holo_2026:    "dark",
+  blue_electric_2026:  "dark",
+  red_fire_2026:       "dark",
+  silver_classic_2026: "light",
+  silver_chrome_2026:  "light",
+  world_edition_2026:  "light",
+  usa_host_2026:       "light",
+  fangirl_pink_2026:   "pink",
+  green_stadium_2026:  "green",
+};
+
+const NON_GOLD_PALETTES: Record<NonGoldPaletteId, {
+  primaryText:   string; secondaryText: string;
+  nameplateFill: string; chipFill:      string;
+  chipStroke:    string; stroke:        string;
+  strokeStrong:  string; shadow:        string;
+  divider:       string; metaFill:      string;
+}> = {
+  dark: {
+    primaryText:   "#FFFFFF",
+    secondaryText: "#D8C27A",
+    nameplateFill: "rgba(0,0,0,0.22)",
+    chipFill:      "rgba(255,255,255,0.08)",
+    chipStroke:    "rgba(255,220,120,0.28)",
+    stroke:        "rgba(255,220,120,0.34)",
+    strokeStrong:  "rgba(255,220,120,0.46)",
+    shadow:        "rgba(0,0,0,0.95)",
+    divider:       "rgba(255,220,120,0.34)",
+    metaFill:      "rgba(0,0,0,0.20)",
+  },
+  light: {
+    primaryText:   "#111827",
+    secondaryText: "#4A3510",
+    nameplateFill: "rgba(255,255,255,0.24)",
+    chipFill:      "rgba(255,255,255,0.24)",
+    chipStroke:    "rgba(20,20,20,0.20)",
+    stroke:        "rgba(20,20,20,0.22)",
+    strokeStrong:  "rgba(20,20,20,0.32)",
+    shadow:        "rgba(255,255,255,0.35)",
+    divider:       "rgba(20,20,20,0.26)",
+    metaFill:      "rgba(255,255,255,0.18)",
+  },
+  pink: {
+    primaryText:   "#FFFFFF",
+    secondaryText: "#FFD1EA",
+    nameplateFill: "rgba(80,0,45,0.24)",
+    chipFill:      "rgba(255,255,255,0.12)",
+    chipStroke:    "rgba(255,122,191,0.34)",
+    stroke:        "rgba(255,122,191,0.34)",
+    strokeStrong:  "rgba(255,122,191,0.46)",
+    shadow:        "rgba(80,0,45,0.85)",
+    divider:       "rgba(255,122,191,0.34)",
+    metaFill:      "rgba(80,0,45,0.22)",
+  },
+  green: {
+    primaryText:   "#FFF6C7",
+    secondaryText: "#F8D86A",
+    nameplateFill: "rgba(0,35,20,0.24)",
+    chipFill:      "rgba(255,244,191,0.10)",
+    chipStroke:    "rgba(255,220,120,0.30)",
+    stroke:        "rgba(255,220,120,0.34)",
+    strokeStrong:  "rgba(255,220,120,0.46)",
+    shadow:        "rgba(0,0,0,0.90)",
+    divider:       "rgba(255,220,120,0.34)",
+    metaFill:      "rgba(0,35,20,0.22)",
+  },
+};
+
 // ── Per-template backdrop colours ────────────────────────────
 //
 // A solid Konva Rect is drawn as the very first element in Layer 1
@@ -285,6 +358,18 @@ export default function CardCanvas({
   const isPremiumGoldV3 =
     template.id === "gold_elite_2026" ||
     template.id === "gold_crystal_2026";
+
+  const isPremiumNonGoldV3 =
+    template.id === "black_elite_2026"    ||
+    template.id === "purple_holo_2026"   ||
+    template.id === "blue_electric_2026" ||
+    template.id === "red_fire_2026"      ||
+    template.id === "silver_classic_2026"||
+    template.id === "silver_chrome_2026" ||
+    template.id === "world_edition_2026" ||
+    template.id === "usa_host_2026"      ||
+    template.id === "fangirl_pink_2026"  ||
+    template.id === "green_stadium_2026";
 
   // ── Silhouette box — used when no photo is uploaded ──────────
   const silhouetteBox = getSilhouetteBox(layout, template.id);
@@ -715,6 +800,192 @@ export default function CardCanvas({
                         opacity={1}
                         stroke="rgba(70,40,0,0.30)" strokeWidth={0.6}
                         shadowColor="rgba(0,0,0,0.95)" shadowBlur={7} shadowOffsetY={2}
+                        letterSpacing={1}
+                        align="left" verticalAlign="middle"
+                        listening={false}
+                      />
+                    </Group>
+                  );
+                })}
+              </>
+            );
+          })() : isPremiumNonGoldV3 ? (() => {
+            /* ─────────────────────────────────────────────────
+               PREMIUM NON-GOLD V3 — same geometry as locked gold,
+               palette driven by NON_GOLD_PALETTES map.
+               Gold branch above is NOT touched.
+            ───────────────────────────────────────────────── */
+            const paletteId = NON_GOLD_TEMPLATE_PALETTE[template.id] ?? "dark";
+            const p = NON_GOLD_PALETTES[paletteId];
+
+            // Same coords as locked gold
+            const rSlotX = nX(0.086);  const rSlotY = nY(0.095);
+            const rSlotW = nW(0.188);  const rSlotH = nH(0.110);
+            const pSlotX = nX(0.105);  const pSlotY = nY(0.200);
+            const pSlotW = nW(0.150);  const pSlotH = nH(0.052);
+            const fSlotX = nX(0.118);  const fSlotY = nY(0.265);
+            const fSlotW = nW(0.125);  const fSlotH = nH(0.060);
+            const bSlotX = nX(0.118);  const bSlotY = nY(0.338);
+            const bSlotW = nW(0.125);  const bSlotH = nH(0.092);
+            const nSlotX = nX(0.125);  const nSlotY = nY(0.590);
+            const nSlotW = nW(0.750);  const nSlotH = nH(0.070);
+            const dvX2 = nX(0.500);    const dvY2 = nY(0.675);
+            const dvW2 = Math.max(nW(0.002), 2.5);
+            const dvH2 = nH(0.225);
+
+            const rawPos2  = cardState.player.position;
+            const ngPos    = (!rawPos2 || rawPos2 === "POS") ? "ST" : rawPos2.toUpperCase();
+            const ngName   = cardState.player.name.toUpperCase();
+            let   ngNameFs = 76;
+            if (ngName.length > 12) ngNameFs = 64;
+            if (ngName.length > 16) ngNameFs = 54;
+
+            // Flag 4:3 aspect correction
+            const ngFlagAR  = 4 / 3;
+            const ngFZoneAR = fSlotW / fSlotH;
+            let ngfW = fSlotW, ngfH = fSlotH;
+            if (ngFZoneAR > ngFlagAR) { ngfH = fSlotH; ngfW = fSlotH * ngFlagAR; }
+            else                      { ngfW = fSlotW; ngfH = fSlotW / ngFlagAR; }
+            const ngfX = fSlotX + (fSlotW - ngfW) / 2;
+            const ngfY = fSlotY + (fSlotH - ngfH) / 2;
+
+            const ngBcx = bSlotX + bSlotW / 2;
+            const ngBcy = bSlotY + bSlotH / 2;
+            const ngBR  = Math.min(bSlotW, bSlotH) * 0.36;
+
+            return (
+              <>
+                {/* ══ SLIM NAMEPLATE ═══════════════════════════════ */}
+                <Rect
+                  x={nX(0.145)} y={nY(0.585)} width={nW(0.710)} height={nH(0.070)}
+                  fill={p.nameplateFill}
+                  stroke={p.stroke} strokeWidth={1.6}
+                  cornerRadius={14}
+                  listening={false}
+                />
+
+                {/* ══ CENTER DIVIDER ════════════════════════════════ */}
+                <Rect
+                  x={dvX2 - dvW2 / 2} y={dvY2} width={dvW2} height={dvH2}
+                  fill={p.divider}
+                  listening={false}
+                />
+
+                {/* ══ ROW CHIPS ════════════════════════════════════ */}
+                {V3_STATS.map((s) => {
+                  const chipX = nX(s.colX - 0.016);
+                  const chipY = nY(s.rowY + 0.003);
+                  const chipW = nW(s.colW + 0.032);
+                  const chipH = nH(V3_ROW_H - 0.006);
+                  return (
+                    <Rect
+                      key={`ng-chip-${s.key}`}
+                      x={chipX} y={chipY} width={chipW} height={chipH}
+                      fill={p.chipFill}
+                      stroke={p.chipStroke} strokeWidth={1.2}
+                      cornerRadius={10}
+                      listening={false}
+                    />
+                  );
+                })}
+
+                {/* ══ FLAG ══════════════════════════════════════════ */}
+                <Rect
+                  x={fSlotX} y={fSlotY} width={fSlotW} height={fSlotH}
+                  fill={p.metaFill}
+                  stroke={p.stroke} strokeWidth={1.2}
+                  cornerRadius={5}
+                  listening={false}
+                />
+                <FlagZone
+                  flagUrl={cardState.player.flagPath}
+                  countryCode={cardState.player.countryCode}
+                  x={ngfX} y={ngfY} w={ngfW} h={ngfH}
+                  preserveAspectRatio={false}
+                  flagAspectRatio={ngFlagAR}
+                  onStatus={setFlagStatus}
+                />
+
+                {/* ══ FC MONOGRAM ═══════════════════════════════════ */}
+                <Circle
+                  x={ngBcx} y={ngBcy} radius={ngBR}
+                  fill={p.metaFill}
+                  stroke={p.strokeStrong} strokeWidth={2}
+                  listening={false}
+                />
+                <Text
+                  x={bSlotX} y={bSlotY} width={bSlotW} height={bSlotH}
+                  text="FC"
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={42}
+                  fill={p.primaryText}
+                  shadowColor={p.shadow} shadowBlur={5}
+                  align="center" verticalAlign="middle"
+                  listening={false}
+                />
+
+                {/* ══ RATING ════════════════════════════════════════ */}
+                <Text
+                  x={rSlotX} y={rSlotY} width={rSlotW} height={rSlotH}
+                  text={String(cardState.player.rating)}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={132}
+                  fill={p.primaryText}
+                  shadowColor={p.shadow} shadowBlur={10} shadowOffsetY={3}
+                  align="center" verticalAlign="middle"
+                  listening={false}
+                />
+
+                {/* ══ POSITION ══════════════════════════════════════ */}
+                <Text
+                  x={pSlotX} y={pSlotY} width={pSlotW} height={pSlotH}
+                  text={ngPos}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={54}
+                  fill={p.secondaryText}
+                  shadowColor={p.shadow} shadowBlur={6}
+                  align="center" verticalAlign="middle"
+                  letterSpacing={1}
+                  listening={false}
+                />
+
+                {/* ══ NAME ══════════════════════════════════════════ */}
+                <Text
+                  x={nSlotX} y={nSlotY} width={nSlotW} height={nSlotH}
+                  text={ngName}
+                  fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={ngNameFs}
+                  fill={p.primaryText}
+                  shadowColor={p.shadow} shadowBlur={8} shadowOffsetY={2}
+                  align="center" verticalAlign="middle"
+                  letterSpacing={2.4}
+                  listening={false}
+                />
+
+                {/* ══ INLINE STATS ══════════════════════════════════ */}
+                {V3_STATS.map((s) => {
+                  const cX  = nX(s.colX);
+                  const cW  = nW(s.colW);
+                  const rY  = nY(s.rowY);
+                  const rH  = nH(V3_ROW_H);
+                  const vW  = cW * 0.38;
+                  const gap = cW * 0.045;
+                  const lW  = cW * 0.575;
+                  const val = cardState.stats[s.key];
+                  return (
+                    <Group key={`ng-${s.key}`}>
+                      <Text
+                        x={cX} y={rY} width={vW} height={rH}
+                        text={String(val ?? "")}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={84}
+                        fill={p.primaryText}
+                        shadowColor={p.shadow} shadowBlur={8} shadowOffsetY={2}
+                        align="right" verticalAlign="middle"
+                        listening={false}
+                      />
+                      <Text
+                        x={cX + vW + gap} y={rY} width={lW} height={rH}
+                        text={s.key}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={60}
+                        fill={p.secondaryText}
+                        opacity={1}
+                        shadowColor={p.shadow} shadowBlur={7} shadowOffsetY={2}
                         letterSpacing={1}
                         align="left" verticalAlign="middle"
                         listening={false}

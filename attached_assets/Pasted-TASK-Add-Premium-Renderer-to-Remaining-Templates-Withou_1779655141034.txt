@@ -1,0 +1,330 @@
+TASK: Add Premium Renderer to Remaining Templates Without Touching Locked Gold Branch
+
+CONTEXT
+Current state:
+- gold_elite_2026 is accepted and locked.
+- gold_crystal_2026 already uses the accepted gold renderer.
+- The accepted gold renderer must NOT be modified.
+- The current design has large readable stats, slim nameplate, visible card artwork, no large black block.
+- Cutout, AI background remover, export, upload and hotspots are stable.
+
+Goal:
+Apply a premium content renderer to the remaining templates using the same layout geometry and stat sizes, but WITHOUT touching the locked gold branch.
+
+This is a safety-first implementation.
+
+CRITICAL RULE
+Do NOT refactor the accepted gold branch.
+Do NOT rename it.
+Do NOT extract it into a shared function.
+Do NOT change any numeric value inside it.
+Do NOT change any JSX inside it.
+
+If a reusable function requires touching gold output, do NOT do it.
+
+STRICT DO NOT TOUCH
+
+Do NOT:
+- do not modify accepted gold renderer branch
+- do not change gold_elite_2026 output
+- do not change gold_crystal_2026 output
+- do not change stat font sizes
+- do not change stat rows/columns
+- do not change player/photo/cutout/silhouette boxes
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch upload logic
+- do not touch exportCard.ts
+- do not touch template assets
+- do not touch card state/localStorage
+- do not touch CreatorScreen.tsx
+- do not touch PhotoEditorSheet.tsx
+- do not touch EditHotspots.tsx
+- do not enable/disable templates
+- do not refactor the whole CardCanvas
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx only
+
+If any other file seems necessary, stop and report before editing.
+
+==================================================
+PHASE 0 — LOCKED GOLD SAFETY CHECK
+==================================================
+
+Before editing, report:
+
+1. Current locked gold condition.
+2. Templates currently using locked gold branch.
+3. Confirm gold_elite_2026 and gold_crystal_2026 are already handled.
+4. Exact current stat font sizes:
+   - value
+   - label
+5. Exact current row coordinates.
+6. Exact current column coordinates.
+7. Confirm you will not edit this branch.
+
+Then proceed.
+
+==================================================
+PHASE 1 — ADD NEW CONDITIONS ONLY
+==================================================
+
+Keep existing gold condition exactly as-is.
+
+Add a separate condition for non-gold premium templates only:
+
+const isPremiumNonGoldV3 =
+  template.id === "black_elite_2026" ||
+  template.id === "purple_holo_2026" ||
+  template.id === "blue_electric_2026" ||
+  template.id === "red_fire_2026" ||
+  template.id === "silver_classic_2026" ||
+  template.id === "silver_chrome_2026" ||
+  template.id === "world_edition_2026" ||
+  template.id === "usa_host_2026" ||
+  template.id === "fangirl_pink_2026" ||
+  template.id === "green_stadium_2026";
+
+Do NOT add these templates to the existing gold condition.
+
+Rendering branch order must be:
+
+if locked gold branch:
+  render existing accepted gold renderer unchanged
+
+else if isPremiumNonGoldV3:
+  render NEW premium non-gold renderer
+
+else:
+  render generic branch
+
+This guarantees gold stays safe.
+
+==================================================
+PHASE 2 — PALETTE MAP FOR NON-GOLD ONLY
+==================================================
+
+Inside CardCanvas.tsx, add a local palette map for non-gold templates only.
+
+type NonGoldPaletteId = "dark" | "light" | "pink" | "green";
+
+const NON_GOLD_TEMPLATE_PALETTE: Record<string, NonGoldPaletteId> = {
+  black_elite_2026: "dark",
+  purple_holo_2026: "dark",
+  blue_electric_2026: "dark",
+  red_fire_2026: "dark",
+
+  silver_classic_2026: "light",
+  silver_chrome_2026: "light",
+  world_edition_2026: "light",
+  usa_host_2026: "light",
+
+  fangirl_pink_2026: "pink",
+
+  green_stadium_2026: "green",
+};
+
+Do NOT include:
+- gold_elite_2026
+- gold_crystal_2026
+
+Reason:
+Gold is locked and already handled.
+
+==================================================
+PHASE 3 — EXACT PALETTES
+==================================================
+
+Use these exact palettes.
+
+Dark:
+{
+  primaryText: "#FFFFFF",
+  secondaryText: "#D8C27A",
+  nameplateFill: "rgba(0,0,0,0.22)",
+  chipFill: "rgba(255,255,255,0.08)",
+  chipStroke: "rgba(255,220,120,0.28)",
+  stroke: "rgba(255,220,120,0.34)",
+  strokeStrong: "rgba(255,220,120,0.46)",
+  shadow: "rgba(0,0,0,0.95)",
+  divider: "rgba(255,220,120,0.34)",
+  metaFill: "rgba(0,0,0,0.20)",
+}
+
+Light:
+{
+  primaryText: "#111827",
+  secondaryText: "#4A3510",
+  nameplateFill: "rgba(255,255,255,0.24)",
+  chipFill: "rgba(255,255,255,0.24)",
+  chipStroke: "rgba(20,20,20,0.20)",
+  stroke: "rgba(20,20,20,0.22)",
+  strokeStrong: "rgba(20,20,20,0.32)",
+  shadow: "rgba(255,255,255,0.35)",
+  divider: "rgba(20,20,20,0.26)",
+  metaFill: "rgba(255,255,255,0.18)",
+}
+
+Pink:
+{
+  primaryText: "#FFFFFF",
+  secondaryText: "#FFD1EA",
+  nameplateFill: "rgba(80,0,45,0.24)",
+  chipFill: "rgba(255,255,255,0.12)",
+  chipStroke: "rgba(255,122,191,0.34)",
+  stroke: "rgba(255,122,191,0.34)",
+  strokeStrong: "rgba(255,122,191,0.46)",
+  shadow: "rgba(80,0,45,0.85)",
+  divider: "rgba(255,122,191,0.34)",
+  metaFill: "rgba(80,0,45,0.22)",
+}
+
+Green:
+{
+  primaryText: "#FFF6C7",
+  secondaryText: "#F8D86A",
+  nameplateFill: "rgba(0,35,20,0.24)",
+  chipFill: "rgba(255,244,191,0.10)",
+  chipStroke: "rgba(255,220,120,0.30)",
+  stroke: "rgba(255,220,120,0.34)",
+  strokeStrong: "rgba(255,220,120,0.46)",
+  shadow: "rgba(0,0,0,0.90)",
+  divider: "rgba(255,220,120,0.34)",
+  metaFill: "rgba(0,35,20,0.22)",
+}
+
+==================================================
+PHASE 4 — NEW PREMIUM NON-GOLD RENDERER
+==================================================
+
+Create a NEW branch for non-gold templates.
+
+Do not edit the existing gold branch.
+
+The new branch must copy the accepted structure:
+- left meta panel
+- rating
+- position
+- flag 4:3
+- FC badge
+- slim nameplate
+- inline large stats
+- row chips
+- center divider
+
+Use the same numeric geometry as locked gold:
+- same nameplate coords
+- same stat row coords
+- same rowH
+- same left/right column x/w
+- same value font size
+- same label font size
+- same chip geometry
+- same divider geometry
+- same rating/position/name font logic
+
+Only colors come from the non-gold palette.
+
+Do NOT create per-template custom coordinates.
+Do NOT reduce stats.
+Do NOT stack stats.
+
+==================================================
+PHASE 5 — GOLD OUTPUT MUST REMAIN BYTE-STABLE
+==================================================
+
+After implementation, verify via code diff:
+
+1. The existing gold branch JSX was not edited except if absolutely unavoidable.
+2. Gold condition still includes only the existing gold templates.
+3. Gold numeric values are unchanged.
+4. Gold palette values are unchanged.
+
+If the diff shows gold renderer internals changed, revert those changes.
+
+==================================================
+PHASE 6 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual screenshot validation:
+
+Locked gold:
+1. gold_elite_2026 unchanged
+2. gold_crystal_2026 unchanged
+
+New premium non-gold:
+3. black_elite_2026
+4. purple_holo_2026
+5. blue_electric_2026
+6. red_fire_2026
+7. silver_classic_2026
+8. silver_chrome_2026
+9. world_edition_2026
+10. usa_host_2026
+11. fangirl_pink_2026
+12. green_stadium_2026
+
+For each non-gold:
+- stats are large and readable
+- name readable
+- rating/position readable
+- FC visible
+- flag not stretched
+- no giant black block
+- card artwork remains visible
+- no severe text overlap
+
+Regression:
+- cutout still works
+- AI background remover still works
+- normal photo works
+- export works
+- hotspots unchanged
+
+==================================================
+PHASE 7 — COMMIT AND PUSH
+==================================================
+
+Only if:
+- typecheck passes
+- build passes
+- gold screenshots confirm unchanged
+- non-gold screenshots are acceptable
+
+Then:
+1. Commit.
+2. Push to GitHub.
+3. Report final hash.
+
+If any validation fails:
+- do not push
+- report the failure
+- keep changes local or revert
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. confirmation gold branch was not modified internally
+3. locked gold condition before and after
+4. non-gold condition added
+5. palette map used
+6. templates using locked gold renderer
+7. templates using new non-gold premium renderer
+8. templates still using generic renderer, if any
+9. confirmation stat sizes unchanged from locked gold
+10. screenshot validation summary for gold templates
+11. screenshot validation summary for non-gold templates
+12. typecheck result
+13. build result
+14. confirmation cutout/background remover/export untouched
+15. git commit hash
