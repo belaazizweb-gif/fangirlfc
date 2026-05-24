@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CardLayoutDefinition } from "@/lib/cardCreator/templateConfig";
 
 export type EditSheet = "photo" | "info" | "badge" | "stats";
@@ -8,13 +9,12 @@ interface HotspotDef {
   key: string;
   sheet: EditSheet;
   icon: string;
-  /** Normalized (0–1) center of the button on the card */
   cx: number;
   cy: number;
-  /** Normalized (0–1) arrow-tip target point (set equal to cx/cy for no arrow) */
   tx: number;
   ty: number;
   large?: boolean;
+  photoOnly?: boolean;
 }
 
 function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
@@ -24,12 +24,10 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
     stats.left.length > 0
       ? stats.left[Math.floor(stats.left.length / 2)].y +
         stats.left[Math.floor(stats.left.length / 2)].h / 2
-      : 0.78;
+      : 0.76;
 
-  // 5 hotspots after consolidating the 4 redundant info→info buttons
-  // (rating, position, flag, name all opened "info") into one.
   return [
-    // 1 — Photo (large, no arrow line)
+    // Always visible — photo
     {
       key: "photo",
       sheet: "photo",
@@ -39,9 +37,9 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
       tx: pz.x + pz.w * 0.82,
       ty: pz.y + pz.h * 0.13,
       large: true,
+      photoOnly: true,
     },
-    // 2 — Info (consolidated: covers rating + position + name)
-    //     Button sits just right of the left meta panel; arrow points back left.
+    // Edit-mode only — info (consolidated: rating + position + name)
     {
       key: "info",
       sheet: "info",
@@ -51,7 +49,7 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
       tx: 0.175,
       ty: 0.215,
     },
-    // 3 — Flag / Nation (opens info sheet — same as before)
+    // Edit-mode only — flag
     {
       key: "flag",
       sheet: "info",
@@ -61,7 +59,7 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
       tx: fz.x + fz.w / 2,
       ty: fz.y + fz.h / 2,
     },
-    // 4 — Badge / Club
+    // Edit-mode only — badge
     {
       key: "badge",
       sheet: "badge",
@@ -71,7 +69,7 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
       tx: bz.x + bz.w / 2,
       ty: bz.y + bz.h / 2,
     },
-    // 5 — Stats (button on right edge, arrow points left to stats centre)
+    // Edit-mode only — stats
     {
       key: "stats",
       sheet: "stats",
@@ -85,39 +83,46 @@ function buildHotspots(layout: CardLayoutDefinition): HotspotDef[] {
 }
 
 /**
- * DOM overlay of arrow-callout edit buttons positioned over the Konva card.
+ * DOM overlay of edit hotspot buttons over the Konva card.
  *
- * Rendered as `absolute inset-0` inside the card's `relative` container.
- * These are pure DOM elements — NOT part of the Konva stage and will never
- * appear in the exported PNG.
+ * Default (editMode=false): only the 📸 photo hotspot + an "✏️ Edit" toggle button.
+ * Tap "Edit" to reveal the remaining 4 callout hotspots with SVG arrow lines.
  *
- * Visual style: small pill buttons with a gold border, connected to their
- * target area via a thin SVG dashed line ending in a dot.
- *
- * Applied globally to all templates (B4 strategy — no templateId needed).
+ * These are pure DOM — never part of the Konva stage, never in the exported PNG.
  */
-export default function EditHotspots({ layout, onEdit }: { layout: CardLayoutDefinition; onEdit: (sheet: EditSheet) => void }) {
+export default function EditHotspots({
+  layout,
+  onEdit,
+}: {
+  layout: CardLayoutDefinition;
+  onEdit: (sheet: EditSheet) => void;
+}) {
+  const [editMode, setEditMode] = useState(false);
   const hotspots = buildHotspots(layout);
 
-  return (
-    <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+  const visibleHotspots = editMode
+    ? hotspots
+    : hotspots.filter((h) => h.photoOnly);
 
-      {/* SVG arrow lines — drawn below buttons so buttons appear on top */}
-      <svg
-        className="absolute inset-0 w-full h-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        style={{ pointerEvents: "none" }}
-      >
-        {hotspots.map((h) => {
-          // Only draw when button and target are meaningfully different
-          const dx = (h.tx - h.cx) * 100;
-          const dy = (h.ty - h.cy) * 100;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 1.5) return null;
-          return (
+  const arrowHotspots = visibleHotspots.filter((h) => {
+    const dx = (h.tx - h.cx) * 100;
+    const dy = (h.ty - h.cy) * 100;
+    return Math.sqrt(dx * dx + dy * dy) >= 1.5;
+  });
+
+  return (
+    <div className="absolute inset-0 pointer-events-none" aria-hidden="false">
+
+      {/* SVG arrow lines — only when editMode is on */}
+      {editMode && (
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ pointerEvents: "none" }}
+        >
+          {arrowHotspots.map((h) => (
             <g key={`arrow-${h.key}`}>
-              {/* Connector line */}
               <line
                 x1={h.cx * 100} y1={h.cy * 100}
                 x2={h.tx * 100} y2={h.ty * 100}
@@ -125,19 +130,18 @@ export default function EditHotspots({ layout, onEdit }: { layout: CardLayoutDef
                 strokeWidth="0.5"
                 strokeDasharray="2 1.5"
               />
-              {/* Target dot */}
               <circle
                 cx={h.tx * 100} cy={h.ty * 100}
                 r="0.9"
                 fill="rgba(255,220,120,0.80)"
               />
             </g>
-          );
-        })}
-      </svg>
+          ))}
+        </svg>
+      )}
 
-      {/* Callout buttons */}
-      {hotspots.map((h) => {
+      {/* Hotspot buttons */}
+      {visibleHotspots.map((h) => {
         const dim = h.large ? 34 : 27;
         return (
           <button
@@ -146,23 +150,47 @@ export default function EditHotspots({ layout, onEdit }: { layout: CardLayoutDef
             onClick={() => onEdit(h.sheet)}
             className="absolute pointer-events-auto rounded-full backdrop-blur-sm flex items-center justify-center active:scale-90 transition-transform"
             style={{
-              width:       dim,
-              height:      dim,
-              left:        `${h.cx * 100}%`,
-              top:         `${h.cy * 100}%`,
-              transform:   "translate(-50%, -50%)",
-              fontSize:    h.large ? 14 : 11,
-              lineHeight:  1,
-              background:  "rgba(0,0,0,0.55)",
-              border:      "1px solid rgba(255,220,120,0.45)",
-              opacity:     0.90,
-              boxShadow:   "0 2px 8px rgba(0,0,0,0.45)",
+              width:      dim,
+              height:     dim,
+              left:       `${h.cx * 100}%`,
+              top:        `${h.cy * 100}%`,
+              transform:  "translate(-50%, -50%)",
+              fontSize:   h.large ? 14 : 11,
+              lineHeight: 1,
+              background: "rgba(0,0,0,0.55)",
+              border:     "1px solid rgba(255,220,120,0.45)",
+              opacity:    0.90,
+              boxShadow:  "0 2px 8px rgba(0,0,0,0.45)",
             }}
           >
             {h.icon}
           </button>
         );
       })}
+
+      {/* "✏️ Edit" toggle — always visible, positioned bottom-right outside card */}
+      <button
+        onClick={() => setEditMode((v) => !v)}
+        className="absolute pointer-events-auto rounded-full backdrop-blur-sm flex items-center justify-center gap-1 active:scale-95 transition-transform"
+        style={{
+          right:      "-2px",
+          bottom:     "-38px",
+          height:     30,
+          paddingLeft:  10,
+          paddingRight: 10,
+          fontSize:   12,
+          fontWeight: 600,
+          lineHeight: 1,
+          color:      "#fff",
+          background: editMode ? "rgba(180,140,0,0.72)" : "rgba(0,0,0,0.68)",
+          border:     "1px solid rgba(255,220,120,0.55)",
+          boxShadow:  "0 2px 10px rgba(0,0,0,0.50)",
+          whiteSpace: "nowrap",
+        }}
+        aria-label={editMode ? "Fermer l'édition" : "Modifier la carte"}
+      >
+        ✏️ {editMode ? "Fermer" : "Modifier"}
+      </button>
     </div>
   );
 }

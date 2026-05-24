@@ -1,0 +1,411 @@
+TASK: Gold Elite V3.2 — Hard Override Bottom Content Block + Clean Edit Mode
+
+CONTEXT
+Forensic confirmed:
+- active template is gold_elite_2026
+- V3 branch is running
+- V3 ACTIVE marker appeared
+- current V3.1 panels are visible technically
+
+But the design is still not acceptable:
+- changes are too weak visually
+- stats still mix with baked template lines
+- bottom area still looks messy
+- name and stats do not look like a premium FUT card module
+- edit pencils/callouts still visually pollute the card
+
+This is not a cache issue.
+This is a design strength issue.
+
+We need V3.2 for gold_elite_2026 ONLY.
+
+STRICT SCOPE
+
+DO NOT:
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch normal photo upload
+- do not touch manual PNG cutout
+- do not touch exportCard.ts
+- do not touch template PNG assets
+- do not change card state/localStorage
+- do not change routes/navigation
+- do not disable templates
+- do not change player/photo/cutout/silhouette boxes
+- do not generalize to other templates
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx
+2. components/cardCreator/EditHotspots.tsx
+
+Do not touch CreatorScreen.tsx unless absolutely required.
+
+GOAL
+For gold_elite_2026 only:
+Replace the weak bottom/name/stats layout with a strong, opaque premium bottom content module that visually dominates the baked template lines.
+
+The old baked template lines must no longer compete with the new stats.
+
+==================================================
+PART A — GOLD ELITE V3.2 CONTENT BLOCK
+==================================================
+
+Apply only when:
+
+template.id === "gold_elite_2026"
+
+Other templates must use existing generic branch.
+
+Do not render old generic content under V3.2.
+
+==================================================
+A1 — REMOVE SEPARATE NAMEPLATE + STATS PANEL
+==================================================
+
+For gold_elite_2026 V3.2:
+Stop rendering separate nameplate and separate stats panel.
+
+Instead render ONE unified bottom content block.
+
+This block must cover the existing baked name/stat lines strongly enough that they no longer visually compete.
+
+Use:
+
+bottomBlock = {
+  x: 0.095,
+  y: 0.570,
+  w: 0.810,
+  h: 0.330,
+};
+
+In pixels this is approximately:
+x ≈ 103
+y ≈ 825
+w ≈ 880
+h ≈ 478
+
+Style:
+- fill: "rgba(10, 7, 2, 0.88)"
+- stroke: "rgba(255, 220, 120, 0.72)"
+- strokeWidth: 3
+- cornerRadius: 26
+- shadowColor: "rgba(0,0,0,0.85)"
+- shadowBlur: 18
+- shadowOpacity: 0.42
+- listening={false}
+
+Important:
+This panel must be visually obvious.
+It must hide/overpower the old baked template lines behind name/stats.
+
+If the old template lines are still visually competing, increase fill alpha to 0.94.
+
+==================================================
+A2 — ADD INNER GOLD TOP LINE
+==================================================
+
+Inside bottomBlock, render a subtle horizontal gold separator under the name.
+
+line:
+x = 0.135
+y = 0.660
+w = 0.730
+h = 0.003
+
+Style:
+- fill: "rgba(255, 220, 120, 0.62)"
+- listening={false}
+
+Minimum pixel height:
+- at least 2px
+
+==================================================
+A3 — NAME INSIDE BOTTOM BLOCK
+==================================================
+
+Name slot:
+
+nameSlot = {
+  x: 0.125,
+  y: 0.590,
+  w: 0.750,
+  h: 0.070,
+};
+
+Text:
+- uppercase
+- if missing, use existing fallback
+
+Font size:
+- 76 if name length <= 12
+- 64 if name length > 12
+- 54 if name length > 16
+
+Style:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fill: "#FFF6C7"
+- align: "center"
+- verticalAlign: "middle"
+- letterSpacing: 2.4 if supported
+- shadowColor: "rgba(0,0,0,0.90)"
+- shadowBlur: 8
+- shadowOffsetY: 2
+- listening={false}
+
+The name must look like a title, not a small label.
+
+==================================================
+A4 — STATS MODULE INSIDE BOTTOM BLOCK
+==================================================
+
+Stats area:
+
+statsArea = {
+  x: 0.135,
+  y: 0.690,
+  w: 0.730,
+  h: 0.185,
+};
+
+Columns:
+left:
+x = 0.155
+w = 0.300
+
+right:
+x = 0.545
+w = 0.300
+
+Rows:
+row1 y = 0.700
+row2 y = 0.758
+row3 y = 0.816
+
+rowH = 0.046
+
+Stats must render inline:
+99 PAC
+99 SHO
+99 PAS
+99 DRI
+99 DEF
+99 PHY
+
+Do not stack value and label.
+
+==================================================
+A5 — ROW CHIPS MUST BE STRONGER
+==================================================
+
+For each stat row, render a clear row chip behind the text.
+
+Chip:
+x = colX - 0.012
+y = rowY + 0.002
+w = colW + 0.024
+h = rowH - 0.004
+
+Style:
+- fill: "rgba(255, 244, 191, 0.13)"
+- stroke: "rgba(255, 220, 120, 0.26)"
+- strokeWidth: 1.4
+- cornerRadius: 10
+- listening={false}
+
+Important:
+Row chips must be visible in mobile preview.
+If too subtle, increase fill alpha to 0.18.
+
+==================================================
+A6 — STATS TYPOGRAPHY HARD LOCK
+==================================================
+
+Use fixed pixel font sizes.
+
+Value:
+- fontSize: 56
+- fill: "#FFF6C7"
+- align: "right"
+- shadowColor: "rgba(0,0,0,0.90)"
+- shadowBlur: 6
+- shadowOffsetY: 2
+
+Label:
+- fontSize: 42
+- fill: "#F3CD55"
+- opacity: 0.95
+- align: "left"
+- letterSpacing: 1
+- shadowColor: "rgba(0,0,0,0.90)"
+- shadowBlur: 5
+- shadowOffsetY: 1
+
+Layout per row:
+valueW = colW * 0.42
+gap = colW * 0.045
+labelW = colW * 0.515
+
+Both:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- verticalAlign: "middle"
+- listening={false}
+
+These stats must be clearly readable on a 390px mobile screen.
+
+==================================================
+A7 — CENTER DIVIDER STRONGER BUT CLEAN
+==================================================
+
+Divider inside stats area:
+
+x = 0.500
+y = 0.690
+h = 0.185
+w = at least 3px
+
+Style:
+- fill: "rgba(255, 220, 120, 0.42)"
+- listening={false}
+
+Divider must sit behind stat text and above bottomBlock.
+
+==================================================
+A8 — LEFT META BLOCK — MAKE IT SIMPLER
+==================================================
+
+Keep left meta block, but make it smaller and cleaner.
+
+leftMetaPanel = {
+  x: 0.080,
+  y: 0.090,
+  w: 0.195,
+  h: 0.340,
+};
+
+Style:
+- fill: "rgba(10, 7, 2, 0.74)"
+- stroke: "rgba(255, 220, 120, 0.58)"
+- strokeWidth: 2.5
+- cornerRadius: 22
+- shadowColor: "rgba(0,0,0,0.85)"
+- shadowBlur: 14
+- shadowOpacity: 0.36
+- listening={false}
+
+Rating:
+- fontSize: 132
+- y = 0.095
+
+Position:
+- fontSize: 54
+- fallback "ST"
+- y = 0.200
+
+Flag:
+- y = 0.265
+- keep 4:3 ratio
+
+FC:
+- y = 0.338
+- fontSize 42
+
+==================================================
+PART B — HOTSPOTS: STOP POLLUTING CARD PREVIEW
+==================================================
+
+Current callouts are still visually polluting.
+For now, do NOT show all edit callouts permanently.
+
+New rule:
+Only the camera/photo hotspot is always visible.
+All other hotspots are hidden by default and appear only when user taps an "Edit" button.
+
+If adding an Edit toggle state is too much for this task:
+Use the simpler fallback:
+- keep photo hotspot visible
+- hide all non-photo hotspots visually by default using opacity 0
+- reveal them only on card hover/focus is not reliable on mobile, so do NOT rely on hover
+
+Preferred implementation:
+Add local React state inside EditHotspots.tsx:
+
+const [editMode, setEditMode] = useState(false);
+
+Render:
+1. Always visible:
+   - photo hotspot
+   - one "Edit" button
+
+2. Only when editMode is true:
+   - info hotspot
+   - flag hotspot
+   - badge hotspot
+   - stats hotspot
+
+Edit button:
+- position outside bottom-right of card preview
+- text/icon: "✏️ Edit"
+- size compact
+- background: rgba(0,0,0,0.68)
+- border: 1px solid rgba(255,220,120,0.55)
+- color: white
+- border-radius: 999px
+
+When editMode=false:
+- no arrows except maybe photo
+- no stats/info/flag/badge callouts visible
+
+When editMode=true:
+- show the cleaned 5-hotspot callouts with arrows.
+
+Goal:
+The first visual impression must be the card, not edit UI.
+
+Important:
+Hotspots are DOM only and must remain excluded from export.
+
+==================================================
+PART C — VALIDATION
+==================================================
+
+Run:
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation on gold_elite_2026:
+1. bottom block is clearly visible
+2. old baked template stat lines no longer visually compete
+3. name is large and inside the bottom block
+4. stats are inside the bottom block
+5. stats are readable on mobile
+6. row chips are visible
+7. divider is visible but clean
+8. left meta panel is readable
+9. first preview shows only photo hotspot + Edit button
+10. other edit callouts appear only after tapping Edit
+11. export includes V3.2 card content
+12. export excludes hotspots/Edit UI
+
+Regression:
+13. cutout still works
+14. AI background remover still works
+15. normal photo works
+16. manual PNG cutout works
+17. other templates still render
+
+FINAL REPORT:
+1. files changed
+2. confirmation V3.2 applies only to gold_elite_2026 content
+3. bottomBlock coordinates and opacity used
+4. stats coordinates and font sizes used
+5. confirmation old baked lines are visually covered
+6. hotspot editMode behavior
+7. number of hotspots visible when editMode=false
+8. number of hotspots visible when editMode=true
+9. confirmation export unaffected
+10. confirmation cutout/background remover unaffected
+11. typecheck result
+12. build result
+13. git commit hash

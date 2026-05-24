@@ -81,7 +81,7 @@ const V3_STATS = [
   { key: "DEF" as const, colX: 0.545, colW: 0.300, rowY: 0.758 },
   { key: "PHY" as const, colX: 0.545, colW: 0.300, rowY: 0.816 },
 ];
-const V3_ROW_H = 0.044;
+const V3_ROW_H = 0.046;
 
 // ── Per-template backdrop colours ────────────────────────────
 //
@@ -514,46 +514,54 @@ export default function CardCanvas({
                Panels first (behind text), then text/images
             ───────────────────────────────────────────────── */
 
-            // ── V3.1 local coords ──────────────────────────
-            const leftPanelX = nX(0.078);  const leftPanelY = nY(0.088);
-            const leftPanelW = nW(0.205);  const leftPanelH = nH(0.365);
+            // ── V3.2 local coords ──────────────────────────
+            // Left meta panel (simplified, smaller)
+            const leftPanelX = nX(0.080);  const leftPanelY = nY(0.090);
+            const leftPanelW = nW(0.195);  const leftPanelH = nH(0.340);
 
-            const rSlotX = nX(0.086);  const rSlotY = nY(0.094);
+            // Rating slot
+            const rSlotX = nX(0.086);  const rSlotY = nY(0.095);
             const rSlotW = nW(0.188);  const rSlotH = nH(0.110);
 
-            const pSlotX = nX(0.105);  const pSlotY = nY(0.202);
+            // Position slot
+            const pSlotX = nX(0.105);  const pSlotY = nY(0.200);
             const pSlotW = nW(0.150);  const pSlotH = nH(0.052);
 
-            const fSlotX = nX(0.118);  const fSlotY = nY(0.267);
+            // Flag slot
+            const fSlotX = nX(0.118);  const fSlotY = nY(0.265);
             const fSlotW = nW(0.125);  const fSlotH = nH(0.060);
 
-            const bSlotX = nX(0.118);  const bSlotY = nY(0.348);
+            // FC badge slot
+            const bSlotX = nX(0.118);  const bSlotY = nY(0.338);
             const bSlotW = nW(0.125);  const bSlotH = nH(0.092);
 
-            const npX = nX(0.125);  const npY = nY(0.592);
-            const npW = nW(0.750);  const npH = nH(0.078);
+            // Unified bottom content block (replaces separate nameplate + stats panel)
+            const bbX = nX(0.095);  const bbY = nY(0.570);
+            const bbW = nW(0.810);  const bbH = nH(0.330);
 
-            const nSlotX = nX(0.135);  const nSlotY = nY(0.598);
-            const nSlotW = nW(0.730);  const nSlotH = nH(0.066);
+            // Inner gold separator under the name
+            const lineX = nX(0.135);  const lineY = nY(0.660);
+            const lineW = nW(0.730);  const lineH = Math.max(nH(0.003), 2);
 
-            const spX = nX(0.125);  const spY = nY(0.678);
-            const spW = nW(0.750);  const spH = nH(0.190);
+            // Name slot inside bottom block
+            const nSlotX = nX(0.125);  const nSlotY = nY(0.590);
+            const nSlotW = nW(0.750);  const nSlotH = nH(0.070);
 
-            const dvX = nX(0.500);  const dvY = nY(0.695);
-            const dvW = Math.max(nW(0.002), 2.5);
-            const dvH = nH(0.160);
+            // Center divider inside stats area
+            const dvX = nX(0.500);    const dvY = nY(0.690);
+            const dvW = Math.max(nW(0.002), 3);
+            const dvH = nH(0.185);
 
-            // ── V3.1 position text (fallback "ST") ────────────
+            // ── V3.2 derived values ────────────────────────────
             const rawPos = cardState.player.position;
             const v3Pos  = (!rawPos || rawPos === "POS") ? "ST" : rawPos.toUpperCase();
 
-            // ── V3.1 name font size (long-name reduction) ─────
             const v3Name = cardState.player.name.toUpperCase();
-            let v3NameFs = 72;
-            if (v3Name.length > 12) v3NameFs = 60;
-            if (v3Name.length > 16) v3NameFs = 52;
+            let v3NameFs = 76;
+            if (v3Name.length > 12) v3NameFs = 64;
+            if (v3Name.length > 16) v3NameFs = 54;
 
-            // ── V3.1 flag aspect correction ───────────────────
+            // Flag 4:3 aspect correction
             const flagAR  = 4 / 3;
             const fZoneAR = fSlotW / fSlotH;
             let v3fW = fSlotW, v3fH = fSlotH;
@@ -562,73 +570,67 @@ export default function CardCanvas({
             const v3fX = fSlotX + (fSlotW - v3fW) / 2;
             const v3fY = fSlotY + (fSlotH - v3fH) / 2;
 
-            // ── FC badge geometry ──────────────────────────────
+            // FC badge circle
             const bcx = bSlotX + bSlotW / 2;
             const bcy = bSlotY + bSlotH / 2;
             const bR  = Math.min(bSlotW, bSlotH) * 0.36;
 
             return (
               <>
-                {/* ── PANELS (behind everything) ─────────────── */}
-
-                {/* Left meta panel — stronger fill for clear visibility */}
+                {/* ══ LEFT META PANEL ════════════════════════════ */}
                 <Rect
                   x={leftPanelX} y={leftPanelY} width={leftPanelW} height={leftPanelH}
-                  fill={V3_GOLD.darkPanelStrong}
-                  stroke={V3_GOLD.panelStroke} strokeWidth={2.5}
-                  cornerRadius={24}
-                  shadowColor={V3_GOLD.shadow} shadowBlur={14} shadowOpacity={0.36}
+                  fill="rgba(10, 7, 2, 0.74)"
+                  stroke="rgba(255, 220, 120, 0.58)" strokeWidth={2.5}
+                  cornerRadius={22}
+                  shadowColor="rgba(0,0,0,0.85)" shadowBlur={14} shadowOpacity={0.36}
                   listening={false}
                 />
 
-                {/* Nameplate */}
+                {/* ══ UNIFIED BOTTOM CONTENT BLOCK ═══════════════
+                    Covers baked template name/stat lines entirely  */}
                 <Rect
-                  x={npX} y={npY} width={npW} height={npH}
-                  fill={V3_GOLD.darkPanelStrong}
-                  stroke={V3_GOLD.panelStrokeStrong} strokeWidth={2.5}
-                  cornerRadius={18}
-                  shadowColor={V3_GOLD.shadow} shadowBlur={12} shadowOpacity={0.38}
+                  x={bbX} y={bbY} width={bbW} height={bbH}
+                  fill="rgba(10, 7, 2, 0.88)"
+                  stroke="rgba(255, 220, 120, 0.72)" strokeWidth={3}
+                  cornerRadius={26}
+                  shadowColor="rgba(0,0,0,0.85)" shadowBlur={18} shadowOpacity={0.42}
                   listening={false}
                 />
 
-                {/* Stats panel */}
+                {/* Gold separator line under name */}
                 <Rect
-                  x={spX} y={spY} width={spW} height={spH}
-                  fill={V3_GOLD.darkPanel}
-                  stroke={V3_GOLD.panelStroke} strokeWidth={2.5}
-                  cornerRadius={18}
-                  shadowColor={V3_GOLD.shadow} shadowBlur={12} shadowOpacity={0.32}
+                  x={lineX} y={lineY} width={lineW} height={lineH}
+                  fill="rgba(255, 220, 120, 0.62)"
                   listening={false}
                 />
 
-                {/* Stats divider — behind stat text */}
+                {/* Center divider between left/right stat columns */}
                 <Rect
                   x={dvX - dvW / 2} y={dvY} width={dvW} height={dvH}
-                  fill={V3_GOLD.divider}
+                  fill="rgba(255, 220, 120, 0.42)"
                   listening={false}
                 />
 
-                {/* Subtle row-chip backgrounds behind each stat row */}
+                {/* Stronger row chips behind each stat row */}
                 {V3_STATS.map((s) => {
-                  const chipX = nX(s.colX - 0.010);
-                  const chipY = nY(s.rowY + 0.003);
-                  const chipW = nW(s.colW + 0.020);
-                  const chipH = nH(V3_ROW_H - 0.006);
+                  const chipX = nX(s.colX - 0.012);
+                  const chipY = nY(s.rowY + 0.002);
+                  const chipW = nW(s.colW + 0.024);
+                  const chipH = nH(V3_ROW_H - 0.004);
                   return (
                     <Rect
                       key={`chip-${s.key}`}
                       x={chipX} y={chipY} width={chipW} height={chipH}
-                      fill={V3_GOLD.rowFill}
-                      stroke={V3_GOLD.rowStroke} strokeWidth={1}
-                      cornerRadius={8}
+                      fill="rgba(255, 244, 191, 0.13)"
+                      stroke="rgba(255, 220, 120, 0.26)" strokeWidth={1.4}
+                      cornerRadius={10}
                       listening={false}
                     />
                   );
                 })}
 
-                {/* ── FLAG ───────────────────────────────────── */}
-
-                {/* Flag backing plate */}
+                {/* ══ FLAG ═══════════════════════════════════════ */}
                 <Rect
                   x={fSlotX} y={fSlotY} width={fSlotW} height={fSlotH}
                   fill="rgba(0,0,0,0.30)"
@@ -636,8 +638,6 @@ export default function CardCanvas({
                   cornerRadius={5}
                   listening={false}
                 />
-
-                {/* Flag image — aspect-corrected, already centered */}
                 <FlagZone
                   flagUrl={cardState.player.flagPath}
                   countryCode={cardState.player.countryCode}
@@ -647,7 +647,7 @@ export default function CardCanvas({
                   onStatus={setFlagStatus}
                 />
 
-                {/* ── FC MONOGRAM BADGE ──────────────────────── */}
+                {/* ══ FC MONOGRAM ════════════════════════════════ */}
                 <Circle
                   x={bcx} y={bcy} radius={bR}
                   fill="rgba(0,0,0,0.34)"
@@ -664,7 +664,7 @@ export default function CardCanvas({
                   listening={false}
                 />
 
-                {/* ── RATING ─────────────────────────────────── */}
+                {/* ══ RATING ═════════════════════════════════════ */}
                 <Text
                   x={rSlotX} y={rSlotY} width={rSlotW} height={rSlotH}
                   text={String(cardState.player.rating)}
@@ -676,7 +676,7 @@ export default function CardCanvas({
                   listening={false}
                 />
 
-                {/* ── POSITION ───────────────────────────────── */}
+                {/* ══ POSITION ═══════════════════════════════════ */}
                 <Text
                   x={pSlotX} y={pSlotY} width={pSlotW} height={pSlotH}
                   text={v3Pos}
@@ -688,47 +688,47 @@ export default function CardCanvas({
                   listening={false}
                 />
 
-                {/* ── PLAYER NAME ────────────────────────────── */}
+                {/* ══ NAME (inside bottom block) ═════════════════ */}
                 <Text
                   x={nSlotX} y={nSlotY} width={nSlotW} height={nSlotH}
                   text={v3Name}
                   fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={v3NameFs}
-                  fill={V3_GOLD.primaryText}
-                  shadowColor={V3_GOLD.shadow} shadowBlur={8} shadowOffsetY={2}
+                  fill="#FFF6C7"
+                  shadowColor="rgba(0,0,0,0.90)" shadowBlur={8} shadowOffsetY={2}
                   align="center" verticalAlign="middle"
-                  letterSpacing={2}
+                  letterSpacing={2.4}
                   listening={false}
                 />
 
-                {/* ── INLINE STATS ───────────────────────────── */}
+                {/* ══ INLINE STATS (inside bottom block) ════════ */}
                 {V3_STATS.map((s) => {
                   const cX  = nX(s.colX);
                   const cW  = nW(s.colW);
                   const rY  = nY(s.rowY);
                   const rH  = nH(V3_ROW_H);
                   const vW  = cW * 0.42;
-                  const gap = cW * 0.04;
-                  const lW  = cW * 0.52;
+                  const gap = cW * 0.045;
+                  const lW  = cW * 0.515;
                   const val = cardState.stats[s.key];
                   return (
                     <Group key={`v3-${s.key}`}>
                       <Text
                         x={cX} y={rY} width={vW} height={rH}
                         text={String(val ?? "")}
-                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={52}
-                        fill={V3_GOLD.primaryText}
-                        shadowColor={V3_GOLD.shadow} shadowBlur={5}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={56}
+                        fill="#FFF6C7"
+                        shadowColor="rgba(0,0,0,0.90)" shadowBlur={6} shadowOffsetY={2}
                         align="right" verticalAlign="middle"
                         listening={false}
                       />
                       <Text
                         x={cX + vW + gap} y={rY} width={lW} height={rH}
                         text={s.key}
-                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={40}
-                        fill={V3_GOLD.secondaryText}
-                        opacity={0.90}
-                        shadowColor={V3_GOLD.shadow} shadowBlur={4}
-                        letterSpacing={0.8}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={42}
+                        fill="#F3CD55"
+                        opacity={0.95}
+                        shadowColor="rgba(0,0,0,0.90)" shadowBlur={5} shadowOffsetY={1}
+                        letterSpacing={1}
                         align="left" verticalAlign="middle"
                         listening={false}
                       />
