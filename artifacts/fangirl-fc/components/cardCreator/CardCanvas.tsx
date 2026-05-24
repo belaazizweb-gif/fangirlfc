@@ -577,14 +577,7 @@ export default function CardCanvas({
 
             return (
               <>
-                {/* ══ LEFT META PANEL ════════════════════════════ */}
-                <Rect
-                  x={leftPanelX} y={leftPanelY} width={leftPanelW} height={leftPanelH}
-                  fill="rgba(0, 0, 0, 0)"
-                  stroke="rgba(255, 220, 120, 0.58)" strokeWidth={2.5}
-                  cornerRadius={22}
-                  listening={false}
-                />
+                {/* ══ LEFT META PANEL — border removed, elements float freely ═══ */}
 
                 {/* ══ SLIM NAMEPLATE ═══════════════════════════════════ */}
                 <Rect

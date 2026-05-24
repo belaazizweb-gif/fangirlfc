@@ -168,24 +168,24 @@ export default function EditHotspots({
         );
       })}
 
-      {/* "✏️ Edit" toggle — always visible, positioned bottom-right outside card */}
+      {/* "✏️ Edit" toggle — bottom-right inside card bounds */}
       <button
         onClick={() => setEditMode((v) => !v)}
         className="absolute pointer-events-auto rounded-full backdrop-blur-sm flex items-center justify-center gap-1 active:scale-95 transition-transform"
         style={{
-          right:      "-2px",
-          bottom:     "-38px",
-          height:     30,
+          right:        "8px",
+          bottom:       "10px",
+          height:       28,
           paddingLeft:  10,
           paddingRight: 10,
-          fontSize:   12,
-          fontWeight: 600,
-          lineHeight: 1,
-          color:      "#fff",
-          background: editMode ? "rgba(180,140,0,0.72)" : "rgba(0,0,0,0.68)",
-          border:     "1px solid rgba(255,220,120,0.55)",
-          boxShadow:  "0 2px 10px rgba(0,0,0,0.50)",
-          whiteSpace: "nowrap",
+          fontSize:     11,
+          fontWeight:   700,
+          lineHeight:   1,
+          color:        "#fff",
+          background:   editMode ? "rgba(180,140,0,0.82)" : "rgba(0,0,0,0.72)",
+          border:       "1px solid rgba(255,220,120,0.55)",
+          boxShadow:    "0 2px 10px rgba(0,0,0,0.50)",
+          whiteSpace:   "nowrap",
         }}
         aria-label={editMode ? "Fermer l'édition" : "Modifier la carte"}
       >
