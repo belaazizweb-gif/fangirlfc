@@ -1,0 +1,78 @@
+TASK: Runtime Forensic Check — Prove Whether Gold V3.1 Branch Is Executing
+
+CONTEXT
+I tested the app and visually nothing meaningful changed.
+Do NOT do more design edits.
+Do NOT change layout values.
+Do NOT change hotspots.
+Do NOT refactor.
+
+We need to prove if the V3.1 branch is actually running on the template shown in the browser.
+
+DO NOT make permanent code changes.
+
+GOAL
+Add a temporary runtime debug marker ONLY if needed, verify the active template id, take a screenshot, then remove the marker before final commit.
+
+CHECKS REQUIRED
+
+1. Confirm active template id in browser runtime
+In CreatorScreen/CardCanvas, identify the exact value used by the currently displayed template:
+- template.id
+- template.templateId if exists
+- selectedTemplate.id if exists
+- layoutId
+- contentProfileId
+
+Report the exact active template id when the gold template from my screenshot is selected.
+
+2. Confirm V3 condition
+Find the exact condition used:
+template.id === "gold_elite_2026"
+
+Confirm whether it evaluates true or false at runtime for the selected gold template.
+
+3. Temporary visual marker
+Temporarily add a big visible debug text inside CardCanvas ONLY inside the V3 branch:
+
+"V3 ACTIVE"
+
+Position:
+x = 40
+y = 40
+fontSize = 60
+fill = red
+
+Run the app and screenshot the selected gold template.
+
+If "V3 ACTIVE" appears:
+- V3 branch is running.
+- The design is visually ineffective or hidden.
+
+If "V3 ACTIVE" does NOT appear:
+- The V3 branch is not running.
+- This is a template id / condition mismatch.
+
+4. Remove temporary marker
+After screenshot/test, remove "V3 ACTIVE".
+Do not leave debug marker in final code.
+
+5. Hotspot runtime check
+In EditHotspots.tsx:
+- confirm how many hotspots are actually rendered in DOM at runtime.
+- confirm if the old 7 hotspots or new 5 hotspots are visible.
+- report the exact rendered hotspot labels/icons.
+- confirm whether the CSS classes for new arrow callouts are present in the DOM.
+
+6. Final report only
+Do not implement design changes.
+
+Report:
+1. active template id shown in browser
+2. condition used for V3
+3. whether V3 condition is true or false
+4. whether temporary "V3 ACTIVE" appeared in screenshot
+5. whether the selected screenshot template is actually gold_elite_2026 or another template
+6. number of hotspots rendered at runtime
+7. whether old hotspots or new callout hotspots are actually rendered
+8. recommended minimal fix, but do not apply it
