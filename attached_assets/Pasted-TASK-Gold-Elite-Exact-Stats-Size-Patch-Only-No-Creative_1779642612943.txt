@@ -1,0 +1,287 @@
+TASK: Gold Elite — Exact Stats Size Patch Only, No Creative Interpretation
+
+CONTEXT
+The current gold_elite_2026 V3.2 is better, but the stats are still too small.
+The user only wants the stats to be much larger and more readable.
+
+This task is NOT a redesign.
+This task is NOT creative.
+This task is a numeric patch only.
+
+DO NOT:
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch upload logic
+- do not touch export
+- do not touch hotspots / crayons / EditHotspots.tsx
+- do not touch CreatorScreen.tsx
+- do not touch PhotoEditorSheet.tsx
+- do not touch template assets
+- do not change player/photo/cutout/silhouette boxes
+- do not generalize to other templates
+- do not modify left meta panel
+- do not modify flag
+- do not modify FC badge
+- do not modify name font logic
+- do not refactor
+- do not invent new design values
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx only
+
+GOAL
+Inside the existing gold_elite_2026 V3.2 branch only:
+- make stats much larger
+- make stats readable on mobile
+- make the bottom stats block cover the old baked template lines more strongly
+- keep everything else unchanged
+
+==================================================
+STEP 1 — LOCATE EXISTING GOLD V3.2 BRANCH
+==================================================
+
+In CardCanvas.tsx, locate the branch:
+
+template.id === "gold_elite_2026"
+
+Do not edit the generic branch.
+
+Before editing, confirm the current values you find for:
+- bottomBlock
+- statsPanel
+- row1/row2/row3 y
+- rowH
+- left column x/w
+- right column x/w
+- stat value fontSize
+- stat label fontSize
+
+Then replace them with the exact values below.
+
+==================================================
+STEP 2 — EXACT BOTTOM BLOCK PATCH
+==================================================
+
+Replace the current bottomBlock values with exactly:
+
+bottomBlock = {
+  x: 0.085,
+  y: 0.545,
+  w: 0.830,
+  h: 0.370,
+};
+
+Style must be exactly:
+
+fill: "rgba(10, 7, 2, 0.94)"
+stroke: "rgba(255, 220, 120, 0.78)"
+strokeWidth: 3
+cornerRadius: 26
+shadowColor: "rgba(0,0,0,0.90)"
+shadowBlur: 18
+shadowOpacity: 0.45
+listening={false}
+
+Reason:
+The panel must strongly cover the old baked template stat lines.
+Do not use a weaker opacity.
+
+==================================================
+STEP 3 — EXACT STATS PANEL PATCH
+==================================================
+
+Replace the current statsPanel values with exactly:
+
+statsPanel = {
+  x: 0.105,
+  y: 0.655,
+  w: 0.790,
+  h: 0.250,
+};
+
+Style must stay inside the bottomBlock.
+Use exactly:
+
+fill: "rgba(255, 244, 191, 0.035)"
+stroke: "rgba(255, 220, 120, 0.30)"
+strokeWidth: 1.6
+cornerRadius: 18
+listening={false}
+
+Do not create a separate new design.
+Just replace the existing statsPanel values.
+
+==================================================
+STEP 4 — EXACT STATS ROW / COLUMN PATCH
+==================================================
+
+Use exactly these normalized values:
+
+Rows:
+row1Y = 0.685
+row2Y = 0.765
+row3Y = 0.845
+
+rowH = 0.065
+
+Columns:
+leftColX = 0.120
+leftColW = 0.365
+
+rightColX = 0.515
+rightColW = 0.365
+
+Do not keep the old smaller rowH.
+Do not keep the old narrower columns.
+
+==================================================
+STEP 5 — EXACT STAT TEXT LAYOUT PATCH
+==================================================
+
+For every stat row, keep inline format:
+
+99 PAC
+
+Do not stack value over label.
+Do not render a single combined string.
+Keep value and label as separate Konva Text nodes.
+
+Use exactly:
+
+valueW = colW * 0.38
+gap = colW * 0.045
+labelW = colW * 0.575
+
+Value Text:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 84
+- fill: "#FFF6C7"
+- stroke: "rgba(70,40,0,0.38)"
+- strokeWidth: 0.9
+- shadowColor: "rgba(0,0,0,0.95)"
+- shadowBlur: 8
+- shadowOffsetY: 2
+- align: "right"
+- verticalAlign: "middle"
+- listening={false}
+
+Label Text:
+- fontFamily: "D-DIN Condensed"
+- fontStyle: "bold"
+- fontSize: 60
+- fill: "#F3CD55"
+- opacity: 1
+- stroke: "rgba(70,40,0,0.30)"
+- strokeWidth: 0.6
+- shadowColor: "rgba(0,0,0,0.95)"
+- shadowBlur: 7
+- shadowOffsetY: 2
+- letterSpacing: 1
+- align: "left"
+- verticalAlign: "middle"
+- listening={false}
+
+Both:
+- y = rowY
+- height = rowH
+- value x = colX
+- value width = valueW
+- label x = colX + valueW + gap
+- label width = labelW
+
+==================================================
+STEP 6 — EXACT ROW CHIP PATCH
+==================================================
+
+For each stat row chip, use exactly:
+
+chipX = colX - 0.016
+chipY = rowY + 0.003
+chipW = colW + 0.032
+chipH = rowH - 0.006
+
+Style:
+fill: "rgba(255,244,191,0.20)"
+stroke: "rgba(255,220,120,0.40)"
+strokeWidth: 1.8
+cornerRadius: 12
+listening={false}
+
+Row chips must be behind stat text.
+
+==================================================
+STEP 7 — EXACT DIVIDER PATCH
+==================================================
+
+Use exactly:
+
+dividerX = 0.500
+dividerY = 0.675
+dividerH = 0.225
+
+Divider width:
+- minimum 3.5 px after conversion
+
+Style:
+fill: "rgba(255,220,120,0.50)"
+listening={false}
+
+Divider must be behind stat text and must not cover text.
+
+==================================================
+STEP 8 — DO NOT TOUCH ANYTHING ELSE
+==================================================
+
+Do not edit:
+- name coordinates
+- name font sizes
+- left meta panel
+- rating
+- position
+- flag
+- FC badge
+- hotspots
+- background remover
+- cutout/photo rendering
+- export
+
+This is only a stats numeric patch.
+
+==================================================
+STEP 9 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual screenshot check on gold_elite_2026:
+
+Required visible result:
+1. Stats must be much larger than before.
+2. "99 PAC" must be clearly readable on a 390px mobile screen.
+3. "99 SHO", "99 PAS", "99 DRI", "99 DEF", "99 PHY" must be clearly readable.
+4. Stats must dominate the lower block.
+5. Stats must not overlap the name.
+6. Stats must not go outside bottomBlock.
+7. Old baked template stat lines must be visually covered by the darker bottomBlock.
+8. Hotspots/crayons must be unchanged.
+9. Cutout/background remover/export must be unchanged.
+
+FINAL REPORT:
+1. files changed
+2. confirmation only CardCanvas.tsx was changed
+3. confirmation only gold_elite_2026 stats/bottomBlock were changed
+4. old bottomBlock values found
+5. new bottomBlock values used
+6. old stat value/label font sizes found
+7. new stat value/label font sizes used
+8. final row coords
+9. final column coords
+10. confirmation hotspots unchanged
+11. confirmation cutout/background remover/export unchanged
+12. typecheck result
+13. build result
+14. git commit hash

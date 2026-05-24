@@ -74,14 +74,14 @@ const V3_GOLD = {
 
 // V3 stat definitions — updated row Y coords (panel moved up to y=0.678)
 const V3_STATS = [
-  { key: "PAC" as const, colX: 0.155, colW: 0.300, rowY: 0.700 },
-  { key: "SHO" as const, colX: 0.155, colW: 0.300, rowY: 0.758 },
-  { key: "PAS" as const, colX: 0.155, colW: 0.300, rowY: 0.816 },
-  { key: "DRI" as const, colX: 0.545, colW: 0.300, rowY: 0.700 },
-  { key: "DEF" as const, colX: 0.545, colW: 0.300, rowY: 0.758 },
-  { key: "PHY" as const, colX: 0.545, colW: 0.300, rowY: 0.816 },
+  { key: "PAC" as const, colX: 0.120, colW: 0.365, rowY: 0.685 },
+  { key: "SHO" as const, colX: 0.120, colW: 0.365, rowY: 0.765 },
+  { key: "PAS" as const, colX: 0.120, colW: 0.365, rowY: 0.845 },
+  { key: "DRI" as const, colX: 0.515, colW: 0.365, rowY: 0.685 },
+  { key: "DEF" as const, colX: 0.515, colW: 0.365, rowY: 0.765 },
+  { key: "PHY" as const, colX: 0.515, colW: 0.365, rowY: 0.845 },
 ];
-const V3_ROW_H = 0.046;
+const V3_ROW_H = 0.065;
 
 // ── Per-template backdrop colours ────────────────────────────
 //
@@ -536,8 +536,8 @@ export default function CardCanvas({
             const bSlotW = nW(0.125);  const bSlotH = nH(0.092);
 
             // Unified bottom content block (replaces separate nameplate + stats panel)
-            const bbX = nX(0.095);  const bbY = nY(0.570);
-            const bbW = nW(0.810);  const bbH = nH(0.330);
+            const bbX = nX(0.085);  const bbY = nY(0.545);
+            const bbW = nW(0.830);  const bbH = nH(0.370);
 
             // Inner gold separator under the name
             const lineX = nX(0.135);  const lineY = nY(0.660);
@@ -548,9 +548,9 @@ export default function CardCanvas({
             const nSlotW = nW(0.750);  const nSlotH = nH(0.070);
 
             // Center divider inside stats area
-            const dvX = nX(0.500);    const dvY = nY(0.690);
-            const dvW = Math.max(nW(0.002), 3);
-            const dvH = nH(0.185);
+            const dvX = nX(0.500);    const dvY = nY(0.675);
+            const dvW = Math.max(nW(0.002), 3.5);
+            const dvH = nH(0.225);
 
             // ── V3.2 derived values ────────────────────────────
             const rawPos = cardState.player.position;
@@ -591,10 +591,10 @@ export default function CardCanvas({
                     Covers baked template name/stat lines entirely  */}
                 <Rect
                   x={bbX} y={bbY} width={bbW} height={bbH}
-                  fill="rgba(10, 7, 2, 0.88)"
-                  stroke="rgba(255, 220, 120, 0.72)" strokeWidth={3}
+                  fill="rgba(10, 7, 2, 0.94)"
+                  stroke="rgba(255, 220, 120, 0.78)" strokeWidth={3}
                   cornerRadius={26}
-                  shadowColor="rgba(0,0,0,0.85)" shadowBlur={18} shadowOpacity={0.42}
+                  shadowColor="rgba(0,0,0,0.90)" shadowBlur={18} shadowOpacity={0.45}
                   listening={false}
                 />
 
@@ -605,26 +605,35 @@ export default function CardCanvas({
                   listening={false}
                 />
 
-                {/* Center divider between left/right stat columns */}
+                {/* Stats sub-panel inside bottom block */}
                 <Rect
-                  x={dvX - dvW / 2} y={dvY} width={dvW} height={dvH}
-                  fill="rgba(255, 220, 120, 0.42)"
+                  x={nX(0.105)} y={nY(0.655)} width={nW(0.790)} height={nH(0.250)}
+                  fill="rgba(255, 244, 191, 0.035)"
+                  stroke="rgba(255, 220, 120, 0.30)" strokeWidth={1.6}
+                  cornerRadius={18}
                   listening={false}
                 />
 
-                {/* Stronger row chips behind each stat row */}
+                {/* Center divider between left/right stat columns */}
+                <Rect
+                  x={dvX - dvW / 2} y={dvY} width={dvW} height={dvH}
+                  fill="rgba(255, 220, 120, 0.50)"
+                  listening={false}
+                />
+
+                {/* Row chips behind each stat row */}
                 {V3_STATS.map((s) => {
-                  const chipX = nX(s.colX - 0.012);
-                  const chipY = nY(s.rowY + 0.002);
-                  const chipW = nW(s.colW + 0.024);
-                  const chipH = nH(V3_ROW_H - 0.004);
+                  const chipX = nX(s.colX - 0.016);
+                  const chipY = nY(s.rowY + 0.003);
+                  const chipW = nW(s.colW + 0.032);
+                  const chipH = nH(V3_ROW_H - 0.006);
                   return (
                     <Rect
                       key={`chip-${s.key}`}
                       x={chipX} y={chipY} width={chipW} height={chipH}
-                      fill="rgba(255, 244, 191, 0.13)"
-                      stroke="rgba(255, 220, 120, 0.26)" strokeWidth={1.4}
-                      cornerRadius={10}
+                      fill="rgba(255, 244, 191, 0.20)"
+                      stroke="rgba(255, 220, 120, 0.40)" strokeWidth={1.8}
+                      cornerRadius={12}
                       listening={false}
                     />
                   );
@@ -706,28 +715,30 @@ export default function CardCanvas({
                   const cW  = nW(s.colW);
                   const rY  = nY(s.rowY);
                   const rH  = nH(V3_ROW_H);
-                  const vW  = cW * 0.42;
+                  const vW  = cW * 0.38;
                   const gap = cW * 0.045;
-                  const lW  = cW * 0.515;
+                  const lW  = cW * 0.575;
                   const val = cardState.stats[s.key];
                   return (
                     <Group key={`v3-${s.key}`}>
                       <Text
                         x={cX} y={rY} width={vW} height={rH}
                         text={String(val ?? "")}
-                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={56}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={84}
                         fill="#FFF6C7"
-                        shadowColor="rgba(0,0,0,0.90)" shadowBlur={6} shadowOffsetY={2}
+                        stroke="rgba(70,40,0,0.38)" strokeWidth={0.9}
+                        shadowColor="rgba(0,0,0,0.95)" shadowBlur={8} shadowOffsetY={2}
                         align="right" verticalAlign="middle"
                         listening={false}
                       />
                       <Text
                         x={cX + vW + gap} y={rY} width={lW} height={rH}
                         text={s.key}
-                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={42}
+                        fontFamily="D-DIN Condensed" fontStyle="bold" fontSize={60}
                         fill="#F3CD55"
-                        opacity={0.95}
-                        shadowColor="rgba(0,0,0,0.90)" shadowBlur={5} shadowOffsetY={1}
+                        opacity={1}
+                        stroke="rgba(70,40,0,0.30)" strokeWidth={0.6}
+                        shadowColor="rgba(0,0,0,0.95)" shadowBlur={7} shadowOffsetY={2}
                         letterSpacing={1}
                         align="left" verticalAlign="middle"
                         listening={false}
