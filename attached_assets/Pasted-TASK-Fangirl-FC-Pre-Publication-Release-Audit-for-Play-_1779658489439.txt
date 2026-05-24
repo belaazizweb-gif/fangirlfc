@@ -1,0 +1,138 @@
+TASK: Fangirl FC — Pre-Publication Release Audit for Play Store
+
+CONTEXT
+The card creator is now stable and visually validated.
+Do not modify the product.
+
+Current stable state:
+- all templates validated
+- gold renderer locked
+- non-gold renderer validated
+- AI background remover works
+- cutout works
+- export/download works
+- hotspots work
+- live domain works
+
+GOAL
+Perform a professional pre-publication audit for Google Play release preparation.
+
+DO NOT:
+- do not change renderer
+- do not change templates
+- do not change UI/design
+- do not change CardCanvas
+- do not change background remover
+- do not change export
+- do not change hotspots
+- do not refactor
+- do not install packages
+- do not create Android wrapper yet
+- do not commit changes
+
+READ-ONLY AUDIT ONLY.
+
+CHECKS REQUIRED
+
+1. Project structure
+Report:
+- framework
+- package manager
+- app directory/root
+- current deployment flow
+- current live domain
+- build command
+- output type
+
+2. Production build health
+Run or verify:
+- typecheck
+- build
+- lint if available
+- report all errors/warnings
+
+3. PWA readiness
+Inspect:
+- manifest.json / web app manifest
+- app name
+- short name
+- start_url
+- display mode
+- theme_color
+- background_color
+- icons sizes
+- maskable icons if present
+- service worker if present
+- offline behavior if present
+
+4. Mobile UX readiness
+Check:
+- /creator loads on mobile
+- templates work
+- upload works
+- AI background remover button visible
+- background remover has loader/failure state
+- export/download works on Android Chrome
+- no obvious horizontal overflow
+- no blocked UI under browser bars
+
+5. Privacy and policy readiness
+Report whether the app currently has:
+- Privacy Policy page
+- Terms page
+- Contact/support page
+- clear explanation of local image processing / background removal
+- external library licensing note for @imgly/background-removal
+- Data Safety information draft
+
+6. Android wrapper readiness
+Assess best path:
+A) TWA / Bubblewrap
+B) Capacitor
+C) Flutter/WebView wrapper
+D) native rewrite later
+
+Recommend one path for fastest Play Store publication.
+
+7. Play Store asset checklist
+Report missing/present:
+- app icon 512x512
+- feature graphic 1024x500
+- phone screenshots
+- short description
+- long description
+- privacy policy URL
+- support email
+- app category
+- content rating answers
+- Data Safety answers
+
+8. Risk list
+Report risks:
+- AGPL/commercial licensing for @imgly/background-removal
+- AI/background removal first-load model size
+- network dependency
+- PWA cache issues
+- download/export behavior on Android
+- age/content policy
+- copyright/FUT/FIFA/EA branding risk
+
+9. Release plan
+Provide a step-by-step release plan:
+- what to fix before Android wrapper
+- what to prepare for Play Console
+- what to test with 12–20 testers
+- what metrics to collect during closed testing
+
+FINAL REPORT
+Report only:
+1. current project status
+2. build status
+3. PWA readiness
+4. policy/privacy gaps
+5. recommended Android packaging path
+6. Play Store missing assets
+7. legal/licensing risks
+8. technical risks
+9. exact next steps
+10. no code changes confirmation
