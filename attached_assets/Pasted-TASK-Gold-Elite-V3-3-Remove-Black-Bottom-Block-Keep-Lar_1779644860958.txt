@@ -1,0 +1,264 @@
+TASK: Gold Elite V3.3 — Remove Black Bottom Block, Keep Large Stats
+
+CONTEXT
+The latest live version now correctly shows the larger stats.
+However, the large black bottomBlock is visually too heavy and hides the gold_elite_2026 card design.
+This breaks the FUT card feeling.
+
+The goal now is simple:
+- remove the big black rectangle/block
+- keep the large readable stats
+- keep the card design visible behind the stats
+- make the content feel integrated into the card, not pasted on top
+
+This is a numeric/design patch only for gold_elite_2026.
+
+DO NOT:
+- do not touch AI background remover
+- do not touch cutout logic
+- do not touch upload logic
+- do not touch export
+- do not touch hotspots / crayons / EditHotspots.tsx
+- do not touch CreatorScreen.tsx
+- do not touch PhotoEditorSheet.tsx
+- do not touch template assets
+- do not change player/photo/cutout/silhouette boxes
+- do not generalize to other templates
+- do not modify left meta panel
+- do not modify flag
+- do not modify FC badge
+- do not refactor
+
+FILES ALLOWED:
+1. components/cardCreator/CardCanvas.tsx only
+
+GOAL
+Inside the existing gold_elite_2026 V3 branch only:
+- remove the large opaque black bottomBlock
+- preserve large stat font sizes
+- keep row chips visible but much more transparent
+- keep name readable with only a slim/light nameplate
+- preserve the gold card artwork visibility
+
+==================================================
+STEP 1 — LOCATE GOLD ELITE V3 BRANCH
+==================================================
+
+In CardCanvas.tsx, locate:
+
+template.id === "gold_elite_2026"
+
+Only edit this branch.
+
+Do not edit the generic branch.
+
+==================================================
+STEP 2 — REMOVE THE LARGE BLACK BOTTOM BLOCK
+==================================================
+
+Find the large bottomBlock Rect currently using approximately:
+
+x=0.085
+y=0.545
+w=0.830
+h=0.370
+fill: rgba(10, 7, 2, 0.94)
+
+Remove this Rect completely from rendering.
+
+Do NOT replace it with another large opaque Rect.
+Do NOT keep any big dark panel behind the full name+stats area.
+
+Reason:
+The black square hides the gold card artwork and breaks the FUT card design.
+
+==================================================
+STEP 3 — ADD ONLY A LIGHT NAMEPLATE
+==================================================
+
+Keep the name readable, but use a slim translucent nameplate only.
+
+Nameplate Rect:
+
+x = 0.145
+y = 0.585
+w = 0.710
+h = 0.070
+
+Style:
+fill: "rgba(10, 7, 2, 0.28)"
+stroke: "rgba(255, 220, 120, 0.32)"
+strokeWidth: 1.6
+cornerRadius: 14
+shadowColor: "rgba(0,0,0,0.45)"
+shadowBlur: 6
+shadowOpacity: 0.24
+listening={false}
+
+Important:
+This is a slim nameplate only.
+It must not look like a large black square.
+
+Name text stays large:
+- keep current name font size logic
+- keep uppercase
+- keep cream/gold color
+- keep shadow
+
+==================================================
+STEP 4 — KEEP BIG STATS BUT REMOVE HEAVY PANEL
+==================================================
+
+Remove the large statsPanel background if it is a big filled Rect.
+
+Do NOT render a large dark statsPanel behind all stats.
+
+Instead, stats should sit directly over the card artwork with individual row chips only.
+
+Keep the current large stats coordinates unless they overflow.
+
+Use:
+
+Rows:
+row1Y = 0.685
+row2Y = 0.765
+row3Y = 0.845
+
+rowH = 0.065
+
+Columns:
+leftColX = 0.120
+leftColW = 0.365
+
+rightColX = 0.515
+rightColW = 0.365
+
+Value fontSize = 84
+Label fontSize = 60
+
+Do not reduce the font sizes.
+
+==================================================
+STEP 5 — MAKE ROW CHIPS LIGHT AND INTEGRATED
+==================================================
+
+Current row chips are too panel-like.
+Make them transparent enough to show the card design behind them.
+
+For each stat row chip, use exactly:
+
+chipX = colX - 0.016
+chipY = rowY + 0.003
+chipW = colW + 0.032
+chipH = rowH - 0.006
+
+Style:
+fill: "rgba(10, 7, 2, 0.26)"
+stroke: "rgba(255, 220, 120, 0.28)"
+strokeWidth: 1.2
+cornerRadius: 10
+listening={false}
+
+Reason:
+Stats remain readable, but the gold card design stays visible.
+
+==================================================
+STEP 6 — LIGHTEN THE CENTER DIVIDER
+==================================================
+
+The divider should be visible but not heavy.
+
+Use:
+
+dividerX = 0.500
+dividerY = 0.675
+dividerH = 0.225
+
+Width:
+minimum 2.5 px after conversion
+
+Style:
+fill: "rgba(255,220,120,0.32)"
+listening={false}
+
+==================================================
+STEP 7 — KEEP STAT TEXT STRONG
+==================================================
+
+Do not reduce stat text size.
+
+Value Text:
+fontSize: 84
+fill: "#FFF6C7"
+stroke: "rgba(70,40,0,0.38)"
+strokeWidth: 0.9
+shadowColor: "rgba(0,0,0,0.95)"
+shadowBlur: 8
+shadowOffsetY: 2
+
+Label Text:
+fontSize: 60
+fill: "#F3CD55"
+opacity: 1
+stroke: "rgba(70,40,0,0.30)"
+strokeWidth: 0.6
+shadowColor: "rgba(0,0,0,0.95)"
+shadowBlur: 7
+shadowOffsetY: 2
+letterSpacing: 1
+
+Keep inline layout:
+99 PAC
+
+Do not stack.
+
+==================================================
+STEP 8 — DO NOT TOUCH ANYTHING ELSE
+==================================================
+
+Do not edit:
+- rating
+- position
+- flag
+- FC badge
+- player/cutout/photo
+- hotspots
+- background remover
+- export
+- other templates
+
+==================================================
+STEP 9 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual check on gold_elite_2026:
+
+Required result:
+1. The large black bottom square is gone.
+2. Gold card artwork is visible behind the name/stats.
+3. Stats remain large and readable.
+4. Row chips are visible but translucent.
+5. Name remains readable.
+6. No large dark panel covers the card bottom.
+7. FUT card feeling is restored.
+8. Cutout/background remover/export unchanged.
+9. Hotspots unchanged.
+
+FINAL REPORT:
+1. files changed
+2. confirmation only CardCanvas.tsx changed
+3. confirmation only gold_elite_2026 branch changed
+4. confirmation large bottomBlock removed
+5. final nameplate style used
+6. final row chip style used
+7. final stats font sizes
+8. confirmation hotspots unchanged
+9. confirmation cutout/background remover/export unchanged
+10. typecheck result
+11. build result
+12. git commit hash

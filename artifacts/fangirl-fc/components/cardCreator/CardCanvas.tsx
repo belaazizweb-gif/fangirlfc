@@ -549,7 +549,7 @@ export default function CardCanvas({
 
             // Center divider inside stats area
             const dvX = nX(0.500);    const dvY = nY(0.675);
-            const dvW = Math.max(nW(0.002), 3.5);
+            const dvW = Math.max(nW(0.002), 2.5);
             const dvH = nH(0.225);
 
             // ── V3.2 derived values ────────────────────────────
@@ -587,37 +587,20 @@ export default function CardCanvas({
                   listening={false}
                 />
 
-                {/* ══ UNIFIED BOTTOM CONTENT BLOCK ═══════════════
-                    Covers baked template name/stat lines entirely  */}
+                {/* ══ SLIM NAMEPLATE (replaces heavy bottomBlock) ═════ */}
                 <Rect
-                  x={bbX} y={bbY} width={bbW} height={bbH}
-                  fill="rgba(10, 7, 2, 0.94)"
-                  stroke="rgba(255, 220, 120, 0.78)" strokeWidth={3}
-                  cornerRadius={26}
-                  shadowColor="rgba(0,0,0,0.90)" shadowBlur={18} shadowOpacity={0.45}
-                  listening={false}
-                />
-
-                {/* Gold separator line under name */}
-                <Rect
-                  x={lineX} y={lineY} width={lineW} height={lineH}
-                  fill="rgba(255, 220, 120, 0.62)"
-                  listening={false}
-                />
-
-                {/* Stats sub-panel inside bottom block */}
-                <Rect
-                  x={nX(0.105)} y={nY(0.655)} width={nW(0.790)} height={nH(0.250)}
-                  fill="rgba(255, 244, 191, 0.035)"
-                  stroke="rgba(255, 220, 120, 0.30)" strokeWidth={1.6}
-                  cornerRadius={18}
+                  x={nX(0.145)} y={nY(0.585)} width={nW(0.710)} height={nH(0.070)}
+                  fill="rgba(10, 7, 2, 0.28)"
+                  stroke="rgba(255, 220, 120, 0.32)" strokeWidth={1.6}
+                  cornerRadius={14}
+                  shadowColor="rgba(0,0,0,0.45)" shadowBlur={6} shadowOpacity={0.24}
                   listening={false}
                 />
 
                 {/* Center divider between left/right stat columns */}
                 <Rect
                   x={dvX - dvW / 2} y={dvY} width={dvW} height={dvH}
-                  fill="rgba(255, 220, 120, 0.50)"
+                  fill="rgba(255, 220, 120, 0.32)"
                   listening={false}
                 />
 
@@ -631,9 +614,9 @@ export default function CardCanvas({
                     <Rect
                       key={`chip-${s.key}`}
                       x={chipX} y={chipY} width={chipW} height={chipH}
-                      fill="rgba(255, 244, 191, 0.20)"
-                      stroke="rgba(255, 220, 120, 0.40)" strokeWidth={1.8}
-                      cornerRadius={12}
+                      fill="rgba(10, 7, 2, 0.26)"
+                      stroke="rgba(255, 220, 120, 0.28)" strokeWidth={1.2}
+                      cornerRadius={10}
                       listening={false}
                     />
                   );
