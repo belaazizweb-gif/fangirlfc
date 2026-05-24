@@ -1,0 +1,186 @@
+TASK: Fangirl FC — Full App Release Scope Audit Before Play Store Preparation
+
+CONTEXT
+The card creator module is stable and validated.
+All templates work.
+AI background remover works.
+Cutout works.
+Export/download works.
+Live domain works.
+
+But we are not publishing only the creator.
+We are publishing the full Fangirl FC app, including:
+- main Fangirl FC module / dashboard
+- creator module
+- any challenge/ranking/share/card identity flows already present
+
+Before preparing Play Store assets, Privacy Policy, Terms, or TWA wrapper, we need a full app release scope audit.
+
+DO NOT MODIFY CODE.
+DO NOT CHANGE UI.
+DO NOT CHANGE ROUTES.
+DO NOT TOUCH CARD CREATOR.
+DO NOT TOUCH TEMPLATES.
+DO NOT INSTALL PACKAGES.
+DO NOT COMMIT.
+
+READ-ONLY AUDIT ONLY.
+
+GOAL
+Identify the current full app structure and decide what should be included in V1 Play Store release.
+
+CHECKS REQUIRED
+
+1. Route inventory
+List every route/page in the app:
+- path
+- file
+- purpose
+- public/private
+- static/dynamic
+- ready for release or not
+
+2. Module inventory
+Group the app into modules:
+- main Fangirl FC home/dashboard
+- creator
+- card/share pages
+- challenges
+- ranking/leaderboard
+- auth
+- Firebase-related features
+- any admin/dev/test pages
+
+For each module, report:
+- current status
+- user flow
+- dependencies
+- release readiness
+- risks
+
+3. Dashboard/home audit
+Inspect the current home/dashboard experience.
+
+Report:
+- what the user sees first
+- primary CTA
+- whether Creator is easy to access
+- whether the app explains itself clearly
+- whether it looks like a complete app or only a tool
+- whether there are broken/unfinished sections
+- whether any sections should be hidden before Play Store release
+
+4. Creator module audit
+Confirm current status:
+- templates validated
+- background remover
+- cutout
+- export/download
+- mobile UX
+- known risks
+- remaining release blockers
+
+5. Firebase/auth/data audit
+Inspect whether the app uses:
+- Firebase Auth
+- Firestore
+- Storage
+- Analytics
+- localStorage
+- public share links
+
+Report:
+- what user data is stored
+- whether images are uploaded or processed locally
+- whether card data is stored
+- whether any PII exists
+- what must be disclosed in Privacy Policy and Data Safety
+
+6. Release scope recommendation
+Recommend what should be included in Play Store V1:
+
+Option A:
+Creator-only app experience
+
+Option B:
+Full Fangirl FC app with Creator as main feature
+
+Option C:
+Hide unfinished modules and publish only stable routes
+
+Choose one and justify.
+
+7. Dashboard recommendation
+Provide a clear V1 dashboard structure.
+
+Required:
+- primary CTA to Creator
+- simple explanation
+- no unofficial FIFA/EA claims
+- clean navigation
+- show only stable modules
+
+Recommend exact sections:
+- hero
+- create card CTA
+- my card / share
+- challenges if ready
+- rankings if ready
+- footer/legal links
+
+8. Hide/defer list
+List any routes/modules that should be:
+- kept
+- hidden
+- deferred
+- protected
+- removed from navigation but not deleted
+
+9. Play Store positioning
+Recommend:
+- app name
+- short description
+- category
+- target audience
+- main value proposition
+- what screenshots should show
+
+10. Legal/IP wording
+Identify risky wording:
+- FIFA
+- World Cup
+- EA
+- FUT
+- official football claims
+
+Recommend safe wording:
+- fan-made
+- football fan card
+- unofficial
+- not affiliated with FIFA, EA, EA SPORTS FC, or any official organization
+
+11. Release preparation next steps
+After scope is decided, list the exact next tasks:
+- dashboard fixes if needed
+- legal pages
+- manifest/icons
+- service worker
+- TWA wrapper
+- Play Store listing
+- closed testing
+
+FINAL REPORT
+Report only:
+
+1. route inventory
+2. module inventory
+3. dashboard/home audit
+4. creator status
+5. Firebase/auth/data usage
+6. recommended V1 release scope
+7. recommended dashboard structure
+8. routes/modules to hide or defer
+9. Play Store positioning
+10. legal/IP risk wording
+11. exact next steps
+12. no code changes confirmation
