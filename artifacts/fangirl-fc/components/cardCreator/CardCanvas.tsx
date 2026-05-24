@@ -580,20 +580,18 @@ export default function CardCanvas({
                 {/* ══ LEFT META PANEL ════════════════════════════ */}
                 <Rect
                   x={leftPanelX} y={leftPanelY} width={leftPanelW} height={leftPanelH}
-                  fill="rgba(10, 7, 2, 0.74)"
+                  fill="rgba(0, 0, 0, 0)"
                   stroke="rgba(255, 220, 120, 0.58)" strokeWidth={2.5}
                   cornerRadius={22}
-                  shadowColor="rgba(0,0,0,0.85)" shadowBlur={14} shadowOpacity={0.36}
                   listening={false}
                 />
 
-                {/* ══ SLIM NAMEPLATE (replaces heavy bottomBlock) ═════ */}
+                {/* ══ SLIM NAMEPLATE ═══════════════════════════════════ */}
                 <Rect
                   x={nX(0.145)} y={nY(0.585)} width={nW(0.710)} height={nH(0.070)}
-                  fill="rgba(10, 7, 2, 0.28)"
+                  fill="rgba(0, 0, 0, 0)"
                   stroke="rgba(255, 220, 120, 0.32)" strokeWidth={1.6}
                   cornerRadius={14}
-                  shadowColor="rgba(0,0,0,0.45)" shadowBlur={6} shadowOpacity={0.24}
                   listening={false}
                 />
 
