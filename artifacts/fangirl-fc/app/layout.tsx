@@ -10,6 +10,7 @@ import { Playfair_Display, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import { ToastHost } from "@/components/ToastHost";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -65,6 +66,7 @@ export default function RootLayout({
     <html lang="en" className={`${playfair.variable} ${dancing.variable}`}>
       <body>
         <AuthProvider>
+          <ServiceWorkerRegister />
           <ToastHost />
           {children}
         </AuthProvider>

@@ -1,0 +1,230 @@
+TASK: Fangirl FC Phase 4 — Add Minimal Safe Service Worker for PWA/TWA Readiness
+
+CONTEXT
+Phase 3 audit is complete.
+
+Current stable state:
+- full Fangirl FC app works
+- Creator works
+- MODNet background remover works
+- @imgly removed
+- legal pages exist
+- PWA icons exist
+- manifest exists
+- Firebase/Auth exists for main Fangirl FC app
+- /creator is intentionally public and does not require login
+
+Goal:
+Add a minimal, safe service worker for PWA/TWA readiness.
+
+This phase is ONLY service worker + offline fallback.
+Do not touch Android/Bubblewrap yet.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch CreatorScreen.tsx
+- do not touch background remover logic
+- do not touch export logic
+- do not touch cutout logic
+- do not touch Firebase/Auth logic
+- do not change Google login flow yet
+- do not change Firestore rules
+- do not create Android wrapper
+- do not run Bubblewrap
+- do not create assetlinks.json yet
+- do not install heavy PWA packages unless absolutely necessary
+- do not cache Firebase requests aggressively
+- do not cache Hugging Face/MODNet model files manually
+- do not break live deployment
+
+FILES ALLOWED:
+1. public/sw.js
+2. public/offline.html OR app/offline/page.tsx
+3. components/ServiceWorkerRegister.tsx — new small client component if needed
+4. app/layout.tsx or root layout only to mount ServiceWorkerRegister
+
+If another file is required:
+- stop
+- report why before editing
+
+==================================================
+PHASE 0 — READ FIRST, NO EDITS
+==================================================
+
+Before editing, inspect and report:
+
+1. Current root layout file path.
+2. Whether a service worker already exists.
+3. Whether /offline or offline.html already exists.
+4. Current manifest path and start_url.
+5. Whether app is deployed on Vercel.
+6. Current Next.js version.
+7. Whether the app uses App Router.
+8. Confirm Creator/CardCanvas will not be touched.
+
+Then implement.
+
+==================================================
+PHASE 1 — ADD MINIMAL OFFLINE FALLBACK
+==================================================
+
+Create a lightweight offline fallback.
+
+Preferred:
+public/offline.html
+
+Content:
+- Fangirl FC logo/name
+- message:
+  “You are offline. Please reconnect to use Fangirl FC.”
+- button/link back to /
+- simple inline CSS matching dark/pink Fangirl FC style
+
+Do not make it complex.
+Do not depend on JS bundle.
+
+==================================================
+PHASE 2 — ADD public/sw.js
+==================================================
+
+Create public/sw.js.
+
+Strategy must be conservative and safe.
+
+Requirements:
+
+1. Install event:
+- cache only minimal app shell assets:
+  - /
+  - /offline.html
+  - /manifest.json
+  - /icon.svg
+  - /icons/icon-192.png
+  - /icons/icon-512.png
+  - /icons/icon-maskable-192.png
+  - /icons/icon-maskable-512.png
+
+2. Activate event:
+- clean old caches by cache name/version
+- call self.clients.claim()
+
+3. Fetch event:
+- for navigation requests:
+  - try network first
+  - if network fails, return /offline.html from cache
+
+- for same-origin static assets:
+  - use cache-first only for:
+    /_next/static/
+    /icons/
+    /icon.svg
+    /manifest.json
+
+- do NOT cache:
+  - Firebase/Firestore/Auth requests
+  - Google OAuth/Auth URLs
+  - Hugging Face model/CDN requests
+  - uploaded images/blob/data URLs
+  - dynamic share URLs aggressively
+  - API calls
+  - POST requests
+
+4. Do not intercept non-GET requests.
+
+5. Do not throw if caching fails.
+
+Cache name:
+fangirl-fc-v1
+
+==================================================
+PHASE 3 — REGISTER SERVICE WORKER
+==================================================
+
+Add a tiny client component:
+
+components/ServiceWorkerRegister.tsx
+
+Behavior:
+- register /sw.js only in production
+- only if "serviceWorker" in navigator
+- wait until window load
+- catch and console.warn registration failures
+- no UI
+
+Example logic:
+if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(...)
+  })
+}
+
+Mount this component once in the root layout.
+
+Do not register multiple times.
+Do not use next-pwa unless necessary.
+
+==================================================
+PHASE 4 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Validate:
+
+1. /sw.js exists.
+2. /offline.html exists.
+3. Build passes.
+4. Typecheck passes.
+5. Root layout includes ServiceWorkerRegister once.
+6. /creator still builds.
+7. CardCanvas untouched.
+8. Firebase/Auth untouched.
+9. Background remover untouched.
+10. Export untouched.
+11. Manifest untouched unless necessary.
+
+Manual browser validation:
+1. Open production preview.
+2. Confirm service worker registers in Application tab.
+3. Reload page.
+4. Turn offline mode on.
+5. Navigate to / and confirm offline fallback appears.
+6. Turn online again and confirm app loads normally.
+
+Do not push if build fails.
+
+==================================================
+PHASE 5 — COMMIT AND PUSH
+==================================================
+
+If validation passes:
+1. Commit.
+2. Push to GitHub.
+3. Report commit hash.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. offline fallback created
+3. service worker strategy summary
+4. what is cached
+5. what is explicitly not cached
+6. registration method
+7. confirmation Creator/CardCanvas untouched
+8. confirmation Firebase/Auth untouched
+9. confirmation background remover/export untouched
+10. typecheck result
+11. build result
+12. manual service worker validation result
+13. remaining TWA blockers
+14. git commit hash
