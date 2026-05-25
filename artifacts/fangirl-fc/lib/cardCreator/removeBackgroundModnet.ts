@@ -7,21 +7,25 @@
  * Exported contract:
  *   removeBackgroundModnet(inputBlob: Blob): Promise<Blob>
  *
- * Used as an optional alternative engine in CreatorScreen.tsx.
- * Default production engine remains @imgly/background-removal.
- * This module is only loaded when the localStorage flag is set:
- *   localStorage.setItem("fangirl_bg_engine", "modnet")
+ * Used as the default production engine in CreatorScreen.tsx.
+ * Emergency @imgly fallback available via ?bg_engine=imgly URL param.
  *
  * First MODNet load may take 30–60 seconds depending on network/device
  * because the model is downloaded by Transformers.js.
  * Treat only explicit errors as failures — a long first load is NOT a failure.
+ *
+ * Canvas compatibility note:
+ * RawImage.toBlob() inside @huggingface/transformers uses OffscreenCanvas,
+ * which is NOT available on iOS Safari < 16.4. We bypass it entirely and use
+ * the raw pixel data (.data/.width/.height/.channels) with HTMLCanvasElement
+ * + canvas.toBlob() — which has universal browser support.
  */
 
 // ── Task fallback order ────────────────────────────────────────────────────────
 //
 // "background-removal" is the canonical Transformers.js task for MODNet, but
-// some builds or versions surface it under "image-segmentation" instead.
-// We try both in order so the helper works across Transformers.js versions.
+// some builds surface it under "image-segmentation" instead.
+// We try both in order so the helper works across versions.
 
 const MODNET_TASKS = ["background-removal", "image-segmentation"] as const;
 type ModnetTask = (typeof MODNET_TASKS)[number];
@@ -29,9 +33,7 @@ type ModnetTask = (typeof MODNET_TASKS)[number];
 // ── Lazy singleton ─────────────────────────────────────────────────────────────
 //
 // The pipeline is expensive to initialise (model download + ONNX setup).
-// We create it once and reuse the same instances on every subsequent call.
-// Typed as `unknown` because @huggingface/transformers types are resolved at
-// runtime; all shape validation is performed explicitly below.
+// We create it once and reuse the same instance on every subsequent call.
 
 interface PipelineSingleton {
   pipe: unknown;
@@ -43,7 +45,6 @@ let singletonPromise: Promise<PipelineSingleton> | null = null;
 async function getPipeline(): Promise<PipelineSingleton> {
   if (!singletonPromise) {
     singletonPromise = (async () => {
-      // Dynamic import keeps transformers out of the initial JS bundle.
       const { pipeline } = await import("@huggingface/transformers");
 
       const errors: string[] = [];
@@ -62,7 +63,6 @@ async function getPipeline(): Promise<PipelineSingleton> {
         }
       }
 
-      // Both tasks failed — surface both error messages.
       throw new Error(
         `MODNet: failed to initialise pipeline with any supported task.\n` +
           errors.map((e) => `  • ${e}`).join("\n"),
@@ -72,67 +72,134 @@ async function getPipeline(): Promise<PipelineSingleton> {
   return singletonPromise;
 }
 
-// ── Result → Blob extraction ───────────────────────────────────────────────────
+// ── RawImage-shaped result type ────────────────────────────────────────────────
 //
-// Transformers.js output shapes vary by task and version.
-// We support the three shapes observed in practice:
-//
-//   Case A — result is Array and result[0].output has toBlob()
-//             { pipeline result: [{ output: RawImage }] }
-//
-//   Case B — result is Array and result[0] itself has toBlob()
-//             { pipeline result: [RawImage] }
-//
-//   Case C — result is a non-array object that directly has toBlob()
-//             { pipeline result: RawImage }
+// @huggingface/transformers RawImage has: data (Uint8ClampedArray|Uint8Array),
+// width (number), height (number), channels (1|2|3|4).
+// The background-removal pipeline with Xenova/modnet outputs RGBA (channels=4).
 
-type MaybeBlobSource = { toBlob?: () => Promise<unknown> };
+interface RawImageLike {
+  data: Uint8ClampedArray | Uint8Array;
+  width: number;
+  height: number;
+  channels: number;
+}
+
+function isRawImageLike(v: unknown): v is RawImageLike {
+  if (!v || typeof v !== "object") return false;
+  const obj = v as Record<string, unknown>;
+  return (
+    (obj.data instanceof Uint8ClampedArray || obj.data instanceof Uint8Array) &&
+    typeof obj.width === "number" &&
+    typeof obj.height === "number" &&
+    typeof obj.channels === "number"
+  );
+}
+
+// ── Pixel data → Blob via HTMLCanvasElement ────────────────────────────────────
+//
+// We intentionally avoid RawImage.toBlob() because it calls OffscreenCanvas
+// internally, which is not available on iOS Safari < 16.4 and some WebViews.
+// HTMLCanvasElement.toBlob() has universal browser support.
+
+async function rawImageToBlob(img: RawImageLike): Promise<Blob> {
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("MODNet: could not obtain a 2D canvas context");
+  }
+
+  // Build RGBA data — ImageData constructor requires exactly 4 channels.
+  let rgba: Uint8ClampedArray;
+  if (img.channels === 4) {
+    rgba =
+      img.data instanceof Uint8ClampedArray
+        ? img.data
+        : new Uint8ClampedArray(
+            img.data.buffer,
+            img.data.byteOffset,
+            img.data.byteLength,
+          );
+  } else {
+    // Expand to RGBA.  Background-removal normally outputs 4 channels, but we
+    // handle other channel counts defensively.
+    const px = img.width * img.height;
+    rgba = new Uint8ClampedArray(px * 4);
+    for (let i = 0; i < px; i++) {
+      const s = i * img.channels;
+      const d = i * 4;
+      rgba[d] = img.data[s];
+      rgba[d + 1] = img.channels > 1 ? img.data[s + 1] : img.data[s];
+      rgba[d + 2] = img.channels > 2 ? img.data[s + 2] : img.data[s];
+      rgba[d + 3] = img.channels > 3 ? img.data[s + 3] : 255;
+    }
+  }
+
+  // new Uint8ClampedArray(rgba) forces a copy with a plain ArrayBuffer,
+  // satisfying TypeScript's ImageData constructor overload constraint.
+  ctx.putImageData(new ImageData(new Uint8ClampedArray(rgba), img.width, img.height), 0, 0);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("MODNet: canvas.toBlob() returned null"));
+      }
+    }, "image/png");
+  });
+}
+
+// ── Result shape normalisation ─────────────────────────────────────────────────
+//
+// The background-removal pipeline with Xenova/modnet and a single (non-array)
+// input returns a single RawImage directly:
+//   pipe(blob) → RawImage   (result[0] from inner map, not wrapped in array)
+//
+// Some versions / tasks may return an array or a nested shape.  We handle all
+// observed shapes:
+//
+//   Shape 1 — single RawImage (primary, confirmed for Xenova/modnet)
+//   Shape 2 — Array of RawImages  [RawImage, ...]
+//   Shape 3 — Array of {output: RawImage}  [{output: RawImage}, ...]
 
 async function extractBlob(raw: unknown): Promise<Blob> {
-  // Case A: Array where result[0].output is the image
-  if (Array.isArray(raw) && raw.length > 0) {
-    const first = raw[0] as Record<string, unknown>;
+  // Shape 1 — single RawImage
+  if (isRawImageLike(raw)) {
+    return rawImageToBlob(raw);
+  }
 
-    // Case A — result[0].output.toBlob()
-    if (first && typeof first === "object" && "output" in first) {
-      const output = first.output as MaybeBlobSource;
-      if (typeof output?.toBlob === "function") {
-        const blob = await output.toBlob();
-        if (blob instanceof Blob) return blob;
-        throw new Error("MODNet output did not produce a Blob (Case A)");
+  // Shape 2 / Shape 3 — array
+  if (Array.isArray(raw) && raw.length > 0) {
+    const first = raw[0] as unknown;
+
+    // Shape 2 — result[0] is a RawImage
+    if (isRawImageLike(first)) {
+      return rawImageToBlob(first);
+    }
+
+    // Shape 3 — result[0].output is a RawImage
+    if (first && typeof first === "object") {
+      const output = (first as Record<string, unknown>).output;
+      if (isRawImageLike(output)) {
+        return rawImageToBlob(output as RawImageLike);
       }
     }
 
-    // Case B — result[0].toBlob()
-    const asSource = raw[0] as MaybeBlobSource;
-    if (typeof asSource?.toBlob === "function") {
-      const blob = await asSource.toBlob();
-      if (blob instanceof Blob) return blob;
-      throw new Error("MODNet output did not produce a Blob (Case B)");
-    }
-
     throw new Error(
-      "MODNet: unexpected array result shape. " +
-        "result[0] keys: " +
+      "MODNet: unexpected array result shape. result[0] keys: " +
         Object.keys(raw[0] as object).join(", "),
     );
   }
 
-  // Case C — result directly has toBlob()
-  const asSource = raw as MaybeBlobSource;
-  if (raw && typeof raw === "object" && typeof asSource.toBlob === "function") {
-    const blob = await asSource.toBlob();
-    if (blob instanceof Blob) return blob;
-    throw new Error("MODNet output did not produce a Blob (Case C)");
-  }
-
   throw new Error(
-    "MODNet: pipeline returned an unrecognised output shape. " +
+    "MODNet: pipeline returned an unrecognised output. " +
       "Type: " +
       typeof raw +
-      (Array.isArray(raw)
-        ? `, length: ${(raw as unknown[]).length}`
-        : ""),
+      (Array.isArray(raw) ? `, length: ${(raw as unknown[]).length}` : ""),
   );
 }
 
