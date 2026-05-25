@@ -1,0 +1,492 @@
+TASK: Fangirl FC Production Readiness Phase 2 — Legal Pages, PWA Icons, Manifest, License Verification
+
+CONTEXT
+We are now in production preparation.
+
+Current stable locked state:
+- full app scope validated
+- all templates validated
+- premium card renderer validated
+- gold renderer locked
+- non-gold renderer validated
+- AI background remover works
+- cutout works
+- export/download works
+- hotspots work
+- live domain works
+- /creator is now discoverable from landing and TopNav
+- /stickers cleaned
+- ranking empty states improved
+- AI warning added
+- matchday demo note added
+- legal disclaimer strengthened
+
+This task prepares legal pages and PWA manifest assets for Play Store/TWA readiness.
+
+This is production-sensitive.
+Do not make speculative changes.
+Do not touch stable product logic.
+
+==================================================
+ABSOLUTE DO NOT TOUCH
+==================================================
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template rendering
+- do not touch card creator design
+- do not touch AI background remover logic
+- do not touch cutout logic
+- do not touch export logic
+- do not touch EditHotspots.tsx
+- do not touch CreatorScreen.tsx
+- do not touch Firebase logic
+- do not change Firestore/Auth behavior
+- do not change localStorage schema
+- do not install Android/TWA/Bubblewrap tools yet
+- do not create AAB/APK
+- do not configure assetlinks.json yet
+- do not add service worker yet
+- do not refactor app architecture
+- do not change existing routes except adding legal/support pages and footer links
+- do not change existing visual design except simple legal page styling
+- do not use remote image generation
+- do not use AI image generation
+- do not fake icon files
+- do not guess license information
+
+==================================================
+FILES ALLOWED
+==================================================
+
+Allowed files only:
+
+1. app/privacy/page.tsx
+2. app/terms/page.tsx
+3. app/support/page.tsx
+4. public/manifest.json or current manifest file
+5. public/icons/*
+6. existing footer/layout file only if needed to add Privacy / Terms / Support links
+
+Read-only inspection allowed:
+- node_modules/@imgly/background-removal/LICENSE*
+- package.json
+- current manifest/icon files
+- existing layout/footer/nav files
+
+If any other file appears necessary:
+- stop
+- report why
+- do not edit it without approval
+
+==================================================
+PHASE 0 — READ-ONLY AUDIT BEFORE EDITS
+==================================================
+
+Before editing, inspect and report:
+
+1. Current manifest file path.
+2. Current manifest content summary:
+   - name
+   - short_name
+   - start_url
+   - display
+   - theme_color
+   - background_color
+   - current icons
+3. Current icon source:
+   - icon.svg path
+   - dimensions if available
+   - whether it is suitable for PNG conversion
+4. Current public icons folder:
+   - exists or missing
+   - files currently inside
+5. Whether /privacy, /terms, /support already exist.
+6. Existing footer/legal links:
+   - where footer is defined
+   - current disclaimer text
+7. Exact installed @imgly/background-removal version from package.json.
+8. Exact license file path inside node_modules:
+   - LICENSE
+   - LICENSE.md
+   - package.json license field
+9. Exact license name found.
+10. If license text is unclear, report “license unclear” and do not invent.
+
+Only after this audit, implement the minimal changes.
+
+==================================================
+PHASE 1 — CREATE /privacy PAGE
+==================================================
+
+Create /privacy.
+
+Tone:
+- professional
+- clear
+- simple
+- no exaggerated legal claims
+- mobile responsive
+- same visual style as the existing app
+
+Must include:
+
+Title:
+Privacy Policy
+
+Effective date:
+Use current date in ISO format or plain format.
+
+Sections:
+
+1. What Fangirl FC is
+Explain:
+“Fangirl FC is a fan-made football identity, quiz, card creator, and light game app.”
+
+2. Images and card creation
+State accurately:
+- users may upload images to create fan cards
+- images are processed in the browser for the card creator
+- background removal runs client-side in the browser
+- Fangirl FC does not intentionally upload card creation images to its own servers
+- exported cards are generated in the user’s browser
+- users should not upload images they do not have permission to use
+
+Do NOT say:
+“we never process data”
+or
+“we collect no data”
+because Firebase/localStorage/Auth may exist.
+
+3. Local storage
+Explain localStorage may store:
+- quiz answers
+- fan identity
+- stars/progression
+- challenge completion
+- saved card data
+- card creator state
+- uploaded photo data may remain locally in the browser if saved by the app
+
+4. Firebase / optional account features
+State accurately:
+- sign-in is optional where available
+- Firebase Auth may process email, display name, photoURL, UID depending on sign-in method
+- Firestore may store public/shared card metadata, display name, team, fan identity, ranking/leaderboard data
+- no Firebase Storage image upload was found in the audit
+
+5. Analytics
+If no real analytics SDK exists, state:
+“Fangirl FC does not currently use a production analytics SDK. Some technical logs may appear during development.”
+
+Do not claim analytics if not implemented.
+
+6. Sharing
+Explain:
+- shared links may display selected card/profile information publicly to anyone with the link
+- users should avoid sharing personal information they do not want public
+
+7. Children / target audience
+Use cautious wording:
+- Fangirl FC is intended for general football fans and is not directed at children under 13
+- users under the required age in their country should use the app with permission from a parent/guardian
+
+8. No sale of personal data
+State:
+- Fangirl FC does not sell personal data.
+
+9. Third-party services
+Mention:
+- Firebase / Google services if configured
+- @imgly/background-removal for browser-based background removal
+- include license attribution based on exact installed license found in Phase 0
+
+10. Unofficial disclaimer
+Include:
+“Fangirl FC is a fan-made app and is not affiliated with FIFA, EA, EA SPORTS FC, UEFA, any football federation, club, league, or sponsor.”
+
+11. Contact
+support@fangirlfc.live
+
+==================================================
+PHASE 2 — CREATE /terms PAGE
+==================================================
+
+Create /terms.
+
+Tone:
+- clear
+- professional
+- production-ready
+- not overly long
+
+Must include:
+
+Title:
+Terms of Service
+
+Effective date.
+
+Sections:
+
+1. Acceptance of terms
+2. Fan-made entertainment purpose
+3. User content responsibility
+   - users are responsible for uploaded images/text
+   - users must have rights/permission to use uploaded images
+   - no copyrighted, illegal, hateful, explicit, harmful, or non-consensual content
+4. Generated cards
+   - for personal/fan entertainment use
+   - not official credentials
+   - not affiliated with official football entities
+5. No gambling / no real-money prizes
+   - app does not offer betting, gambling, or real-money prizes
+6. Account and sharing
+   - if users sign in or share content, they are responsible for what they publish
+7. Service availability
+   - app may change, break, or be unavailable
+8. Intellectual property disclaimer
+   - not affiliated with FIFA, EA, EA SPORTS FC, UEFA, football federations, clubs, leagues, or sponsors
+9. Contact
+   support@fangirlfc.live
+
+==================================================
+PHASE 3 — CREATE /support PAGE
+==================================================
+
+Create /support.
+
+Must include:
+
+Title:
+Support
+
+Contact:
+support@fangirlfc.live
+
+FAQ sections:
+
+1. How do I create a fan card?
+Answer:
+Go to Creator, choose a template, upload a photo, customize your card, then download/export it.
+
+2. How does background removal work?
+Answer:
+It runs in the browser using client-side AI. First use may download model data.
+
+3. Why does background removal take time the first time?
+Answer:
+The browser may need to download AI model data before processing.
+
+4. Does Fangirl FC upload my image?
+Answer:
+Card creation images are processed in the browser and are not intentionally uploaded to Fangirl FC servers for the creator flow.
+
+5. How do I download/export my card?
+Answer:
+Use the export/download button in the creator. If it fails, try Chrome, update the browser, or clear storage.
+
+6. Is Fangirl FC official?
+Answer:
+No. It is fan-made and not affiliated with FIFA, EA, EA SPORTS FC, UEFA, clubs, leagues, federations, or sponsors.
+
+7. How do I delete local saved data?
+Answer:
+Clear browser site data for fangirlfc.live or use browser settings.
+
+Links:
+- /privacy
+- /terms
+- /creator
+
+==================================================
+PHASE 4 — FOOTER / LEGAL LINKS
+==================================================
+
+If footer exists:
+- add links:
+  Privacy
+  Terms
+  Support
+
+Keep the existing strengthened disclaimer.
+
+Do not overload the main nav.
+Do not add legal links into the main product navigation unless no footer exists.
+
+==================================================
+PHASE 5 — @imgly LICENSE VERIFICATION AND ATTRIBUTION
+==================================================
+
+Use only installed local files.
+
+Check:
+- node_modules/@imgly/background-removal/package.json license field
+- node_modules/@imgly/background-removal/LICENSE
+- node_modules/@imgly/background-removal/LICENSE.md
+
+Then:
+- add attribution text to /privacy under Third-party services
+- optionally also add a short note in /terms
+
+Rules:
+- If license is clearly identified, state exact license.
+- If the package says Apache-2.0, write Apache-2.0.
+- If the package says AGPL or another license, write that exact license.
+- If unclear, write:
+  “Background removal uses @imgly/background-removal. License verification is pending before production release.”
+  and report this as a blocker.
+
+Do not guess.
+Do not use internet.
+Do not rely on memory.
+
+==================================================
+PHASE 6 — GENERATE PWA PNG ICONS
+==================================================
+
+Use existing local icon.svg or current brand asset.
+
+Required outputs:
+- public/icons/icon-192.png
+- public/icons/icon-512.png
+- public/icons/icon-maskable-192.png
+- public/icons/icon-maskable-512.png
+
+Requirements:
+- real PNG files
+- exact dimensions
+- not empty
+- maskable versions must include safe-zone padding
+- no remote services
+- no AI generation
+- no fake placeholder if conversion fails
+
+Safe-zone requirement for maskable icons:
+- important logo/mark should stay within central 80% safe area
+- background should extend to the full square
+
+After generating:
+- verify each PNG dimensions with a local tool/script
+- report dimensions and file sizes
+
+If conversion tooling is not available:
+- stop
+- report exact blocker
+- do not create fake files
+
+==================================================
+PHASE 7 — UPDATE MANIFEST
+==================================================
+
+Update manifest icons only.
+
+Add PNG entries:
+
+1. /icons/icon-192.png
+   sizes: "192x192"
+   type: "image/png"
+   purpose: "any"
+
+2. /icons/icon-512.png
+   sizes: "512x512"
+   type: "image/png"
+   purpose: "any"
+
+3. /icons/icon-maskable-192.png
+   sizes: "192x192"
+   type: "image/png"
+   purpose: "maskable"
+
+4. /icons/icon-maskable-512.png
+   sizes: "512x512"
+   type: "image/png"
+   purpose: "maskable"
+
+Keep existing SVG icon if present.
+
+Do NOT change:
+- name
+- short_name
+- description
+- start_url
+- scope
+- display
+- orientation
+- theme_color
+- background_color
+unless a clear bug is found and reported.
+
+==================================================
+PHASE 8 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Also validate:
+
+1. /privacy route builds.
+2. /terms route builds.
+3. /support route builds.
+4. footer links exist and point correctly.
+5. manifest is valid JSON.
+6. manifest contains all required PNG icons.
+7. all PNG icons exist.
+8. dimensions:
+   - icon-192.png = 192x192
+   - icon-512.png = 512x512
+   - icon-maskable-192.png = 192x192
+   - icon-maskable-512.png = 512x512
+9. /creator still builds.
+10. CardCanvas.tsx was not modified.
+11. background remover logic was not modified.
+12. export logic was not modified.
+
+Do not push if:
+- typecheck fails
+- build fails
+- manifest JSON invalid
+- icons missing or wrong dimensions
+- CardCanvas was modified
+
+==================================================
+PHASE 9 — COMMIT AND PUSH
+==================================================
+
+Only if validation passes:
+
+1. Commit changes.
+2. Push to GitHub.
+3. Report commit hash.
+
+If validation fails:
+- do not push
+- report exact blocker
+- leave changes unpushed or revert as appropriate
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. legal pages created
+3. footer/legal links added
+4. exact @imgly version found
+5. exact @imgly license found from installed files
+6. attribution text added
+7. icons generated with dimensions and file sizes
+8. manifest icon entries added
+9. confirmation manifest JSON valid
+10. confirmation CardCanvas untouched
+11. confirmation creator/rendering untouched
+12. confirmation background remover logic untouched
+13. confirmation export untouched
+14. typecheck result
+15. build result
+16. remaining blockers before TWA/Bubblewrap
+17. git commit hash

@@ -40,8 +40,15 @@ export default function MainLayout({
       </header>
       <TopNav />
       <main className="mt-5 flex-1">{children}</main>
-      <footer className="mt-10 text-center text-[11px] leading-relaxed text-white/40">
-        Fangirl FC is a fan-made app and is not affiliated with FIFA, EA, EA SPORTS FC, UEFA, any football federation, club, league, or sponsor.
+      <footer className="mt-10 flex flex-col items-center gap-3 text-center text-[11px] leading-relaxed text-white/40">
+        <div className="flex items-center gap-4">
+          <Link href="/privacy" className="hover:text-white/70 transition">Privacy</Link>
+          <Link href="/terms" className="hover:text-white/70 transition">Terms</Link>
+          <Link href="/support" className="hover:text-white/70 transition">Support</Link>
+        </div>
+        <p>
+          Fangirl FC is a fan-made app and is not affiliated with FIFA, EA, EA SPORTS FC, UEFA, any football federation, club, league, or sponsor.
+        </p>
       </footer>
     </div>
   );
