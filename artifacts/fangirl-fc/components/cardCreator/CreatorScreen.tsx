@@ -280,25 +280,40 @@ export default function CreatorScreen() {
     const originalSrc = cardState.photo.src;
     if (!originalSrc || isRemovingBg) return;
 
-    // ── Engine selector (URL param or localStorage flag — for internal testing only) ──
-    // Default: "imgly" (@imgly/background-removal, AGPL-3.0, current production engine).
+    // ── Engine selector ────────────────────────────────────────────────────────
+    // Default engine: MODNet (@huggingface/transformers, Apache-2.0).
     //
-    // Test MODNet via URL:       /creator?bg_engine=modnet
-    // Test MODNet via console:   localStorage.setItem("fangirl_bg_engine", "modnet")
+    // Emergency imgly fallback (AGPL-3.0, kept installed intentionally):
+    //   URL:       /creator?bg_engine=imgly
+    //   console:   localStorage.setItem("fangirl_bg_engine", "imgly")
     //
-    // URL param takes priority; localStorage is checked second; default is "imgly".
+    // Test override (should normally not be needed — MODNet is default):
+    //   URL:       /creator?bg_engine=modnet
+    //   console:   localStorage.setItem("fangirl_bg_engine", "modnet")
+    //
+    // Priority: URL param > localStorage > default (modnet).
     // Neither path persists or mutates the other.
-    const BG_REMOVER_ENGINE =
-      typeof window !== "undefined" &&
-      (
-        new URLSearchParams(window.location.search).get("bg_engine") === "modnet" ||
-        window.localStorage.getItem("fangirl_bg_engine") === "modnet"
-      )
-        ? "modnet"
-        : "imgly";
+    const bgEngineParam =
+      typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("bg_engine")
+        : null;
 
-    if (BG_REMOVER_ENGINE === "modnet" && process.env.NODE_ENV !== "production") {
-      console.info("[Background Removal] MODNet test engine active");
+    const bgEngineStorage =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem("fangirl_bg_engine")
+        : null;
+
+    const BG_REMOVER_ENGINE: "modnet" | "imgly" =
+      bgEngineParam === "imgly"
+        ? "imgly"
+        : bgEngineParam === "modnet"
+        ? "modnet"
+        : bgEngineStorage === "imgly"
+        ? "imgly"
+        : "modnet"; // production default
+
+    if (BG_REMOVER_ENGINE === "imgly" && process.env.NODE_ENV !== "production") {
+      console.info("[Background Removal] Emergency imgly fallback active");
     }
 
     setBgRemoveError(null);

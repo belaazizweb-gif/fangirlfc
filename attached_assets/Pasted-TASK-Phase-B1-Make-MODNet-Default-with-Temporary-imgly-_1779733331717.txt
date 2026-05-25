@@ -1,0 +1,236 @@
+TASK: Phase B1 — Make MODNet Default with Temporary @imgly Emergency Fallback
+
+CONTEXT
+MODNet was added behind a test flag and tested successfully by the user on live:
+
+/creator?bg_engine=modnet
+
+Confirmed:
+- MODNet background removal works
+- Export works
+- Creator remains stable
+
+We now want to make MODNet the DEFAULT engine.
+
+Production safety rule:
+Do NOT remove @imgly yet in this phase.
+Keep @imgly as an emergency fallback only.
+
+This is Phase B1 only.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch card design
+- do not touch export logic
+- do not touch cutout rendering
+- do not touch manual transparent PNG upload
+- do not touch EditHotspots.tsx
+- do not touch PhotoEditorSheet.tsx except warning text if absolutely needed
+- do not change card state shape
+- do not change localStorage schema
+- do not change templates
+- do not install unrelated packages
+- do not remove @imgly/background-removal yet
+- do not update Privacy/Terms yet
+- do not remove AGPL attribution yet
+- do not push if default MODNet runtime fails
+
+FILES ALLOWED:
+1. components/cardCreator/CreatorScreen.tsx
+2. components/cardCreator/PhotoEditorSheet.tsx only if warning text must be changed
+
+Do not edit package.json in this phase.
+Do not edit pnpm-lock.yaml in this phase.
+Do not edit legal pages in this phase.
+Do not edit removeBackgroundModnet.ts unless build/runtime proves a small fix is required.
+
+==================================================
+PHASE 0 — PRE-FLIGHT
+==================================================
+
+Before editing, confirm:
+
+1. MODNet helper exists:
+   lib/cardCreator/removeBackgroundModnet.ts
+
+2. Current CreatorScreen supports:
+   - URL param bg_engine=modnet
+   - localStorage fangirl_bg_engine=modnet
+   - default imgly
+
+3. Current @imgly dependency still exists.
+
+4. Manual PNG cutout path is separate and will not be touched.
+
+5. CardCanvas.tsx will not be touched.
+
+Then proceed.
+
+==================================================
+PHASE 1 — CHANGE ENGINE PRIORITY SAFELY
+==================================================
+
+In CreatorScreen.tsx, update background removal engine selection.
+
+New desired behavior:
+
+Default:
+- MODNet
+
+Emergency fallback:
+- if URL param bg_engine=imgly → use imgly
+- if localStorage fangirl_bg_engine=imgly → use imgly
+
+Optional test override:
+- if URL param bg_engine=modnet → use modnet
+- if localStorage fangirl_bg_engine=modnet → use modnet
+
+Priority order:
+
+1. URL param bg_engine=imgly → imgly
+2. URL param bg_engine=modnet → modnet
+3. localStorage fangirl_bg_engine=imgly → imgly
+4. localStorage fangirl_bg_engine=modnet → modnet
+5. default → modnet
+
+Important:
+- Do not remove @imgly import path yet.
+- Do not remove MODNet helper.
+- Do not change state update logic.
+
+Suggested implementation:
+
+const bgEngineParam =
+  typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("bg_engine")
+    : null;
+
+const bgEngineStorage =
+  typeof window !== "undefined"
+    ? window.localStorage.getItem("fangirl_bg_engine")
+    : null;
+
+const BG_REMOVER_ENGINE =
+  bgEngineParam === "imgly" || bgEngineStorage === "imgly"
+    ? "imgly"
+    : "modnet";
+
+This means:
+- default is modnet
+- emergency fallback is still possible with ?bg_engine=imgly
+
+==================================================
+PHASE 2 — UPDATE IMPORT BRANCH ONLY
+==================================================
+
+In handleRemoveBackground:
+
+If BG_REMOVER_ENGINE === "imgly":
+- keep existing @imgly dynamic import and call
+
+Else:
+- use MODNet helper:
+  import("@/lib/cardCreator/removeBackgroundModnet")
+  removeBackgroundModnet(inputBlob)
+
+Do not change:
+- resizeImageForBackgroundRemoval
+- blobToDataUrl
+- loadImageDimensions
+- getCutoutBox
+- state update
+- error handling
+- loading state
+- original src preservation
+- manual PNG cutout path
+- cutoutSource value
+
+==================================================
+PHASE 3 — WARNING TEXT
+==================================================
+
+If current warning says 10–30 seconds, update it to:
+
+“First use may take 30–60 seconds and download AI model data. Your image stays in your browser.”
+
+Only change warning copy if needed.
+Do not change UI layout.
+Do not change button behavior.
+
+==================================================
+PHASE 4 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation on local/dev or live preview:
+
+A. Default MODNet path:
+1. Open /creator with no bg_engine parameter.
+2. Upload JPG.
+3. Click Remove Background.
+4. Confirm MODNet runs.
+5. Confirm cutout appears.
+6. Confirm export works.
+
+B. Emergency fallback:
+1. Open /creator?bg_engine=imgly
+2. Upload JPG.
+3. Click Remove Background.
+4. Confirm old @imgly path still works.
+
+C. Existing flows:
+1. Manual transparent PNG upload still works.
+2. Opaque PNG upload still works.
+3. Templates render.
+4. Export works.
+5. CardCanvas untouched.
+
+==================================================
+PHASE 5 — PUSH RULE
+==================================================
+
+Push only if:
+- typecheck passes
+- build passes
+- default MODNet works
+- emergency imgly fallback works
+- export works
+- CardCanvas untouched
+
+If default MODNet fails:
+- revert default back to imgly
+- do not push
+- report blocker
+
+If imgly fallback fails but MODNet works:
+- do not push
+- report blocker
+- keep app in previous state
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. confirmation MODNet is now default
+3. confirmation @imgly remains installed intentionally
+4. confirmation ?bg_engine=imgly emergency fallback works
+5. confirmation ?bg_engine=modnet still works
+6. warning text update, if changed
+7. confirmation CardCanvas untouched
+8. confirmation manual PNG cutout untouched
+9. default MODNet runtime test result
+10. imgly fallback runtime test result
+11. export test result
+12. typecheck result
+13. build result
+14. whether safe to proceed to Phase B2
+15. git commit hash
