@@ -100,8 +100,11 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-2 text-[16px] font-bold text-white">9. Third-party services</h2>
             <p>
-              Fangirl FC uses @imgly/background-removal (licensed under AGPL-3.0) for
-              browser-based background removal. Use of Firebase services is subject to
+              Background removal uses browser-based open-source machine learning components
+              (@huggingface/transformers, Apache-2.0, license verified locally). Fangirl FC is
+              not responsible for third-party package availability, model download failures, or
+              browser compatibility. MODNet model license verification remains a production
+              release checklist item. Use of Firebase services is subject to
               Google&apos;s terms of service.
             </p>
           </section>

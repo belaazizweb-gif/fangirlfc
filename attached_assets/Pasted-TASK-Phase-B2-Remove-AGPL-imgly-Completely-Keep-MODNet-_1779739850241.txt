@@ -1,0 +1,273 @@
+TASK: Phase B2 — Remove AGPL @imgly Completely, Keep MODNet as Only Background Removal Engine
+
+CONTEXT
+MODNet live test passed after the RawImage → HTMLCanvasElement fix.
+
+Confirmed by user:
+- live /creator background removal works with MODNet default
+- export works
+- card creator remains stable
+
+Current state:
+- MODNet is default
+- @imgly/background-removal still exists as emergency fallback
+- Privacy/Terms still mention @imgly / AGPL
+- We now need to remove AGPL dependency before production release
+
+Goal:
+- remove @imgly/background-removal completely
+- remove all @imgly runtime references
+- remove AGPL/GNU Affero references from app legal pages
+- keep MODNet as the only background removal engine
+- preserve all existing creator behavior
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch card design
+- do not touch export logic
+- do not touch cutout rendering
+- do not touch manual transparent PNG upload flow
+- do not touch EditHotspots.tsx
+- do not touch template assets
+- do not change card state shape
+- do not change localStorage schema
+- do not install unrelated packages
+- do not use @imgly anymore
+- do not use RMBG
+- do not use external APIs
+- do not change Firebase/Auth behavior
+- do not refactor the whole creator
+
+FILES ALLOWED:
+1. package.json
+2. pnpm-lock.yaml
+3. components/cardCreator/CreatorScreen.tsx
+4. lib/cardCreator/creatorState.ts — comment only if needed
+5. app/privacy/page.tsx
+6. app/terms/page.tsx
+
+Do not edit:
+- CardCanvas.tsx
+- PhotoEditorSheet.tsx unless warning text is wrong
+- EditHotspots.tsx
+- template files
+
+==================================================
+PHASE 0 — PRE-FLIGHT CONFIRMATION
+==================================================
+
+Before editing, confirm:
+
+1. Current default engine is MODNet.
+2. MODNet helper exists:
+   lib/cardCreator/removeBackgroundModnet.ts
+
+3. removeBackgroundModnet.ts includes the RawImage → HTMLCanvasElement fix.
+4. @imgly/background-removal is still in package.json.
+5. CreatorScreen currently still has an @imgly fallback branch.
+6. Privacy/Terms still mention:
+   - @imgly
+   - AGPL
+   - GNU Affero
+7. CardCanvas.tsx will not be touched.
+
+Then proceed.
+
+==================================================
+PHASE 1 — SIMPLIFY CREATORSCREEN TO MODNET ONLY
+==================================================
+
+In components/cardCreator/CreatorScreen.tsx:
+
+Remove:
+- BG_REMOVER_ENGINE logic
+- URL param bg_engine handling
+- localStorage fangirl_bg_engine handling
+- @imgly branch
+- @imgly dynamic import
+- any emergency fallback comments referring to @imgly
+
+Use MODNet directly:
+
+const { removeBackgroundModnet } = await import("@/lib/cardCreator/removeBackgroundModnet");
+const outputBlob = await removeBackgroundModnet(inputBlob);
+
+Do not change:
+- resizeImageForBackgroundRemoval
+- blobToDataUrl
+- loadImageDimensions
+- getCutoutBox
+- state update
+- error handling
+- loading state
+- original src preservation
+- manual PNG cutout path
+- cutoutSource value
+
+State update must remain:
+- src = originalSrc
+- cutoutSrc = cutoutDataUrl
+- isCutout = true
+- cutoutSource = "ai"
+- naturalWidth/naturalHeight updated
+- x/y/scale/rotation set as before
+
+Important:
+If some users still have localStorage.fangirl_bg_engine="imgly", it must no longer matter. The app should ignore this key entirely.
+
+==================================================
+PHASE 2 — REMOVE @imgly PACKAGE
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc remove @imgly/background-removal
+
+Verify:
+1. @imgly/background-removal removed from package.json.
+2. pnpm-lock.yaml updated.
+3. No runtime import remains.
+
+Run searches:
+
+grep/search for:
+- "@imgly"
+- "background-removal"
+- "AGPL"
+- "GNU Affero"
+
+Rules:
+- No @imgly reference should remain.
+- No AGPL/GNU Affero reference should remain.
+- Generic phrase "background removal" is allowed.
+- @huggingface/transformers must remain.
+
+==================================================
+PHASE 3 — UPDATE COMMENTS
+==================================================
+
+If lib/cardCreator/creatorState.ts still says:
+"ai = background removed by @imgly/background-removal"
+
+Replace with:
+"ai = background removed by the browser-based MODNet background removal engine"
+
+Do not change the state type.
+Do not rename cutoutSource: "ai".
+
+==================================================
+PHASE 4 — UPDATE PRIVACY PAGE
+==================================================
+
+In /privacy:
+
+Remove:
+- @imgly/background-removal
+- AGPL-3.0
+- GNU Affero
+- any wording implying AGPL obligations
+
+Replace with accurate wording:
+
+“Background removal uses a browser-based MODNet pipeline via @huggingface/transformers. The processing runs in the user’s browser. Images are not intentionally uploaded to Fangirl FC servers for card creation.”
+
+Third-party services section:
+- Mention @huggingface/transformers
+- License verified locally as Apache-2.0
+- Mention MODNet model only if already described
+- Do not overclaim “fully license-safe”
+- If Xenova/modnet model license was not locally verified, include:
+  “MODNet model license verification remains part of the production release checklist.”
+
+==================================================
+PHASE 5 — UPDATE TERMS PAGE
+==================================================
+
+In /terms:
+
+Remove:
+- @imgly/background-removal
+- AGPL-3.0
+- GNU Affero
+
+Replace with:
+
+“Background removal uses browser-based open-source machine learning components. Fangirl FC is not responsible for third-party package availability, model download failures, or browser compatibility.”
+
+If adding license note:
+- @huggingface/transformers verified locally as Apache-2.0
+- MODNet model license verification remains a production release checklist item if not locally verified
+
+Do not make legal claims beyond verified information.
+
+==================================================
+PHASE 6 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation on /creator:
+
+1. Open normal /creator with no bg_engine parameter.
+2. Upload JPG.
+3. Click Remove Background.
+4. Confirm MODNet runs.
+5. Confirm cutout appears.
+6. Confirm export works.
+7. Confirm original src remains preserved.
+8. Confirm manual transparent PNG upload still works.
+9. Confirm opaque PNG upload still works.
+10. Confirm templates still render.
+11. Confirm CardCanvas.tsx untouched.
+
+Search validation:
+1. No @imgly dependency in package.json.
+2. No @imgly runtime reference.
+3. No AGPL reference.
+4. No GNU Affero reference.
+5. @huggingface/transformers remains installed.
+6. removeBackgroundModnet.ts remains.
+
+==================================================
+PHASE 7 — PUSH RULE
+==================================================
+
+Push only if:
+- typecheck passes
+- build passes
+- MODNet default runtime works
+- export works
+- @imgly is removed
+- AGPL/GNU Affero references removed
+- CardCanvas untouched
+
+If default MODNet fails:
+- do not push
+- report blocker
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. confirmation MODNet is the only background removal engine
+3. confirmation @imgly removed from package.json
+4. confirmation no @imgly runtime references remain
+5. confirmation AGPL/GNU Affero references removed
+6. privacy/terms attribution update
+7. confirmation @huggingface/transformers remains installed
+8. confirmation CardCanvas untouched
+9. confirmation manual PNG cutout untouched
+10. confirmation export works
+11. default background removal runtime test result
+12. typecheck result
+13. build result
+14. remaining licensing blockers, if any
+15. git commit hash

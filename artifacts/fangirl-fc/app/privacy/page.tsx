@@ -125,13 +125,13 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong className="text-white/80">
-                  @imgly/background-removal v1.7.0
+                  @huggingface/transformers (Apache-2.0)
                 </strong>{" "}
-                — used for browser-based AI background removal. Licensed under the{" "}
-                <strong className="text-white/80">
-                  GNU Affero General Public License v3 (AGPL-3.0)
-                </strong>
-                .
+                — used for browser-based background removal via a MODNet pipeline. The Apache-2.0
+                license was verified locally from the installed package. Processing runs entirely
+                in the user&apos;s browser; images are not uploaded to Fangirl FC servers for card
+                creation. MODNet model license verification remains part of the production release
+                checklist.
               </li>
             </ul>
           </section>

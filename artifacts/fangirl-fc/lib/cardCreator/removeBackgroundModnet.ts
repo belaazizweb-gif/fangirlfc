@@ -7,8 +7,7 @@
  * Exported contract:
  *   removeBackgroundModnet(inputBlob: Blob): Promise<Blob>
  *
- * Used as the default production engine in CreatorScreen.tsx.
- * Emergency @imgly fallback available via ?bg_engine=imgly URL param.
+ * Used as the sole background removal engine in CreatorScreen.tsx.
  *
  * First MODNet load may take 30–60 seconds depending on network/device
  * because the model is downloaded by Transformers.js.
