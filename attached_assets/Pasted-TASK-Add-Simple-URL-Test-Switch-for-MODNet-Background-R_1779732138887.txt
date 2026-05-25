@@ -1,0 +1,99 @@
+TASK: Add Simple URL Test Switch for MODNet Background Removal — No Default Change
+
+CONTEXT
+MODNet helper exists behind localStorage flag:
+localStorage.setItem("fangirl_bg_engine", "modnet")
+
+But manual console testing is too technical.
+We need an easier way to test MODNet on mobile/live URL.
+
+STRICT RULES
+
+DO NOT:
+- do not remove @imgly
+- do not switch default engine to MODNet
+- do not touch CardCanvas.tsx
+- do not touch template rendering
+- do not touch export
+- do not touch cutout rendering
+- do not touch manual PNG cutout
+- do not touch privacy/terms
+- do not change UI design
+- do not refactor
+
+FILES ALLOWED:
+1. components/cardCreator/CreatorScreen.tsx only
+
+GOAL
+Allow testing MODNet by opening:
+
+/creator?bg_engine=modnet
+
+Default behavior without query param must remain:
+
+imgly
+
+IMPLEMENTATION
+
+In CreatorScreen.tsx, update the BG_REMOVER_ENGINE logic.
+
+Current logic probably reads only:
+
+localStorage.getItem("fangirl_bg_engine") === "modnet"
+
+Update it to support URL query parameter first:
+
+- if URL param bg_engine=modnet → use "modnet"
+- else if localStorage fangirl_bg_engine=modnet → use "modnet"
+- else → use "imgly"
+
+Pseudo logic:
+
+const BG_REMOVER_ENGINE =
+  typeof window !== "undefined" &&
+  (
+    new URLSearchParams(window.location.search).get("bg_engine") === "modnet" ||
+    window.localStorage.getItem("fangirl_bg_engine") === "modnet"
+  )
+    ? "modnet"
+    : "imgly";
+
+Do not persist the URL param automatically.
+Do not change localStorage automatically.
+Do not change default engine.
+
+Add a dev/test-only console.info when MODNet mode is active:
+
+if (BG_REMOVER_ENGINE === "modnet") {
+  console.info("[Background Removal] MODNet test engine active");
+}
+
+No production UI change required.
+
+VALIDATION
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual test:
+1. Open /creator normally
+   - engine should still be imgly
+
+2. Open /creator?bg_engine=modnet
+   - engine should be modnet
+
+3. Upload JPG
+4. Click Remove Background
+5. Wait up to 60 seconds on first load
+6. Confirm cutout appears or report exact error
+
+FINAL REPORT:
+1. files changed
+2. default engine still imgly confirmation
+3. URL param bg_engine=modnet added
+4. localStorage fallback still works
+5. typecheck result
+6. build result
+7. git commit hash

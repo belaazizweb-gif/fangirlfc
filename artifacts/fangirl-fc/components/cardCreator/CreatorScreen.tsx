@@ -280,14 +280,26 @@ export default function CreatorScreen() {
     const originalSrc = cardState.photo.src;
     if (!originalSrc || isRemovingBg) return;
 
-    // ── Engine selector (localStorage flag — for internal testing only) ──────
+    // ── Engine selector (URL param or localStorage flag — for internal testing only) ──
     // Default: "imgly" (@imgly/background-removal, AGPL-3.0, current production engine).
-    // Set localStorage.setItem("fangirl_bg_engine", "modnet") + reload to test MODNet.
+    //
+    // Test MODNet via URL:       /creator?bg_engine=modnet
+    // Test MODNet via console:   localStorage.setItem("fangirl_bg_engine", "modnet")
+    //
+    // URL param takes priority; localStorage is checked second; default is "imgly".
+    // Neither path persists or mutates the other.
     const BG_REMOVER_ENGINE =
       typeof window !== "undefined" &&
-      window.localStorage.getItem("fangirl_bg_engine") === "modnet"
+      (
+        new URLSearchParams(window.location.search).get("bg_engine") === "modnet" ||
+        window.localStorage.getItem("fangirl_bg_engine") === "modnet"
+      )
         ? "modnet"
         : "imgly";
+
+    if (BG_REMOVER_ENGINE === "modnet" && process.env.NODE_ENV !== "production") {
+      console.info("[Background Removal] MODNet test engine active");
+    }
 
     setBgRemoveError(null);
     setIsRemovingBg(true);
