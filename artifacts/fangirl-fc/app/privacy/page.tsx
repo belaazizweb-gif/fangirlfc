@@ -127,11 +127,10 @@ export default function PrivacyPage() {
                 <strong className="text-white/80">
                   @huggingface/transformers (Apache-2.0)
                 </strong>{" "}
-                — used for browser-based background removal via a MODNet pipeline. The Apache-2.0
-                license was verified locally from the installed package. Processing runs entirely
-                in the user&apos;s browser; images are not uploaded to Fangirl FC servers for card
-                creation. MODNet model license verification remains part of the production release
-                checklist.
+                — used for browser-based background removal via a MODNet pipeline. Background
+                removal uses @huggingface/transformers and the Xenova/modnet model. Both are
+                listed as Apache-2.0 licensed. Processing runs entirely in the user&apos;s browser;
+                images are not uploaded to Fangirl FC servers for card creation.
               </li>
             </ul>
           </section>

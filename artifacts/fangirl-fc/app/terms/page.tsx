@@ -100,12 +100,10 @@ export default function TermsPage() {
           <section>
             <h2 className="mb-2 text-[16px] font-bold text-white">9. Third-party services</h2>
             <p>
-              Background removal uses browser-based open-source machine learning components
-              (@huggingface/transformers, Apache-2.0, license verified locally). Fangirl FC is
-              not responsible for third-party package availability, model download failures, or
-              browser compatibility. MODNet model license verification remains a production
-              release checklist item. Use of Firebase services is subject to
-              Google&apos;s terms of service.
+              Background removal uses @huggingface/transformers and the Xenova/modnet model.
+              Both are listed as Apache-2.0 licensed. Fangirl FC is not responsible for
+              third-party package availability, model download failures, or browser
+              compatibility. Use of Firebase services is subject to Google&apos;s terms of service.
             </p>
           </section>
 
