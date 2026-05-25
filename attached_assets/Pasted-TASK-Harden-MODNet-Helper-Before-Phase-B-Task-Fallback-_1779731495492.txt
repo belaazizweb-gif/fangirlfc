@@ -1,0 +1,205 @@
+TASK: Harden MODNet Helper Before Phase B — Task Fallback + Runtime Test Guidance
+
+CONTEXT
+Phase A added MODNet behind a localStorage flag:
+localStorage.setItem("fangirl_bg_engine", "modnet")
+
+Current default engine remains @imgly.
+Do NOT switch default engine yet.
+Do NOT remove @imgly yet.
+Do NOT update Privacy/Terms yet.
+Do NOT touch CardCanvas.
+
+We need to harden the MODNet helper before Phase B.
+
+Two production-safety issues:
+1. Transformers.js task name may differ by runtime/version:
+   - "background-removal" may work
+   - "image-segmentation" may be required for Xenova/modnet
+2. First model load can take 30–60 seconds in Replit or slow networks.
+   A long first load must not be treated as failure unless an explicit error is thrown.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch export logic
+- do not touch cutout rendering
+- do not touch manual transparent PNG upload
+- do not touch EditHotspots.tsx
+- do not touch PhotoEditorSheet.tsx
+- do not change card state shape
+- do not change localStorage schema
+- do not remove @imgly/background-removal
+- do not switch default engine from imgly to modnet
+- do not update privacy/terms yet
+- do not install more packages
+- do not use RMBG
+- do not use external APIs
+
+FILES ALLOWED:
+1. lib/cardCreator/removeBackgroundModnet.ts
+2. components/cardCreator/CreatorScreen.tsx only if needed for non-invasive console/debug message, but avoid if possible
+
+Prefer touching only:
+lib/cardCreator/removeBackgroundModnet.ts
+
+==================================================
+PHASE 0 — READ CURRENT HELPER
+==================================================
+
+Before editing, inspect and report:
+
+1. Current task name used in pipeline().
+2. Current model id.
+3. Current lazy singleton structure.
+4. Current result validation logic.
+5. Whether helper currently reports which task worked.
+6. Confirm default engine in CreatorScreen remains imgly.
+
+Then implement.
+
+==================================================
+PHASE 1 — ADD TASK FALLBACK
+==================================================
+
+In removeBackgroundModnet.ts, update pipeline creation to try tasks in this order:
+
+1. "background-removal"
+2. "image-segmentation"
+
+Rules:
+- Try "background-removal" first.
+- If it throws during pipeline initialization, catch that initialization error.
+- Then try "image-segmentation".
+- If "image-segmentation" also throws, throw a new Error that includes both task names and both error messages.
+- Do not silently ignore errors.
+- Do not fallback to another model.
+- Do not use RMBG.
+- Do not fallback to @imgly inside this helper.
+- Keep @imgly as the default engine outside the helper only.
+
+Implementation shape:
+
+const MODNET_TASKS = ["background-removal", "image-segmentation"] as const;
+
+For each task:
+  try pipeline(task, "Xenova/modnet", { dtype: "fp32" if already used safely })
+  if success:
+    store both:
+      pipeline instance
+      task name that worked
+
+The helper should be able to report internally:
+- active task used
+- model id used
+
+Add a dev-only console.info when a task succeeds:
+if (process.env.NODE_ENV !== "production") {
+  console.info(`[MODNet] Loaded Xenova/modnet with task: ${task}`);
+}
+
+No noisy production logs.
+
+==================================================
+PHASE 2 — RESULT SHAPE HANDLING
+==================================================
+
+Keep strict result validation.
+
+Support both likely output shapes:
+
+Case A:
+result is an array and result[0].output has toBlob()
+
+Case B:
+result is an array and result[0] itself has toBlob()
+
+Case C:
+result has toBlob()
+
+Return:
+await toBlob()
+
+Validation:
+- output must be Blob
+- if output is not Blob, throw:
+  "MODNet output did not produce a Blob"
+
+Do not implement custom alpha compositing yet.
+Do not create canvas compositing unless explicit runtime result proves it is necessary.
+
+==================================================
+PHASE 3 — FIRST LOAD TIME GUIDANCE
+==================================================
+
+Add a code comment in removeBackgroundModnet.ts:
+
+"First MODNet load may take 30–60 seconds depending on network/device because the model is downloaded by Transformers.js. Treat only explicit errors as failures."
+
+Do not add new UI here.
+The existing UI warning already says first use may take 10–30 seconds. We can adjust UI later if MODNet becomes default.
+
+==================================================
+PHASE 4 — RUNTIME TEST PROCEDURE
+==================================================
+
+After code change, run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Then test manually in browser:
+
+localStorage.setItem("fangirl_bg_engine", "modnet");
+location.reload();
+
+Upload a JPG and click Remove Background.
+
+Important:
+- Wait up to 60 seconds on first load.
+- Do not consider timeout/freeze as failure unless browser console shows an explicit error.
+- Report which task worked:
+  "background-removal" or "image-segmentation"
+- Report any exact runtime error if both fail.
+
+To return to stable default:
+localStorage.removeItem("fangirl_bg_engine");
+location.reload();
+
+==================================================
+PHASE 5 — PUSH RULE
+==================================================
+
+Push only if:
+- typecheck passes
+- build passes
+- default engine remains imgly
+- helper fallback code is safe
+- CardCanvas untouched
+
+If runtime MODNet fails:
+- still okay to keep this hardening if default imgly remains working
+- report exact failure
+- do not proceed to Phase B
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. default engine still imgly confirmation
+3. MODNet task fallback added
+4. task order used
+5. result shapes supported
+6. first-load timing note added
+7. runtime test result, if performed
+8. task that worked, if known
+9. exact error if failed
+10. CardCanvas untouched confirmation
+11. typecheck result
+12. build result
+13. whether Phase B is safe or still blocked
+14. git commit hash
