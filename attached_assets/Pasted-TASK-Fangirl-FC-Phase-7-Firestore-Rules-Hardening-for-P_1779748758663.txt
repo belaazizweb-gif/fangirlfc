@@ -1,0 +1,172 @@
+TASK: Fangirl FC Phase 7 — Firestore Rules Hardening for Play Store Testing
+
+CONTEXT
+Fangirl FC is moving toward Play Store closed testing.
+
+Current stable state:
+- full app works
+- Creator works
+- MODNet background remover works
+- Auth redirect works
+- TWA assetlinks deployed
+- Android app added in Firebase
+- AAB/APK generated
+
+Known risk from audit:
+Firestore leaderboard rules may allow authenticated users to write arbitrary progression fields to leaderboard/{uid}, including officialStars, officialXp, rankScore.
+Progression/official stars should be server-controlled, not client-controlled.
+
+Goal:
+Audit and harden Firestore rules for Play Store testing without breaking normal app flows.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch Creator
+- do not touch background remover
+- do not touch Android/TWA files
+- do not touch UI unless absolutely required
+- do not change Firebase project config
+- do not deploy rules automatically unless explicitly confirmed
+- do not change Cloud Functions logic unless audit proves it is required
+- do not expose secrets
+
+FILES ALLOWED:
+1. firestore.rules
+2. firebase.json only if rules path is missing or incorrect
+3. Cloud Functions files read-only unless a critical mismatch is found
+
+READ-ONLY FIRST.
+
+==================================================
+PHASE 0 — AUDIT CURRENT FIRESTORE MODEL
+==================================================
+
+Inspect and report:
+
+1. firestore.rules file path.
+2. firebase.json rules configuration.
+3. Collections used:
+   - shares
+   - public_cards
+   - official_shares
+   - users
+   - leaderboard
+   - teams
+   - any others
+4. Which client files write to each collection.
+5. Which Cloud Functions write progression/rank fields.
+6. Exact current rules for leaderboard/{userId}.
+7. Exact current rules for users/{userId}.
+8. Exact current rules for teams/{teamCode}.
+9. Whether rules are already deployed or only local.
+
+Do not edit until the model is clear.
+
+==================================================
+PHASE 1 — HARDEN LEADERBOARD WRITES
+==================================================
+
+Goal:
+Users must not be able to directly write server-controlled progression fields.
+
+Server-controlled fields include:
+- officialStars
+- officialXp
+- rankScore
+- officialRank
+- rank
+- totalStars
+- totalXp
+- updatedByFunction
+- any field used to determine leaderboard order
+
+Rules should allow authenticated user to create/update only safe profile/display fields if needed, such as:
+- displayName
+- photoURL
+- team
+- identityId
+- templateId
+- updatedAt
+
+But block direct client writes to:
+- officialStars
+- officialXp
+- rankScore
+- rank
+- totalStars
+- totalXp
+- any progression/ranking score
+
+If current client does not need to write leaderboard directly, then make leaderboard client writes false and only allow reads.
+
+Prefer the safest rule that does not break app flows.
+
+==================================================
+PHASE 2 — HARDEN USERS AND TEAMS IF NEEDED
+==================================================
+
+Users:
+- User can read/write own basic profile.
+- User must not directly write official progression fields if Cloud Function controls them.
+
+Teams:
+- Public read can remain.
+- Direct client writes to team score/rank fields must be blocked.
+- Cloud Function/admin/server should be only writer for aggregate ranking fields.
+
+Do not block normal account/profile creation if existing app needs it.
+
+==================================================
+PHASE 3 — RULES VALIDATION
+==================================================
+
+If Firebase emulator/rules tests exist:
+- run them.
+
+If no tests exist:
+- do static validation with firebase tools if available:
+  firebase deploy --only firestore:rules --dry-run
+or equivalent validation command if supported.
+
+Do not deploy to production automatically unless explicitly instructed.
+
+Report whether deployment command is ready.
+
+==================================================
+PHASE 4 — APP FLOW IMPACT REVIEW
+==================================================
+
+Review impacted client flows:
+
+1. Sign in / user profile sync.
+2. Official card publishing.
+3. Ranking page read.
+4. Team ranking page read.
+5. Cloud Function awardOfficialStarsSecure.
+6. Guest flow.
+
+Report:
+- what should still work
+- what may need manual test after deployment
+
+==================================================
+PHASE 5 — COMMIT ONLY
+==================================================
+
+If rules are hardened and validation passes:
+- commit changes
+- push to GitHub
+- do not deploy unless explicitly approved
+
+FINAL REPORT:
+1. files changed
+2. rules changed by collection
+3. fields now blocked from client writes
+4. fields still allowed
+5. impact on normal app flows
+6. validation result
+7. whether rules are deployed or only committed
+8. exact Firebase deploy command to run manually
+9. git commit hash
