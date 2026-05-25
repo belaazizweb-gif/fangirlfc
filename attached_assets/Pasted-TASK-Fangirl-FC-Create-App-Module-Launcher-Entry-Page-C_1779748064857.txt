@@ -1,0 +1,226 @@
+TASK: Fangirl FC — Create App Module Launcher Entry Page
+
+CONTEXT
+All core workflows are now tested and working:
+- Creator works
+- MODNet background remover works
+- export works
+- all templates work
+- Google redirect auth works
+- assetlinks deployed
+- service worker deployed
+- TWA preparation is underway
+
+Product decision:
+The app should not open as if Creator is just inside Fangirl FC.
+We are publishing the full app with two clear modules:
+1. FC Card Creator
+2. Fangirl FC main app
+
+Goal:
+When the user opens the app, they should see two large module cards:
+- FC Card Creator → /creator
+- Fangirl FC → quiz/dashboard/main app experience
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch CreatorScreen.tsx
+- do not touch template renderer
+- do not touch background remover
+- do not touch export logic
+- do not touch Firebase/Auth logic
+- do not touch service worker
+- do not touch assetlinks.json
+- do not touch Android/TWA files
+- do not change package.json
+- do not change legal pages
+- do not change Firestore rules
+- do not refactor the app architecture
+
+FILES ALLOWED:
+1. app/(main)/page.tsx
+2. components/LandingHero.tsx only if it is the current home entry
+3. app/(main)/fangirl/page.tsx only if needed to preserve the old landing/home experience
+4. TopNav only if a link label needs minimal adjustment
+
+If another file is required:
+- stop
+- report why before editing
+
+==================================================
+PHASE 0 — READ FIRST
+==================================================
+
+Before editing, inspect and report:
+
+1. Current / page implementation.
+2. Whether / currently renders LandingHero.
+3. Current path users take to start Fangirl FC quiz.
+4. Current path users take to access Creator.
+5. Whether an existing /dashboard route exists.
+6. Whether creating /fangirl is safer than overwriting current content.
+7. Confirm /creator will not be touched.
+
+Then proceed.
+
+==================================================
+PHASE 1 — ENTRY PAGE STRUCTURE
+==================================================
+
+Make / a clean module launcher.
+
+Required structure:
+
+Hero title:
+“Choose your Fangirl FC experience”
+
+Subtitle:
+“Create your football fan card or discover your fan identity.”
+
+Two large cards:
+
+Card 1:
+Title:
+“FC Card Creator”
+
+Description:
+“Build your football fan card, upload your photo, remove the background, and export your design.”
+
+Primary CTA:
+“Create My Card”
+
+Link:
+href="/creator"
+
+Visual style:
+premium, football card inspired, pink/dark theme, strong CTA.
+
+Card 2:
+Title:
+“Fangirl FC”
+
+Description:
+“Take the quiz, discover your fan identity, play mini-games, complete challenges, and climb the rankings.”
+
+Primary CTA:
+“Start Fangirl FC”
+
+Link:
+Prefer href="/quiz"
+Alternative href="/dashboard" only if quiz is not the best start.
+
+Visual style:
+social/gamified, quiz/challenge focused.
+
+Footer/disclaimer remains:
+fan-made, not affiliated with FIFA, EA, EA SPORTS FC, UEFA, clubs, leagues, federations, or sponsors.
+
+==================================================
+PHASE 2 — PRESERVE EXISTING LANDING CONTENT
+==================================================
+
+Do not delete useful existing Fangirl FC landing content if it is important.
+
+Preferred safe approach:
+- Create /fangirl route if needed.
+- Move or reuse existing LandingHero/full landing content there.
+- The module launcher card “Fangirl FC” can link to /quiz, while /fangirl can remain available if useful.
+
+If moving LandingHero is risky:
+- Keep old content lower on / below the two module cards.
+- But the two module cards must be above the fold.
+
+Do not break /quiz, /dashboard, /ranking, /creator.
+
+==================================================
+PHASE 3 — NAVIGATION
+==================================================
+
+TopNav should make both modules clear.
+
+Recommended labels:
+- Creator → /creator
+- Fangirl FC or Quiz → /quiz
+- Dashboard → /dashboard if already present
+
+Do not overload navigation.
+Do not add too many links.
+Do not remove stable routes.
+
+==================================================
+PHASE 4 — COPY RULES
+==================================================
+
+Use safe public wording.
+
+Use:
+- “FC Card Creator”
+- “football fan card”
+- “fan-made”
+- “football identity”
+- “quiz”
+- “challenges”
+- “ranking”
+
+Avoid:
+- “official”
+- “FIFA official”
+- “EA”
+- “FUT”
+- “Ultimate Team”
+- any wording implying affiliation
+
+==================================================
+PHASE 5 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation:
+
+1. / shows two clear module cards above the fold.
+2. FC Card Creator card links to /creator.
+3. Fangirl FC card links to /quiz or chosen main flow.
+4. /creator still works.
+5. Quiz still works.
+6. Dashboard still works.
+7. Ranking still works.
+8. Google login still works.
+9. Service worker unaffected.
+10. assetlinks unaffected.
+11. CardCanvas untouched.
+12. CreatorScreen untouched.
+
+==================================================
+PHASE 6 — PUSH
+==================================================
+
+If typecheck/build pass and routes work:
+1. Commit.
+2. Push to GitHub.
+3. Report commit hash.
+
+Do not push if /creator or /quiz breaks.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. new / entry structure
+3. Creator module CTA route
+4. Fangirl FC module CTA route
+5. whether old landing content was moved, reused, or kept below
+6. navigation changes, if any
+7. confirmation /creator untouched
+8. confirmation CardCanvas untouched
+9. confirmation auth/background remover/export untouched
+10. typecheck result
+11. build result
+12. git commit hash
