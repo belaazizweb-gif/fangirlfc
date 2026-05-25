@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Sparkles, Camera, LogIn, ShieldCheck, Heart } from "lucide-react";
+import { ArrowRight, Sparkles, Camera, LogIn, ShieldCheck, Heart, Wand2 } from "lucide-react";
 import { FAN_TYPE_LIST, FAN_TYPES } from "@/lib/fanTypes";
 import { TEMPLATES, getTemplate } from "@/lib/templates";
 import { FanCard } from "./FanCard";
@@ -218,6 +218,14 @@ export function LandingHero() {
           >
             Start with the quiz
             <ArrowRight className="h-4 w-4" />
+          </Link>
+
+          <Link
+            href="/creator"
+            className="flex items-center justify-center gap-2 rounded-full border border-fuchsia-400/40 bg-fuchsia-400/10 px-6 py-3 text-[13px] font-bold text-fuchsia-200 backdrop-blur transition hover:bg-fuchsia-400/20"
+          >
+            <Wand2 className="h-3.5 w-3.5" />
+            Create your FC Card
           </Link>
 
           <Link

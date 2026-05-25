@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Brain, Crosshair, LayoutDashboard, CreditCard } from "lucide-react";
+import { Brain, Crosshair, LayoutDashboard, CreditCard, Wand2 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const LINKS = [
   { href: "/dashboard",   label: "Dashboard", icon: LayoutDashboard },
   { href: "/my-cards",    label: "Card",       icon: CreditCard      },
+  { href: "/creator",     label: "Creator",    icon: Wand2           },
   { href: "/football-iq", label: "Learn",      icon: Brain           },
   { href: "/penalty",     label: "Penalty",    icon: Crosshair       },
 ];

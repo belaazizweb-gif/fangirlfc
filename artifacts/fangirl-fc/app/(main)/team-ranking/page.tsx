@@ -215,12 +215,20 @@ export default function TeamRankingPage() {
           )}
 
           {!loading && !error && !rulesBlocked && entries.length === 0 && (
-            <div className="flex flex-col items-center gap-3 py-20 text-center">
+            <div className="flex flex-col items-center gap-4 py-16 text-center">
               <Globe className="h-10 w-10 text-white/20" />
-              <p className="text-[14px] font-bold text-white/50">No teams yet</p>
-              <p className="text-[12px] text-white/30">
-                Teams appear when fans save their Fangirl Card.
-              </p>
+              <div>
+                <p className="text-[14px] font-bold text-white/50">No rankings yet</p>
+                <p className="mt-1 text-[12px] text-white/30">
+                  Be the first to create and share your fan card.
+                </p>
+              </div>
+              <a
+                href="/creator"
+                className="rounded-full border border-fuchsia-400/40 bg-fuchsia-400/10 px-5 py-2.5 text-[13px] font-bold text-fuchsia-200 transition hover:bg-fuchsia-400/20"
+              >
+                Create My Card
+              </a>
             </div>
           )}
 

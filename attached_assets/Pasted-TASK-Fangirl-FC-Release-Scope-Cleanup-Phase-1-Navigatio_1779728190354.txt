@@ -1,0 +1,252 @@
+TASK: Fangirl FC Release Scope Cleanup Phase 1 — Navigation, Creator CTA, Empty States
+
+CONTEXT
+The full app release audit is complete.
+
+Stable locked modules:
+- card creator works
+- all templates validated
+- premium renderer validated
+- AI background remover works
+- cutout works
+- export/download works
+- hotspots work
+- live domain works
+
+We are publishing the full Fangirl FC app, not only the creator.
+
+V1 release scope:
+Full Fangirl FC app with Creator as a primary feature.
+
+This task is Phase 1 release cleanup only.
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template rendering
+- do not touch AI background remover logic
+- do not touch cutout logic
+- do not touch export logic
+- do not touch card design
+- do not touch template assets
+- do not change Firebase rules
+- do not install packages
+- do not create Android wrapper
+- do not create AAB
+- do not create Privacy/Terms yet
+- do not change app architecture
+
+GOAL
+Make the existing full app release-ready from a navigation and user-flow perspective.
+
+Required fixes:
+1. Make /creator discoverable from landing/home.
+2. Make /creator accessible from main navigation if appropriate.
+3. Hide /stickers from navigation because it is not functional.
+4. Keep /stickers route but mark it clearly as Coming Soon if visited directly.
+5. Improve empty states on /ranking and /team-ranking if needed.
+6. Add or confirm AI model first-load warning near Remove Background.
+7. Verify /matchday data source and report if schedule accuracy is uncertain.
+
+FILES ALLOWED
+Allowed likely files:
+1. app/(main)/page.tsx or landing page components
+2. navigation component / TopNav component
+3. app/(main)/stickers/page.tsx
+4. app/(main)/ranking/page.tsx
+5. app/(main)/team-ranking/page.tsx
+6. components/cardCreator/PhotoEditorSheet.tsx only for warning copy if needed
+7. match data file only for read-only inspection, not editing unless explicitly approved
+
+Do not touch CardCanvas.tsx.
+
+==================================================
+PHASE 0 — READ FIRST, NO EDITS
+==================================================
+
+Before editing, inspect and report:
+
+1. Where the landing hero is implemented.
+2. Where the main navigation links are defined.
+3. Whether /creator is currently linked from landing/nav.
+4. Where /stickers is linked from navigation.
+5. Current /stickers behavior.
+6. Current /ranking empty state.
+7. Current /team-ranking empty state.
+8. Current Remove Background warning text.
+9. Current /matchday data source and whether it appears hardcoded.
+
+Then implement only the minimal approved cleanup.
+
+==================================================
+PHASE 1 — LANDING / HOME CREATOR CTA
+==================================================
+
+On the main landing page, add a clear secondary CTA above the fold:
+
+Primary CTA remains:
+“Find your fan type” or existing quiz CTA
+
+Add secondary CTA:
+“Create your FC Card”
+
+Route:
+href="/creator"
+
+CTA must be visible without scrolling on mobile if possible.
+
+Do not remove the quiz CTA.
+Do not make /creator the only path.
+The app should present both:
+- quiz identity flow
+- creator flow
+
+Suggested hero copy:
+“Take the quiz, discover your fan identity, then create your football fan card.”
+
+Use safe wording:
+- “football fan card”
+- “fan-made”
+Do not use:
+- official
+- FIFA official
+- FUT
+- EA-style
+
+==================================================
+PHASE 2 — NAVIGATION CLEANUP
+==================================================
+
+If the TopNav or main menu does not include Creator:
+- add a link to /creator labeled “Creator” or “Create Card”.
+
+If /stickers appears in navigation:
+- remove it from visible navigation.
+- do not delete the route.
+
+Do not remove stable routes:
+- /quiz
+- /creator
+- /challenges
+- /ranking
+- /football-iq
+- /penalty
+
+Keep navigation simple. Do not add too many links.
+
+==================================================
+PHASE 3 — STICKERS ROUTE COMING SOON
+==================================================
+
+Keep /stickers route.
+
+Change /stickers page so it does not pretend to collect emails.
+
+Required behavior:
+- Show “Coming Soon”
+- Explain that stickers are not available yet.
+- If email field remains, clearly say it is local preview only OR remove the email form.
+- Prefer removing the email form for V1.
+
+Do not claim users joined a waitlist unless the email is actually submitted to a backend.
+
+==================================================
+PHASE 4 — RANKING EMPTY STATES
+==================================================
+
+For /ranking and /team-ranking:
+
+If Firestore returns no entries:
+Show a clear empty state:
+
+“No rankings yet. Be the first to create and share your fan card.”
+
+Add CTA:
+“Create My Card” → /creator
+
+Do not fake leaderboard entries.
+Do not seed fake data.
+
+==================================================
+PHASE 5 — AI MODEL WARNING COPY
+==================================================
+
+Near the Remove Background button, ensure this warning exists:
+
+“First use may take 10–30 seconds and download AI model data. Your image stays in your browser.”
+
+Do not change background remover logic.
+Do not change model loading.
+Do not change upload behavior.
+
+==================================================
+PHASE 6 — MATCHDAY DATA CHECK
+==================================================
+
+Inspect the matchday data source.
+
+Report:
+- file path
+- whether matches are hardcoded
+- whether dates/teams are clearly current or uncertain
+- whether it should remain visible for V1
+
+Do not edit match data unless explicitly approved.
+
+If uncertain, add only a non-invasive note on /matchday:
+“Demo matchday mode — fixtures may be updated before launch.”
+
+Do not use official FIFA wording.
+
+==================================================
+PHASE 7 — LEGAL DISCLAIMER VISIBILITY
+==================================================
+
+If the app already has a footer disclaimer, confirm it includes:
+
+“Fangirl FC is a fan-made app and is not affiliated with FIFA, EA, EA SPORTS FC, UEFA, any football federation, club, league, or sponsor.”
+
+If the existing disclaimer is weaker, update only the disclaimer text.
+
+Do not overuse the disclaimer in every section.
+
+==================================================
+PHASE 8 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual check:
+1. Landing page has visible /creator CTA.
+2. Navigation can reach /creator.
+3. /stickers is not in navigation.
+4. /stickers direct route says Coming Soon and does not fake waitlist.
+5. /ranking empty state is clear.
+6. /team-ranking empty state is clear.
+7. Remove Background warning is visible.
+8. /creator still works.
+9. Templates still work.
+10. Export still works.
+11. No card renderer changes.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. landing CTA added
+3. navigation changes
+4. /stickers behavior
+5. /ranking empty state
+6. /team-ranking empty state
+7. AI warning copy added/confirmed
+8. matchday data status
+9. legal disclaimer status
+10. confirmation CardCanvas untouched
+11. confirmation creator/export untouched
+12. typecheck result
+13. build result
+14. git commit hash

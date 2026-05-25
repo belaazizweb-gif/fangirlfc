@@ -89,10 +89,15 @@ export default function PhotoEditorSheet({
             )}
           </button>
 
-          {/* First-use hint — always shown alongside loading, not just during load */}
+          {/* First-use hint — shown whenever a photo is loaded, before and during processing */}
+          {!isRemovingBg && (
+            <p className="text-[11px] text-white/40 text-center leading-relaxed">
+              First use may take 10–30 seconds and download AI model data. Your image stays in your browser.
+            </p>
+          )}
           {isRemovingBg && (
             <p className="text-[11px] text-white/40 text-center leading-relaxed">
-              First use may take 10–30 seconds to load the AI model.
+              First use may take 10–30 seconds and download AI model data. Your image stays in your browser.
             </p>
           )}
 

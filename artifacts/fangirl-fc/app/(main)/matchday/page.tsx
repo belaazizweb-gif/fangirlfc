@@ -23,6 +23,10 @@ export default function MatchdayPage() {
         ✨ Each match gets its own quiz, prediction, and matchday card.
       </div>
 
+      <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-white/40">
+        Demo matchday mode — fixtures may be updated before launch.
+      </div>
+
       <div className="flex flex-col gap-3">
         {MATCHES.map((m) => (
           <MatchCard
