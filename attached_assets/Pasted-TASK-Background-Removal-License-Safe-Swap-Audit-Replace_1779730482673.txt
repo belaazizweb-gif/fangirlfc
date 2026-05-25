@@ -1,0 +1,111 @@
+TASK: Background Removal License-Safe Swap Audit — Replace AGPL @imgly with MODNet Apache-2.0
+
+CONTEXT
+Fangirl FC is preparing for Play Store publication.
+The app currently uses @imgly/background-removal v1.7.0.
+Local LICENSE.md confirmed AGPL-3.0.
+We need a free, browser-based, license-safer alternative before production.
+
+Chosen candidate:
+@huggingface/transformers + Xenova/modnet
+
+Reason:
+- client-side browser execution
+- no API
+- no server
+- no cost per image
+- portrait/person matting fits our card creator use case
+- Xenova/modnet model page lists Apache-2.0
+- Transformers.js repo/package lists Apache-2.0
+
+DO NOT CODE YET.
+DO NOT INSTALL YET.
+DO NOT REMOVE @imgly YET.
+READ-ONLY AUDIT ONLY.
+
+GOAL
+Audit how to replace @imgly/background-removal with Transformers.js + Xenova/modnet while keeping the existing card creator architecture unchanged.
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch cutout rendering
+- do not touch export logic
+- do not touch hotspots
+- do not touch UI design
+- do not modify privacy/terms yet
+- do not commit changes
+
+CHECKS REQUIRED
+
+1. Current background remover integration
+Inspect and report:
+- exact file where @imgly/background-removal is dynamically imported
+- exact handler name
+- current input format
+- current output format
+- how output becomes cutoutSrc
+- how isCutout is set
+- how original src is preserved
+- how loading/error state works
+
+2. Current package/license state
+Report:
+- @imgly/background-removal version
+- @imgly license from local installed LICENSE.md
+- files that currently mention @imgly in privacy/terms/support/package
+
+3. MODNet candidate feasibility
+Check official package/model references if available locally or via package metadata:
+- @huggingface/transformers package name/version to install
+- Xenova/modnet model id
+- expected task:
+  pipeline("background-removal", "Xenova/modnet")
+  or pipeline("image-segmentation", "Xenova/modnet")
+- output API shape:
+  toBlob()
+  toCanvas()
+  mask output
+- whether it can return transparent PNG directly or requires alpha-mask compositing
+
+4. License verification plan
+Do not rely on memory.
+Plan to verify after install:
+- node_modules/@huggingface/transformers/LICENSE
+- package.json license field
+- model page/license if accessible or package cache if model files include metadata
+- report if license cannot be verified locally
+
+5. Implementation impact
+Report exact files likely to change:
+- package.json
+- pnpm-lock.yaml
+- CreatorScreen.tsx or current background remover file
+- privacy/terms attribution pages
+
+6. Risk assessment
+Report:
+- first model load size risk
+- mobile performance risk
+- WebGPU/WASM compatibility
+- output quality compared to @imgly
+- fallback behavior if MODNet fails
+- whether manual PNG cutout remains unaffected
+
+7. Recommended swap strategy
+Recommend one of:
+A. Direct replacement in existing handleRemoveBackground
+B. Add new helper module removeBackgroundModnet.ts
+C. Feature flag both engines temporarily
+
+Prefer the safest strategy.
+
+FINAL REPORT ONLY:
+1. current @imgly integration summary
+2. files affected
+3. MODNet feasibility
+4. expected code strategy
+5. license verification plan
+6. risks
+7. recommendation
+8. no code changes confirmation
