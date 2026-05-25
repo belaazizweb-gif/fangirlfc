@@ -1,0 +1,213 @@
+TASK: Fangirl FC Phase 3 — TWA/Firebase/Auth Readiness Audit Before Android Packaging
+
+CONTEXT
+Fangirl FC is now production-preparation ready.
+
+Current stable state:
+- full app scope validated
+- all templates validated
+- premium card renderer validated
+- MODNet background remover works
+- @imgly AGPL dependency removed
+- Privacy / Terms / Support exist
+- PWA icons and manifest exist
+- creator/export works
+- live domain works
+
+Important product architecture:
+We are publishing the full Fangirl FC app, not only the Creator.
+
+The app has two major areas:
+1. Main Fangirl FC app:
+   - landing
+   - quiz
+   - identity result
+   - dashboard/progression
+   - challenges
+   - rankings
+   - share/social loops
+   - Firebase / Google login already connected
+
+2. FC Card Creator:
+   - /creator
+   - templates
+   - photo upload
+   - MODNet background remover
+   - export/download
+   - no login required by design
+
+Before Android/TWA packaging, we need a full readiness audit for:
+- Firebase
+- Google Auth
+- dashboard behavior
+- TWA compatibility
+- package name
+- env/secrets safety
+- deployment requirements
+
+DO NOT MODIFY CODE.
+DO NOT INSTALL PACKAGES.
+DO NOT CREATE ANDROID WRAPPER.
+DO NOT RUN BUBBLEWRAP.
+DO NOT CREATE AAB/APK.
+DO NOT TOUCH CARD CREATOR.
+DO NOT TOUCH FIREBASE RULES.
+DO NOT PRINT SECRET VALUES.
+
+READ-ONLY AUDIT ONLY.
+
+==================================================
+SECURITY RULE
+==================================================
+
+Do not print full Firebase API keys, client IDs, private values, tokens, or environment variable values.
+
+If inspecting env vars, report only:
+- variable name exists / missing
+- type/purpose
+- whether it is safe for frontend or should be server-only
+
+Never expose full secret values in the report.
+
+==================================================
+CHECKS REQUIRED
+==================================================
+
+1. App architecture audit
+Report:
+- all major routes
+- which routes belong to main Fangirl FC app
+- which routes belong to Creator
+- which routes need login
+- which routes are public
+- whether /creator intentionally works without login
+- whether there are two dashboard-like experiences and what each one does
+
+2. Firebase config audit
+Inspect:
+- Firebase initialization file(s)
+- Auth provider setup
+- Firestore usage
+- Functions usage if any
+- Storage usage if any
+- Analytics usage if any
+
+Report:
+- Firebase project config source
+- env variables used, names only
+- whether any server-secret/private key is exposed
+- whether Firebase config is client-side safe
+- whether Firestore rules should be reviewed before launch
+
+Do not print secret values.
+
+3. Google login / Auth audit
+Report:
+- Google login implementation
+- email/password login if present
+- whether auth is optional or required
+- what features require auth
+- whether /creator requires auth
+- whether sign-in uses popup or redirect
+- whether popup flow may be a TWA risk
+- whether redirect flow should be preferred for Android/TWA
+
+4. Dashboard audit
+Report:
+- current /dashboard purpose
+- what data it displays
+- whether it depends on localStorage/Firebase/auth
+- whether dashboard works when user is not signed in
+- whether it is suitable for Play Store V1
+- whether any dashboard route should be hidden or simplified
+
+5. TWA readiness audit
+Assess whether Fangirl FC is ready for TWA.
+
+Check:
+- manifest
+- icons
+- start_url
+- display standalone
+- theme/background colors
+- scope
+- HTTPS live domain
+- legal pages
+- creator route
+- login flow compatibility
+- service worker status
+- offline fallback status
+- assetlinks.json status
+
+Report missing items before Bubblewrap.
+
+6. Android package name recommendation
+Recommend final package name.
+
+Preferred:
+com.fangirlfc.app
+
+Alternative:
+com.belaazizweb.fangirlfc
+
+Report which one is better and why.
+
+7. Firebase + Android package relationship
+Explain whether we need:
+- a native Android Firebase app
+- google-services.json
+- SHA-1/SHA-256
+- or if TWA can rely only on web Firebase config
+
+Do not configure anything yet.
+Just report recommendation.
+
+8. Play Store data safety preparation
+Based on actual Firebase/localStorage usage, draft the categories we will need for Play Console:
+- data collected
+- data shared
+- data processed locally only
+- optional account data
+- user-generated content
+- photos/images handling
+- deletion/control notes
+
+9. Risk list before Android packaging
+Report risks:
+- Google login in TWA
+- Firestore rules
+- empty leaderboard
+- MODNet first model load
+- export/download behavior in TWA
+- service worker/offline behavior
+- legal/IP wording
+- data safety consistency
+
+10. Recommended next step
+Choose one:
+
+A. Add minimal service worker first
+B. Prepare Bubblewrap/TWA config first
+C. Fix Firebase/Auth flow first
+D. Review Firestore rules first
+
+Give a strict recommendation and why.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. architecture summary
+2. Firebase/Auth summary
+3. dashboard summary
+4. Creator auth status
+5. TWA readiness status
+6. missing TWA prerequisites
+7. package name recommendation
+8. Firebase Android app recommendation
+9. Play Store Data Safety draft
+10. risks before packaging
+11. recommended next step
+12. no code changes confirmation
