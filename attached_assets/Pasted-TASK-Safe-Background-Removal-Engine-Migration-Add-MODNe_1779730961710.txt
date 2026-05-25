@@ -1,0 +1,233 @@
+TASK: Safe Background Removal Engine Migration — Add MODNet Behind Fallback, Do Not Remove @imgly Yet
+
+CONTEXT
+Fangirl FC is preparing for production.
+Current blocker: @imgly/background-removal is AGPL-3.0.
+We need to migrate toward a license-safer browser-based engine:
+@huggingface/transformers + Xenova/modnet.
+
+Critical requirement:
+DO NOT break the existing working background remover flow.
+DO NOT remove @imgly in this phase.
+DO NOT switch production default until MODNet is proven working.
+
+This is Phase A only: add and test MODNet behind a safe fallback.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch template renderer
+- do not touch export logic
+- do not touch cutout rendering
+- do not touch manual transparent PNG upload
+- do not touch EditHotspots.tsx
+- do not touch PhotoEditorSheet.tsx
+- do not change card state shape
+- do not change localStorage schema
+- do not remove @imgly/background-removal yet
+- do not update Privacy/Terms yet
+- do not push if MODNet breaks build/runtime
+
+FILES ALLOWED:
+1. package.json
+2. pnpm-lock.yaml
+3. lib/cardCreator/removeBackgroundModnet.ts — new helper
+4. components/cardCreator/CreatorScreen.tsx — minimal optional engine switch only
+
+If another file is needed:
+- stop
+- report why
+- do not edit it without approval
+
+==================================================
+PHASE 0 — PRE-FLIGHT
+==================================================
+
+Before editing, report:
+
+1. Current @imgly dynamic import location.
+2. Current handleRemoveBackground flow.
+3. Confirm original src preservation.
+4. Confirm cutoutSrc/isCutout/cutoutSource update logic.
+5. Confirm manual PNG cutout path is separate.
+6. Confirm CardCanvas.tsx will not be touched.
+
+==================================================
+PHASE 1 — INSTALL TRANSFORMERS ONLY
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc add @huggingface/transformers
+
+Do NOT remove @imgly.
+
+After install verify:
+1. package version.
+2. package license field.
+3. local LICENSE file.
+4. confirm Apache-2.0 from local files.
+
+If license is not Apache-2.0:
+- stop
+- report blocker
+- do not continue
+
+==================================================
+PHASE 2 — CREATE MODNET HELPER
+==================================================
+
+Create:
+
+lib/cardCreator/removeBackgroundModnet.ts
+
+Export exactly:
+
+export async function removeBackgroundModnet(inputBlob: Blob): Promise<Blob>
+
+Contract:
+- input Blob
+- output transparent PNG Blob
+
+Implementation:
+- dynamic import @huggingface/transformers inside the helper
+- no top-level import
+- lazy singleton pipeline promise
+- model: "Xenova/modnet"
+- first try task: "background-removal"
+- validate result shape strictly
+- expect result[0].output.toBlob()
+- return Blob
+
+Do NOT silently fallback to another model.
+Do NOT use RMBG.
+Do NOT add backend/API.
+
+If the API shape is different:
+- throw a clear error
+- report exact runtime error
+
+==================================================
+PHASE 3 — SAFE ENGINE SWITCH IN CREATORSCREEN
+==================================================
+
+In CreatorScreen.tsx, do NOT remove the existing @imgly path.
+
+Add a small internal engine selector:
+
+const BG_REMOVER_ENGINE =
+  typeof window !== "undefined" &&
+  window.localStorage.getItem("fangirl_bg_engine") === "modnet"
+    ? "modnet"
+    : "imgly";
+
+Behavior:
+- default remains "imgly"
+- existing user flow remains unchanged unless localStorage flag is set
+- no visible UI change required
+
+Then in handleRemoveBackground:
+
+if BG_REMOVER_ENGINE === "modnet":
+  dynamic import "@/lib/cardCreator/removeBackgroundModnet"
+  call removeBackgroundModnet(inputBlob)
+
+else:
+  keep current @imgly dynamic import and current behavior
+
+Do not change:
+- resizeImageForBackgroundRemoval
+- blobToDataUrl
+- loadImageDimensions
+- getCutoutBox
+- state update
+- error handling
+- loading state
+- manual PNG cutout path
+
+This ensures production path remains working.
+
+==================================================
+PHASE 4 — RUNTIME TEST MODNET
+==================================================
+
+Start dev server.
+
+In browser console, enable MODNet test:
+
+localStorage.setItem("fangirl_bg_engine", "modnet");
+location.reload();
+
+Then test /creator:
+
+1. Upload JPG.
+2. Click Remove Background.
+3. Confirm model loads.
+4. Confirm output cutout appears.
+5. Confirm original src is preserved.
+6. Confirm export works.
+7. Confirm manual PNG transparent upload still works.
+
+If MODNet fails:
+- do not remove @imgly
+- keep default engine as @imgly
+- report exact error
+- do not push unless build is clean and default flow still works
+
+==================================================
+PHASE 5 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Validate:
+1. default engine imgly still works
+2. modnet engine works only when localStorage flag is set
+3. manual PNG cutout works
+4. export works
+5. CardCanvas untouched
+6. templates untouched
+
+Search:
+- @imgly still present intentionally
+- removeBackgroundModnet helper exists
+- no Privacy/Terms update yet
+
+==================================================
+PHASE 6 — COMMIT AND PUSH RULE
+==================================================
+
+Push only if:
+- typecheck passes
+- build passes
+- default @imgly flow still works
+- MODNet either works OR fails safely without affecting default flow
+
+If build fails:
+- revert
+- do not push
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+1. files changed
+2. @huggingface/transformers version installed
+3. license verified from local files
+4. helper created
+5. engine selector added
+6. default engine confirmation
+7. MODNet runtime test result
+8. default @imgly flow still working confirmation
+9. manual PNG cutout confirmation
+10. export confirmation
+11. CardCanvas untouched confirmation
+12. typecheck result
+13. build result
+14. whether it is safe to proceed to Phase B
+15. git commit hash

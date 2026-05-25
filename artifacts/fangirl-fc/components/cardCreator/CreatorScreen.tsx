@@ -280,15 +280,34 @@ export default function CreatorScreen() {
     const originalSrc = cardState.photo.src;
     if (!originalSrc || isRemovingBg) return;
 
+    // ── Engine selector (localStorage flag — for internal testing only) ──────
+    // Default: "imgly" (@imgly/background-removal, AGPL-3.0, current production engine).
+    // Set localStorage.setItem("fangirl_bg_engine", "modnet") + reload to test MODNet.
+    const BG_REMOVER_ENGINE =
+      typeof window !== "undefined" &&
+      window.localStorage.getItem("fangirl_bg_engine") === "modnet"
+        ? "modnet"
+        : "imgly";
+
     setBgRemoveError(null);
     setIsRemovingBg(true);
 
     try {
-      // TODO: Verify @imgly/background-removal AGPL/commercial licensing before production release.
-      const { removeBackground } = await import("@imgly/background-removal");
+      const inputBlob = await resizeImageForBackgroundRemoval(originalSrc);
 
-      const inputBlob    = await resizeImageForBackgroundRemoval(originalSrc);
-      const outputBlob   = await removeBackground(inputBlob);
+      let outputBlob: Blob;
+      if (BG_REMOVER_ENGINE === "modnet") {
+        const { removeBackgroundModnet } = await import(
+          "@/lib/cardCreator/removeBackgroundModnet"
+        );
+        outputBlob = await removeBackgroundModnet(inputBlob);
+      } else {
+        // Default production engine — @imgly/background-removal (AGPL-3.0).
+        // TODO: Remove once MODNet is validated and set as default.
+        const { removeBackground } = await import("@imgly/background-removal");
+        outputBlob = await removeBackground(inputBlob);
+      }
+
       const cutoutDataUrl = await blobToDataUrl(outputBlob);
       const { width: cutoutWidth, height: cutoutHeight } = await loadImageDimensions(cutoutDataUrl);
 
