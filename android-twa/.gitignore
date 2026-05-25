@@ -1,0 +1,31 @@
+# Android build outputs
+build/
+app/build/
+.gradle/
+*.apk
+*.aab
+*.ap_
+*.idsig
+
+# Signing credentials — NEVER commit these
+*.keystore
+*.jks
+.keystore-credentials
+android-twa/.keystore-credentials
+local.properties
+
+# Android SDK local config
+local.properties
+sdk.dir=
+
+# Bubblewrap local config (may contain SDK path)
+.bubblewrap/
+
+# Node
+node_modules/
+package-lock.json
+
+# IDE
+.idea/
+*.iml
+.DS_Store

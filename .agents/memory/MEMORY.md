@@ -1,0 +1,1 @@
+- [Android TWA build environment](android-twa-build-env.md) — JDK 17 from Adoptium + SDK tools symlink + build-headless.js required; Bubblewrap CLI prompts broken on Node v24.

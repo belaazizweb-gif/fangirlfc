@@ -1,0 +1,295 @@
+TASK: Fangirl FC Phase 5 — Bubblewrap/TWA Android Packaging Preparation
+
+CONTEXT
+Fangirl FC is ready to move toward Android/TWA packaging.
+
+Current stable state:
+- full Fangirl FC app works
+- Creator works
+- MODNet background remover works
+- @imgly removed
+- legal pages exist
+- PWA icons exist
+- manifest exists
+- service worker exists
+- offline fallback exists
+- live domain works
+- /creator is intentionally public and does not require login
+- Firebase/Auth exists for main Fangirl FC app
+
+Important:
+We are publishing the full app, not only the creator.
+
+Package name decision:
+com.fangirlfc.app
+
+This phase prepares the TWA Android wrapper and signing information.
+Do NOT upload to Play Store yet.
+Do NOT modify Firebase/Auth yet.
+Do NOT modify Firestore rules yet.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch CreatorScreen.tsx
+- do not touch template renderer
+- do not touch background remover
+- do not touch export logic
+- do not touch Firebase/Auth code
+- do not touch Firestore rules
+- do not change service worker unless Bubblewrap validation proves a hard blocker
+- do not change web app UI
+- do not change Privacy/Terms unless Bubblewrap demands a manifest field issue
+- do not create fake SHA values
+- do not upload anything to Play Console
+- do not commit broken Android generated files
+- do not expose secret values in the report
+
+FILES/DIRS ALLOWED
+
+Allowed to create:
+1. Android/TWA project directory, preferably:
+   android-twa/
+   or twa/
+
+Allowed to read:
+1. public/manifest.json
+2. public/sw.js
+3. public/icons/*
+4. package.json
+5. app/layout.tsx
+6. current repo config
+
+Do not edit web runtime files unless explicitly necessary.
+
+==================================================
+PHASE 0 — PRE-FLIGHT CHECK
+==================================================
+
+Before running Bubblewrap, inspect and report:
+
+1. Current live URL:
+   https://fangirlfc.live
+
+2. Manifest URL expected:
+   https://fangirlfc.live/manifest.json
+
+3. Manifest fields:
+   - name
+   - short_name
+   - start_url
+   - scope
+   - display
+   - orientation
+   - theme_color
+   - background_color
+   - icons 192 / 512 / maskable
+
+4. Confirm service worker exists:
+   /sw.js
+
+5. Confirm offline fallback exists:
+   /offline.html
+
+6. Confirm package name:
+   com.fangirlfc.app
+
+7. Confirm app name:
+   Fangirl FC
+
+8. Check whether Bubblewrap CLI is installed.
+9. Check Node version.
+10. Check Java/JDK availability.
+11. Check Android SDK / Gradle availability.
+12. Confirm no web app files will be changed in this phase.
+
+If Bubblewrap/Java/Android SDK is missing:
+- report exact missing dependency
+- do not invent success
+- do not create fake outputs
+
+==================================================
+PHASE 1 — INSTALL / USE BUBBLEWRAP
+==================================================
+
+If Bubblewrap CLI is not installed, install it using the safest project/local method available.
+
+Prefer:
+npx @bubblewrap/cli
+
+or local dev dependency if required.
+
+Do not install global tools unless Replit environment requires it.
+
+Report exact Bubblewrap version.
+
+==================================================
+PHASE 2 — INITIALIZE TWA PROJECT
+==================================================
+
+Initialize a Bubblewrap/TWA project using the live manifest:
+
+https://fangirlfc.live/manifest.json
+
+Use:
+
+Package name:
+com.fangirlfc.app
+
+App name:
+Fangirl FC
+
+Start URL:
+/
+
+Display mode:
+standalone / fullscreen as supported by TWA
+
+Orientation:
+portrait
+
+Signing:
+Generate a new signing key only if Bubblewrap requires it.
+Store generated keystore inside the Android/TWA project directory.
+Do not print keystore password or private values.
+If Bubblewrap asks for passwords interactively:
+- use a secure generated value
+- store it only in local config if Bubblewrap does that by default
+- do not expose it in the final report
+
+IMPORTANT:
+If Bubblewrap detects missing TWA requirements, stop and report exact error.
+
+==================================================
+PHASE 3 — CHECK ANDROID TARGET SDK
+==================================================
+
+After project generation, inspect Gradle config.
+
+Report:
+- compileSdk
+- targetSdk
+- minSdk
+- Android Gradle Plugin version
+- Gradle version
+
+Requirement:
+targetSdk must be Android 15 / API 35 or higher for Google Play new app submission.
+
+If targetSdk < 35:
+- update only Android/TWA project config if safe
+- do not touch web app files
+- rebuild
+- report exact change
+
+==================================================
+PHASE 4 — BUILD TEST
+==================================================
+
+Build a debug artifact first.
+
+Then, if possible, build release AAB.
+
+Commands depend on generated project.
+Report exact commands used.
+
+Expected:
+- debug build succeeds
+- release AAB build succeeds if signing config is complete
+
+Do not upload anywhere.
+
+==================================================
+PHASE 5 — EXTRACT SIGNING FINGERPRINTS
+==================================================
+
+Extract:
+
+1. SHA-256 fingerprint
+2. SHA-1 fingerprint
+
+from the Android app signing/upload key used by Bubblewrap.
+
+Do not print private key material.
+Do not print keystore password.
+
+Report fingerprints only.
+
+These are needed for:
+- assetlinks.json
+- Firebase Android app SHA registration
+- Google Sign-In in TWA
+
+==================================================
+PHASE 6 — PREPARE assetlinks.json CONTENT
+==================================================
+
+Prepare the exact JSON content for:
+
+public/.well-known/assetlinks.json
+
+Using:
+- package name: com.fangirlfc.app
+- SHA-256 fingerprint extracted above
+
+Do not edit the web app yet unless requested.
+Just report the JSON content and file path to create in the next phase.
+
+Digital Asset Links relation should include:
+delegate_permission/common.handle_all_urls
+
+==================================================
+PHASE 7 — VERIFY TWA EXPECTATIONS
+==================================================
+
+Report:
+
+1. Whether generated TWA should open fangirlfc.live fullscreen.
+2. Whether assetlinks.json is still required before verification passes.
+3. Whether browser bar will appear until assetlinks.json is deployed.
+4. Whether Google login still needs popup-to-redirect fix.
+5. Whether Firebase Android app registration is needed with SHA-1/SHA-256.
+
+==================================================
+PHASE 8 — DO NOT PUSH UNLESS CLEAN
+==================================================
+
+If Android project is generated cleanly:
+- Commit only generated Android/TWA files if they are stable and buildable.
+- Do not commit keystore secrets if unsafe.
+- Do not commit passwords.
+- Do not commit local machine cache folders.
+- Add .gitignore entries if needed inside Android project.
+
+If generated files are incomplete or build fails:
+- do not push
+- report exact blocker
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. Bubblewrap version
+2. Android/TWA directory created
+3. package name used
+4. live URL used
+5. manifest validation result
+6. service worker/offline check result
+7. compileSdk / targetSdk / minSdk
+8. debug build result
+9. release AAB result, if attempted
+10. SHA-256 fingerprint
+11. SHA-1 fingerprint
+12. assetlinks.json content prepared
+13. whether any web app files were changed
+14. whether any secrets were exposed — should be no
+15. remaining blockers:
+    - assetlinks.json deployment
+    - Firebase Android app SHA registration
+    - Google login redirect fix
+    - Firestore rules
+    - account deletion flow
+16. git commit hash if committed
