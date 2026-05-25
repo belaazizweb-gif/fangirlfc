@@ -34,6 +34,14 @@ const FAQ = [
     q: "How do I delete my local saved data?",
     a: "Clear browser site data for fangirlfc.live through your browser's settings (Settings → Privacy → Clear browsing data, or similar). This will remove all locally saved progress, cards, and identity data.",
   },
+  {
+    q: "How do I delete my account and cloud data?",
+    a: "Send an email to support@fangirlfc.live with the subject line 'Account Deletion Request' and include your registered email address or user ID. We will process your request within 30 days.",
+  },
+  {
+    q: "How do I contact the team?",
+    a: "Email us at support@fangirlfc.live. We aim to respond within a few business days.",
+  },
 ];
 
 export default function SupportPage() {
@@ -74,9 +82,12 @@ export default function SupportPage() {
           ))}
         </div>
 
-        <div className="mt-10 flex gap-4 border-t border-white/10 pt-6 text-[12px] text-white/40">
+        <div className="mt-10 flex flex-wrap gap-4 border-t border-white/10 pt-6 text-[12px] text-white/40">
+          <Link href="/about" className="hover:text-white/70 transition">About</Link>
+          <Link href="/contact" className="hover:text-white/70 transition">Contact</Link>
           <Link href="/privacy" className="hover:text-white/70 transition">Privacy Policy</Link>
           <Link href="/terms" className="hover:text-white/70 transition">Terms of Service</Link>
+          <Link href="/delete-account" className="hover:text-white/70 transition">Delete Account</Link>
           <Link href="/creator" className="hover:text-white/70 transition">Creator</Link>
           <Link href="/" className="hover:text-white/70 transition">Home</Link>
         </div>

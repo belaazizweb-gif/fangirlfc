@@ -1,0 +1,281 @@
+TASK: Implement Final Play Store Legal & Trust Pages from Provided DOCX Files
+
+CONTEXT
+Fangirl FC is preparing for Google Play closed testing.
+
+Current stable state:
+- full Fangirl FC app works
+- Creator works
+- MODNet background remover works
+- @imgly removed
+- Google Auth redirect works
+- Firestore rules hardened and deployed
+- TWA assetlinks deployed
+- AAB/APK generated
+- Service worker deployed
+- Privacy / Terms / Support already exist but must be updated with the provided final content
+- About / Contact / Delete Account pages must be created
+
+IMPORTANT
+I am providing six DOCX files.
+Use the DOCX files as the source of truth for the final page content.
+
+DOCX TO ROUTE MAPPING
+
+1. Fangirl_FC_Privacy_Policy.docx
+   Target route:
+   app/privacy/page.tsx
+   Public URL:
+   https://fangirlfc.live/privacy
+
+2. Fangirl_FC_Terms_of_Service.docx
+   Target route:
+   app/terms/page.tsx
+   Public URL:
+   https://fangirlfc.live/terms
+
+3. Fangirl_FC_Support.docx
+   Target route:
+   app/support/page.tsx
+   Public URL:
+   https://fangirlfc.live/support
+
+4. Fangirl_FC_About.docx
+   Target route:
+   app/about/page.tsx
+   Public URL:
+   https://fangirlfc.live/about
+
+5. Fangirl_FC_Contact.docx
+   Target route:
+   app/contact/page.tsx
+   Public URL:
+   https://fangirlfc.live/contact
+
+6. Fangirl_FC_Delete_Account_and_Data.docx
+   Target route:
+   app/delete-account/page.tsx
+   Public URL:
+   https://fangirlfc.live/delete-account
+
+GOAL
+Create or update all six legal/trust pages using the exact content from the DOCX files, while matching the existing Fangirl FC visual style.
+
+This is not a design refactor.
+This is a production/legal page implementation task.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch CreatorScreen.tsx
+- do not touch template renderer
+- do not touch background remover
+- do not touch export logic
+- do not touch Firebase/Auth logic
+- do not touch Firestore rules
+- do not touch Android/TWA files
+- do not touch service worker
+- do not touch assetlinks.json
+- do not change package.json
+- do not refactor app architecture
+- do not add fake contact forms
+- do not implement automated Firebase account deletion in this task
+- do not claim instant account deletion
+- do not change app runtime behavior
+
+FILES ALLOWED:
+1. app/privacy/page.tsx
+2. app/terms/page.tsx
+3. app/support/page.tsx
+4. app/about/page.tsx
+5. app/contact/page.tsx
+6. app/delete-account/page.tsx
+7. app/(main)/layout.tsx or existing footer component — footer links only
+
+If another file is needed:
+- stop
+- report why before editing
+
+PHASE 0 — READ FIRST
+
+Before editing, inspect and report:
+
+1. Existing /privacy file path.
+2. Existing /terms file path.
+3. Existing /support file path.
+4. Whether /about exists.
+5. Whether /contact exists.
+6. Whether /delete-account exists.
+7. Current footer links.
+8. Confirm no runtime app logic will be touched.
+
+PHASE 1 — IMPLEMENT /privacy
+
+Use:
+Fangirl_FC_Privacy_Policy.docx
+
+Target:
+app/privacy/page.tsx
+
+Requirements:
+- Preserve the content meaning exactly.
+- Use the existing Fangirl FC dark/pink visual style.
+- Page must be mobile responsive.
+- Page must include the account deletion section and link:
+  https://fangirlfc.live/delete-account
+- Page must include support email:
+  support@fangirlfc.live
+- Do not remove the unofficial disclaimer.
+- Do not add unsupported claims.
+
+PHASE 2 — IMPLEMENT /terms
+
+Use:
+Fangirl_FC_Terms_of_Service.docx
+
+Target:
+app/terms/page.tsx
+
+Requirements:
+- Preserve the content meaning exactly.
+- Include fan-made entertainment purpose.
+- Include user content responsibility.
+- Include no gambling / no real-money prizes.
+- Include generated card disclaimer.
+- Include unofficial FIFA / EA / UEFA disclaimer.
+- Include contact email.
+
+PHASE 3 — IMPLEMENT /support
+
+Use:
+Fangirl_FC_Support.docx
+
+Target:
+app/support/page.tsx
+
+Requirements:
+- Preserve FAQ content.
+- Include support email.
+- Include links to:
+  /about
+  /contact
+  /privacy
+  /terms
+  /delete-account
+  /creator
+
+PHASE 4 — CREATE /about
+
+Use:
+Fangirl_FC_About.docx
+
+Target:
+app/about/page.tsx
+
+Requirements:
+- Create the page if it does not exist.
+- Explain Fangirl FC as a fan-made football experience.
+- Explain the two modules:
+  FC Card Creator
+  Fangirl FC
+- Include privacy-first creator section.
+- Include unofficial disclaimer.
+- Include support email.
+
+PHASE 5 — CREATE /contact
+
+Use:
+Fangirl_FC_Contact.docx
+
+Target:
+app/contact/page.tsx
+
+Requirements:
+- Create the page if it does not exist.
+- Email-only contact.
+- Do not add a fake contact form.
+- Include support email:
+  support@fangirlfc.live
+- Include links to /privacy and /delete-account.
+
+PHASE 6 — CREATE /delete-account
+
+Use:
+Fangirl_FC_Delete_Account_and_Data.docx
+
+Target:
+app/delete-account/page.tsx
+
+Requirements:
+- Create the page if it does not exist.
+- This page is the Google Play data deletion web resource.
+- Explain deletion request by email.
+- Explain what users must include.
+- Explain local browser data deletion.
+- Explain cloud data deletion after verification.
+- Do not claim automated deletion.
+- Do not implement Firebase deletion in this task.
+- Include links to /privacy, /terms, and /contact.
+
+PHASE 7 — FOOTER LINKS
+
+Update the footer only.
+
+Footer should include:
+- About → /about
+- Contact → /contact
+- Privacy → /privacy
+- Terms → /terms
+- Support → /support
+- Delete Account → /delete-account
+
+Keep the existing disclaimer:
+Fangirl FC is fan-made and not affiliated with FIFA, EA, EA SPORTS FC, UEFA, football federations, clubs, leagues, teams, or sponsors.
+
+Do not add these links to TopNav.
+Footer only.
+
+PHASE 8 — VALIDATION
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual route checks:
+1. /privacy builds
+2. /terms builds
+3. /support builds
+4. /about builds
+5. /contact builds
+6. /delete-account builds
+7. footer links work
+8. /creator still works
+9. /dashboard still works
+10. Google auth still works
+11. no runtime app logic touched
+
+Do not push if build fails.
+
+PHASE 9 — PUSH
+
+If validation passes:
+1. Commit.
+2. Push to GitHub.
+3. Report final hash.
+
+FINAL REPORT:
+1. files created
+2. files updated
+3. Privacy Policy URL
+4. Terms URL
+5. Support URL
+6. About URL
+7. Contact URL
+8. Delete Account URL
+9. footer links added
+10. confirmation no runtime app logic touched
+11. typecheck result
+12. build result
+13. git commit hash

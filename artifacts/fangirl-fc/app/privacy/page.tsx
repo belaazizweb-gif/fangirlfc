@@ -67,8 +67,8 @@ export default function PrivacyPage() {
             <p className="mt-2">
               Firestore (Firebase&apos;s database) may store public and shared card metadata,
               display name, team selection, fan identity, and ranking or leaderboard data when
-              you use sharing or official card features. No Firebase Storage image upload was
-              identified in the current version of the app.
+              you use sharing or official card features. No Firebase Storage image upload is
+              used in the current version of the app.
             </p>
             <p className="mt-2">
               Firebase services are subject to{" "}
@@ -136,7 +136,36 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-[16px] font-bold text-white">10. Unofficial disclaimer</h2>
+            <h2 className="mb-2 text-[16px] font-bold text-white">10. Account deletion and data removal</h2>
+            <p>
+              You may request deletion of your account and associated cloud data at any time.
+              Because Fangirl FC does not support automated in-app deletion at this time, deletion
+              requests are processed by email.
+            </p>
+            <p className="mt-2">
+              To request deletion, send an email to{" "}
+              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
+                support@fangirlfc.live
+              </a>{" "}
+              with the subject line <strong className="text-white/80">Account Deletion Request</strong> and
+              include your registered email address or user ID. We will process your request within
+              30 days.
+            </p>
+            <p className="mt-2">
+              Local browser data (quiz progress, stars, saved cards) can be deleted at any time
+              through your browser&apos;s site storage settings for fangirlfc.live.
+            </p>
+            <p className="mt-2">
+              For full instructions, see our{" "}
+              <Link href="/delete-account" className="text-pink-300 underline">
+                Delete Account &amp; Data page
+              </Link>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-2 text-[16px] font-bold text-white">11. Unofficial disclaimer</h2>
             <p>
               Fangirl FC is a fan-made app and is not affiliated with FIFA, EA, EA SPORTS FC,
               UEFA, any football federation, club, league, or sponsor.
@@ -144,7 +173,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-[16px] font-bold text-white">11. Contact</h2>
+            <h2 className="mb-2 text-[16px] font-bold text-white">12. Contact</h2>
             <p>
               For privacy questions, contact us at{" "}
               <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
@@ -155,9 +184,11 @@ export default function PrivacyPage() {
           </section>
         </div>
 
-        <div className="mt-10 flex gap-4 border-t border-white/10 pt-6 text-[12px] text-white/40">
+        <div className="mt-10 flex flex-wrap gap-4 border-t border-white/10 pt-6 text-[12px] text-white/40">
           <Link href="/terms" className="hover:text-white/70 transition">Terms of Service</Link>
           <Link href="/support" className="hover:text-white/70 transition">Support</Link>
+          <Link href="/delete-account" className="hover:text-white/70 transition">Delete Account</Link>
+          <Link href="/contact" className="hover:text-white/70 transition">Contact</Link>
           <Link href="/" className="hover:text-white/70 transition">Home</Link>
         </div>
       </div>
