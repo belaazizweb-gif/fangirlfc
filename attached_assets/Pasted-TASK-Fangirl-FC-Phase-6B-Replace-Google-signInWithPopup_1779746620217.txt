@@ -1,0 +1,250 @@
+TASK: Fangirl FC Phase 6B — Replace Google signInWithPopup with signInWithRedirect for TWA Compatibility
+
+CONTEXT
+Digital Asset Links is deployed and verified:
+https://fangirlfc.live/.well-known/assetlinks.json
+
+Firebase Android app has been added:
+package name: com.fangirlfc.app
+SHA-1 and SHA-256 have been added in Firebase.
+
+Current blocker:
+Google login currently uses signInWithPopup.
+TWA / Android trusted web activity may block or fail popup auth flows.
+We need to replace Google login with redirect-based auth.
+
+Important:
+The Creator does not require login and must remain public.
+This task only affects auth/login behavior in the main Fangirl FC app.
+
+STRICT DO NOT TOUCH
+
+DO NOT:
+- do not touch CardCanvas.tsx
+- do not touch CreatorScreen.tsx
+- do not touch /creator behavior
+- do not touch template renderer
+- do not touch background remover
+- do not touch export logic
+- do not touch service worker
+- do not touch assetlinks.json
+- do not touch Android/TWA build files
+- do not touch Firestore rules yet
+- do not change dashboard logic unless auth provider requires it
+- do not refactor the entire auth system
+- do not change Firebase project config values
+- do not expose env values or secrets
+
+FILES ALLOWED:
+1. lib/auth.ts
+2. components/AuthProvider.tsx or equivalent auth context/provider
+3. components/AuthModal.tsx or login UI component if it directly calls Google login
+4. any file that imports the Google login function, only if required
+5. types file only if required
+
+If another file is needed:
+- stop
+- report why before editing
+
+==================================================
+PHASE 0 — READ FIRST, NO EDITS
+==================================================
+
+Before editing, inspect and report:
+
+1. Current auth files:
+   - Firebase app init
+   - auth helper functions
+   - AuthProvider/AuthContext
+   - AuthModal/login UI
+
+2. Current Google login implementation:
+   - exact function name
+   - whether it uses signInWithPopup
+   - where it is called
+
+3. Current email/password login:
+   - confirm it is separate and should not be changed
+
+4. Current auth state handling:
+   - onAuthStateChanged usage
+   - user profile sync
+   - Firestore user doc creation/update
+
+5. Whether getRedirectResult is currently used anywhere.
+
+6. Confirm /creator does not use auth and will not be touched.
+
+Then implement minimal changes.
+
+==================================================
+PHASE 1 — REPLACE GOOGLE POPUP WITH REDIRECT
+==================================================
+
+In the Google login helper:
+
+Replace:
+signInWithPopup(auth, provider)
+
+With:
+signInWithRedirect(auth, provider)
+
+The Google login function should:
+- start redirect flow
+- not expect a UserCredential return immediately
+- keep error handling for redirect initiation failures
+
+Example pattern:
+
+export async function signInWithGoogle() {
+  const auth = getFirebaseAuth();
+  if (!auth) throw new Error("Firebase Auth is not configured");
+
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+
+  await signInWithRedirect(auth, provider);
+}
+
+Do not change email/password functions unless necessary.
+
+==================================================
+PHASE 2 — HANDLE REDIRECT RESULT ON APP LOAD
+==================================================
+
+In AuthProvider/AuthContext:
+
+Add getRedirectResult handling once on client load.
+
+Behavior:
+- after Firebase Auth is ready, call getRedirectResult(auth)
+- if a UserCredential is returned, sync/create the user profile exactly like the popup flow used to do
+- if result is null, do nothing
+- catch and store/log redirect errors without breaking the app
+- do not create duplicate users if onAuthStateChanged already handles profile sync
+
+Important:
+Avoid double profile writes if both getRedirectResult and onAuthStateChanged run.
+Preferred safe approach:
+- keep onAuthStateChanged as source of truth for current user state
+- use getRedirectResult only to capture redirect errors and optionally trigger existing sync function if needed
+- if existing onAuthStateChanged already syncs profile, do not duplicate sync logic
+
+==================================================
+PHASE 3 — UI BEHAVIOR
+==================================================
+
+AuthModal/login button behavior:
+
+- Clicking “Continue with Google” triggers redirect
+- It is acceptable that the page navigates away
+- Do not show a fake success message before redirect
+- Existing loading state should show briefly if available
+- If redirect initiation fails, show existing error UI
+
+No visual redesign.
+
+==================================================
+PHASE 4 — AUTH COMPATIBILITY CHECKS
+==================================================
+
+Ensure these flows still work:
+
+1. Guest flow:
+- landing
+- quiz
+- creator
+- games
+- dashboard
+must work without sign-in
+
+2. Email/password auth:
+- if currently implemented, it must still work unchanged
+
+3. Google auth web:
+- click Google sign-in
+- redirects to Google
+- returns to app
+- user becomes signed in
+- profile is created/updated as before
+
+4. Google auth TWA:
+- redirect flow should be compatible with TWA
+
+5. /creator:
+- no login required
+- unaffected
+
+==================================================
+PHASE 5 — AUTHORIZED DOMAINS CHECK
+==================================================
+
+Do not modify Firebase Console.
+
+Report reminder only:
+Firebase Console → Authentication → Settings → Authorized domains must include:
+
+fangirlfc.live
+
+If localhost/dev domains are used, keep them for dev.
+
+==================================================
+PHASE 6 — VALIDATION
+==================================================
+
+Run:
+
+pnpm --filter @workspace/fangirl-fc typecheck
+pnpm --filter @workspace/fangirl-fc build
+
+Manual validation:
+
+1. Open app as guest:
+   /
+   /creator
+   /dashboard
+   /ranking
+
+2. Test Google login in normal browser:
+   - click Google sign-in
+   - redirect to Google
+   - return to app
+   - user is signed in
+
+3. Test email/password if present.
+
+4. Confirm /creator still works without login.
+
+5. Confirm no CardCanvas/Creator files touched.
+
+Do not push if build fails.
+
+==================================================
+PHASE 7 — COMMIT AND PUSH
+==================================================
+
+If validation passes:
+1. Commit.
+2. Push to GitHub.
+3. Report final hash.
+
+==================================================
+FINAL REPORT
+==================================================
+
+Report only:
+
+1. files changed
+2. previous Google auth method
+3. new Google auth method
+4. where getRedirectResult is handled
+5. confirmation email/password auth unchanged
+6. confirmation guest flow unchanged
+7. confirmation /creator still public
+8. confirmation CardCanvas/Creator untouched
+9. typecheck result
+10. build result
+11. Google login browser test result, if performed
+12. Firebase authorized domains reminder
+13. remaining blockers after this phase
+14. git commit hash

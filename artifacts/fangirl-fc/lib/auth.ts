@@ -3,7 +3,8 @@
 import {
   getAuth,
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
@@ -42,12 +43,23 @@ export function subscribeToAuth(cb: (user: User | null) => void): () => void {
   return onAuthStateChanged(auth, cb);
 }
 
-export async function signInWithGoogle(): Promise<User> {
+export async function signInWithGoogle(): Promise<void> {
   const auth = getFirebaseAuth();
   if (!auth) throw new Error("Firebase Auth not configured");
   const provider = new GoogleAuthProvider();
-  const result = await signInWithPopup(auth, provider);
-  return result.user;
+  provider.setCustomParameters({ prompt: "select_account" });
+  await signInWithRedirect(auth, provider);
+}
+
+export async function handleGoogleRedirectResult(): Promise<void> {
+  const auth = getFirebaseAuth();
+  if (!auth) return;
+  try {
+    await getRedirectResult(auth);
+    // onAuthStateChanged in AuthProvider handles user state + profile sync
+  } catch (e) {
+    console.warn("Google redirect result error:", e);
+  }
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<User> {

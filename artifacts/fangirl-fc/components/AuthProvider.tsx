@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "firebase/auth";
-import { subscribeToAuth } from "@/lib/auth";
+import { subscribeToAuth, handleGoogleRedirectResult } from "@/lib/auth";
 import { syncUserOnLogin } from "@/lib/userSync";
 
 interface AuthCtx {
@@ -23,6 +23,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const prevUid = useRef<string | null>(null);
+
+  useEffect(() => {
+    handleGoogleRedirectResult();
+  }, []);
 
   useEffect(() => {
     const unsub = subscribeToAuth((u) => {
