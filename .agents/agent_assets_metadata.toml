@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "H6EqxWz41NXE2TN52mni6"
+uri = "file://android-twa/fangirl-fc-release-artifacts.zip"
+type = "unspecified"
+title = "Fangirl FC — Release Artifacts (APK + AAB + manifests)"
