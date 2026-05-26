@@ -93,8 +93,8 @@ export default function AboutPage() {
             <h2 className="mb-2 text-[16px] font-bold text-white">Contact us</h2>
             <p>
               Questions, feedback, or support requests — email us at{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>
               .
             </p>

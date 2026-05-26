@@ -37,11 +37,11 @@ export default function DeleteAccountPage() {
             <h2 className="mb-2 text-[16px] font-bold text-white">How to submit a deletion request</h2>
             <p>Send an email to:</p>
             <a
-              href="mailto:support@fangirlfc.live"
+              href="mailto:fangirlfc2026@gmail.com"
               className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-pink-400/30 bg-pink-400/10 px-5 py-3 text-[14px] font-semibold text-pink-200 transition hover:bg-pink-400/20"
             >
               <Mail className="h-4 w-4" />
-              support@fangirlfc.live
+              fangirlfc2026@gmail.com
             </a>
             <p className="mt-4">Use the subject line:</p>
             <div className="mt-2 rounded-xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-[13px] text-white/80">
@@ -116,8 +116,8 @@ export default function DeleteAccountPage() {
                 Privacy Policy
               </Link>{" "}
               or contact us at{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>
               .
             </p>

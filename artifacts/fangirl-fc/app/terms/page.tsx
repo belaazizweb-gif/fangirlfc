@@ -90,8 +90,8 @@ export default function TermsPage() {
             <p>
               You may request deletion of your account and associated data at any time by
               contacting us at{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>
               . See our{" "}
               <Link href="/delete-account" className="text-pink-300 underline">
@@ -143,8 +143,8 @@ export default function TermsPage() {
             <h2 className="mb-2 text-[16px] font-bold text-white">11. Contact</h2>
             <p>
               For questions about these terms, contact us at{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>
               .
             </p>

@@ -30,11 +30,11 @@ export default function ContactPage() {
               support. All enquiries are handled by email.
             </p>
             <a
-              href="mailto:support@fangirlfc.live"
+              href="mailto:fangirlfc2026@gmail.com"
               className="mt-5 inline-flex items-center gap-2.5 rounded-2xl border border-pink-400/30 bg-pink-400/10 px-6 py-4 text-[15px] font-semibold text-pink-200 transition hover:bg-pink-400/20"
             >
               <Mail className="h-5 w-5" />
-              support@fangirlfc.live
+              fangirlfc2026@gmail.com
             </a>
           </section>
 

@@ -144,8 +144,8 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-2">
               To request deletion, send an email to{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>{" "}
               with the subject line <strong className="text-white/80">Account Deletion Request</strong> and
               include your registered email address or user ID. We will process your request within
@@ -176,8 +176,8 @@ export default function PrivacyPage() {
             <h2 className="mb-2 text-[16px] font-bold text-white">12. Contact</h2>
             <p>
               For privacy questions, contact us at{" "}
-              <a href="mailto:support@fangirlfc.live" className="text-pink-300 underline">
-                support@fangirlfc.live
+              <a href="mailto:fangirlfc2026@gmail.com" className="text-pink-300 underline">
+                fangirlfc2026@gmail.com
               </a>
               .
             </p>

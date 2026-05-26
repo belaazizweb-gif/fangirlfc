@@ -36,11 +36,11 @@ const FAQ = [
   },
   {
     q: "How do I delete my account and cloud data?",
-    a: "Send an email to support@fangirlfc.live with the subject line 'Account Deletion Request' and include your registered email address or user ID. We will process your request within 30 days.",
+    a: "Send an email to fangirlfc2026@gmail.com with the subject line 'Account Deletion Request' and include your registered email address or user ID. We will process your request within 30 days.",
   },
   {
     q: "How do I contact the team?",
-    a: "Email us at support@fangirlfc.live. We aim to respond within a few business days.",
+    a: "Email us at fangirlfc2026@gmail.com. We aim to respond within a few business days.",
   },
 ];
 
@@ -61,11 +61,11 @@ export default function SupportPage() {
         </p>
 
         <a
-          href="mailto:support@fangirlfc.live"
+          href="mailto:fangirlfc2026@gmail.com"
           className="mt-6 inline-flex items-center gap-2 rounded-full border border-pink-400/30 bg-pink-400/10 px-5 py-2.5 text-[13px] font-semibold text-pink-200 transition hover:bg-pink-400/20"
         >
           <Mail className="h-3.5 w-3.5" />
-          support@fangirlfc.live
+          fangirlfc2026@gmail.com
         </a>
 
         <h2 className="mt-10 text-[18px] font-bold">Frequently Asked Questions</h2>
