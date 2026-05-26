@@ -1,0 +1,261 @@
+TASK: Fangirl FC Final Release Verification Audit — No Code Changes
+
+CONTEXT
+Fangirl FC is preparing for Google Play closed testing.
+
+Current expected stable state:
+- Full app works
+- Entry page has two modules: FC Card Creator and Fangirl FC
+- Creator works without login
+- MODNet background remover works
+- Export/download works
+- All templates work
+- @imgly removed
+- Google Auth uses redirect and works
+- Firestore rules hardened and deployed
+- Service worker exists
+- assetlinks.json deployed
+- Firebase Android app added with SHA-1/SHA-256
+- Legal/trust pages exist
+- Official contact email: fangirlfc2026@gmail.com
+- AAB/APK generated
+- Package name: com.fangirlfc.app
+- targetSdk: 35
+
+THIS IS A READ-ONLY FINAL AUDIT.
+
+DO NOT:
+- do not modify code
+- do not install packages
+- do not regenerate Android files
+- do not touch Firebase rules
+- do not touch Auth
+- do not touch Creator
+- do not touch CardCanvas
+- do not touch legal pages
+- do not commit
+- do not push
+- do not deploy
+
+==================================================
+SECTION 1 — WEB PRODUCTION VERIFICATION
+==================================================
+
+Check live production URLs:
+
+1. /
+2. /creator
+3. /quiz
+4. /dashboard
+5. /ranking
+6. /team-ranking
+7. /privacy
+8. /terms
+9. /support
+10. /about
+11. /contact
+12. /delete-account
+13. /.well-known/assetlinks.json
+14. /manifest.json
+15. /sw.js
+16. /offline.html
+
+Report:
+- HTTP status
+- whether page renders
+- whether page is HTML/JSON/JS as expected
+- any broken route
+
+==================================================
+SECTION 2 — LEGAL/TRUST VERIFICATION
+==================================================
+
+Verify:
+
+1. Privacy page exists and includes:
+   - Firebase/Auth data
+   - localStorage
+   - browser-based photo processing
+   - MODNet / Transformers.js
+   - account deletion link
+   - contact email: fangirlfc2026@gmail.com
+
+2. Terms page exists and includes:
+   - fan-made purpose
+   - user content responsibility
+   - no gambling / no real-money prizes
+   - unofficial disclaimer
+   - contact email
+
+3. Support page exists and includes:
+   - contact email
+   - FAQ
+   - links to privacy, terms, creator, delete account, contact
+
+4. About page exists and includes:
+   - two modules
+   - privacy-first creator
+   - unofficial disclaimer
+
+5. Contact page exists and includes:
+   - fangirlfc2026@gmail.com
+   - no fake form
+
+6. Delete Account page exists and includes:
+   - web resource for deletion requests
+   - account email instructions
+   - local data deletion explanation
+   - cloud data deletion explanation
+   - no false instant deletion claim
+
+Report any missing wording.
+
+==================================================
+SECTION 3 — CREATOR VERIFICATION
+==================================================
+
+Verify on /creator:
+
+1. Opens without login.
+2. Template selection works.
+3. JPG upload works.
+4. MODNet background remover works.
+5. Transparent PNG manual cutout works.
+6. Opaque PNG normal upload works.
+7. Export/download works.
+8. Stats/text/template rendering work.
+9. No @imgly references remain.
+10. CardCanvas not modified after stable renderer lock.
+
+Report:
+- pass/fail
+- any console errors
+- any performance concern
+
+==================================================
+SECTION 4 — AUTH VERIFICATION
+==================================================
+
+Verify:
+
+1. Google login uses redirect, not popup.
+2. Email/password remains unchanged if present.
+3. Guest flow works without sign-in.
+4. User can sign in and return to app.
+5. Dashboard works signed in and guest.
+6. /creator remains public.
+7. Firebase authorized domain reminder:
+   fangirlfc.live must be present.
+
+Report any issue.
+
+==================================================
+SECTION 5 — FIRESTORE RULES VERIFICATION
+==================================================
+
+Verify local rules file and deployed expectation:
+
+1. leaderboard users cannot directly write officialStars / officialXp / rankScore.
+2. teams cannot directly write totalStars / totalXp / rankScore.
+3. users cannot directly write official progression fields.
+4. public reads for ranking/team ranking still work.
+5. Cloud Function awardOfficialStarsSecure should still work through Admin SDK.
+
+Report:
+- rules status
+- deployment status if detectable
+- remaining rule risks
+
+==================================================
+SECTION 6 — PWA/TWA VERIFICATION
+==================================================
+
+Verify:
+
+1. manifest.json:
+   - name
+   - short_name
+   - start_url /
+   - scope /
+   - display standalone
+   - icons 192/512/maskable
+
+2. service worker:
+   - /sw.js reachable
+   - registers in production
+   - cache strategy safe
+   - no aggressive Firebase/Auth/HuggingFace caching
+
+3. assetlinks:
+   - /.well-known/assetlinks.json reachable
+   - package_name com.fangirlfc.app
+   - SHA-256 D2:6E:05:A2:B0:E2:B2:AB:74:FA:E2:5D:BA:28:6E:FB:06:E5:F9:BC:FD:20:B4:09:A2:71:47:25:CD:E0:F2:F4
+   - relation delegate_permission/common.handle_all_urls
+
+4. Android project:
+   - package com.fangirlfc.app
+   - targetSdk 35
+   - AAB exists
+   - APK exists
+   - APK signed
+
+Report:
+- pass/fail
+- exact missing item if any
+
+==================================================
+SECTION 7 — PLAY CONSOLE READINESS
+==================================================
+
+Prepare final checklist status:
+
+1. App name
+2. Package name
+3. Category
+4. Short description needed
+5. Long description needed
+6. Screenshots needed
+7. Feature graphic needed
+8. Privacy Policy URL
+9. Account Deletion URL
+10. Contact email
+11. Data Safety draft
+12. Content rating
+13. Target audience
+14. Ads declaration
+15. App access declaration
+16. Closed testing requirement
+
+Report which are ready and which must still be prepared manually.
+
+==================================================
+SECTION 8 — FINAL RISK SUMMARY
+==================================================
+
+Classify remaining risks:
+
+- Blocker
+- High
+- Medium
+- Low
+
+Expected remaining items:
+- real-device APK/TWA test
+- Play App Signing SHA-256 may need to be added later
+- screenshots and listing assets
+- closed testing testers
+- Data Safety form
+- account deletion is request-based, not automated
+
+FINAL REPORT:
+1. web route status
+2. legal page status
+3. creator status
+4. auth status
+5. Firestore rules status
+6. PWA/TWA status
+7. Android artifact status
+8. Play Console readiness checklist
+9. remaining blockers
+10. exact next recommended action
+11. no code changes confirmation
