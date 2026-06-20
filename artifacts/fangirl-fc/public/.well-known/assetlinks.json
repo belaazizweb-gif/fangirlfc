@@ -1,11 +1,14 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.fangirlfc.app",
       "sha256_cert_fingerprints": [
-        "D2:6E:05:A2:B0:E2:B2:AB:74:FA:E2:5D:BA:28:6E:FB:06:E5:F9:BC:FD:20:B4:09:A2:71:47:25:CD:E0:F2:F4"
+        "D2:6E:05:A2:B0:E2:B2:AB:74:FA:E2:5D:BA:28:6E:FB:06:E5:F9:BC:FD:20:B4:09:A2:71:47:25:CD:E0:F2:F4",
+        "4C:5B:F2:22:B3:55:0A:68:AE:C5:97:6B:F9:A4:98:33:D3:D9:1A:E1:DF:28:98:3A:50:C2:12:73:70:F7:2D:CE"
       ]
     }
   }
